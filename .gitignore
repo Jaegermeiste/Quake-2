@@ -1,0 +1,9 @@
+
+*.ipch
+*.db
+.vs/quake2/v15/.suo
+*.opendb
+*.db-wal
+*.db-shm
+UpgradeLog.htm
+ref_soft/debug/ref_soft.log
