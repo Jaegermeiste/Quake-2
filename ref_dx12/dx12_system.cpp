@@ -25,6 +25,32 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
+dx12::System* sys = nullptr;
+
+D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
+{
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_9_1;
+
+	std::map<std::string, D3D_FEATURE_LEVEL> featureLevelMap;
+	featureLevelMap["D3D_FEATURE_LEVEL_12_1"] = D3D_FEATURE_LEVEL_12_1;
+	featureLevelMap["D3D_FEATURE_LEVEL_12_0"] = D3D_FEATURE_LEVEL_12_0;
+	featureLevelMap["D3D_FEATURE_LEVEL_11_1"] = D3D_FEATURE_LEVEL_11_1;
+	featureLevelMap["D3D_FEATURE_LEVEL_11_0"] = D3D_FEATURE_LEVEL_11_0;
+	featureLevelMap["D3D_FEATURE_LEVEL_10_1"] = D3D_FEATURE_LEVEL_10_1;
+	featureLevelMap["D3D_FEATURE_LEVEL_10_0"] = D3D_FEATURE_LEVEL_10_0;
+	featureLevelMap["D3D_FEATURE_LEVEL_9_3"] = D3D_FEATURE_LEVEL_9_3;
+	featureLevelMap["D3D_FEATURE_LEVEL_9_2"] = D3D_FEATURE_LEVEL_9_2;
+	featureLevelMap["D3D_FEATURE_LEVEL_9_1"] = D3D_FEATURE_LEVEL_9_1;
+
+	auto search = featureLevelMap.find(featureLevelString);
+	if (search != featureLevelMap.end()) 
+	{
+		featureLevel = search->second;
+	}
+
+	return featureLevel;
+}
+
 void dx12::System::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter)
 {
 	Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
@@ -44,7 +70,7 @@ void dx12::System::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** p
 
 		// Check to see if the adapter supports Direct3D 12, but don't create the
 		// actual device yet.
-		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), FeatureLevelForString(ref->cvars->featureLevel->String()), _uuidof(ID3D12Device), nullptr)))
 		{
 			break;
 		}

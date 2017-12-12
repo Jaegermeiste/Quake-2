@@ -42,45 +42,48 @@ ref_dx12
 // fall over
 #define	ROLL	2
 
+typedef struct
+{
+	unsigned		width, height;			// coordinates from main game
+} viddef_t;
+
+typedef enum
+{
+	it_skin,
+	it_sprite,
+	it_wall,
+	it_pic,
+	it_sky
+} imagetype_t;
+
+typedef struct image_s
+{
+	char				name[MAX_QPATH];				// game path, including extension
+	imagetype_t			type;
+	int					width, height;					// source image
+	int					upload_width, upload_height;	// after power of two and picmip
+	int					registration_sequence;			// 0 = free
+	struct msurface_s	*texturechain;					// for sort-by-texture world drawing
+	int					texnum;							// gl texture binding
+	float				sl, tl, sh, th;					// 0,0 - 1,1 unless part of the scrap
+	qboolean			scrap;
+	qboolean			has_alpha;
+
+	qboolean			paletted;
+} image_t;
+
+#include "dx12_cvar.hpp"
 #include "dx12_client.hpp"
 #include "dx12_system.hpp"
+#include "dx12_image.hpp"
 #include "dx12_draw.hpp"
+#include "dx12_ref.hpp"
 
 namespace dx12
 {
-	typedef struct
-	{
-		unsigned		width, height;			// coordinates from main game
-	} viddef_t;
-
-	typedef enum
-	{
-		it_skin,
-		it_sprite,
-		it_wall,
-		it_pic,
-		it_sky
-	} imagetype_t;
-
-	typedef struct image_s
-	{
-		char				name[MAX_QPATH];				// game path, including extension
-		imagetype_t			type;
-		int					width, height;					// source image
-		int					upload_width, upload_height;	// after power of two and picmip
-		int					registration_sequence;			// 0 = free
-		struct msurface_s	*texturechain;					// for sort-by-texture world drawing
-		int					texnum;							// gl texture binding
-		float				sl, tl, sh, th;					// 0,0 - 1,1 unless part of the scrap
-		qboolean			scrap;
-		qboolean			has_alpha;
-
-		qboolean			paletted;
-	} image_t;
-
 	// Functions
-	qboolean	dx12::Init		(void *hInstance, void *wndProc);
-	void		dx12::Shutdown	(void);
+	bool	Init		(HINSTANCE hInstance, WNDPROC wndProc);
+	void	Shutdown	(void);
 }
 
 #endif // !__DX12_LOCAL_HPP__

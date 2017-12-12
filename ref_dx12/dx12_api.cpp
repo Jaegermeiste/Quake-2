@@ -25,6 +25,170 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
+inline void	SHIM_R_BeginRegistration(char *map)
+{
+
+}
+
+inline model_s* SHIM_R_RegisterModel(char *name)
+{
+	return nullptr;
+}
+
+inline struct image_s	*SHIM_R_RegisterSkin(char *name)
+{
+	return nullptr;
+}
+
+inline void SHIM_R_SetSky(char *name, float rotate, vec3_t axis)
+{
+
+}
+
+inline void	SHIM_R_EndRegistration(void)
+{
+
+}
+
+inline void	SHIM_R_RenderFrame(refdef_t *fd)
+{
+
+}
+
+inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		unsigned int width = msl::utilities::SafeInt<unsigned int>(*w);
+		unsigned int height = msl::utilities::SafeInt<unsigned int>(*h);
+		dx12::ref->draw->GetPicSize(width, height, name);
+		*w = msl::utilities::SafeInt<int>(width);
+		*h = msl::utilities::SafeInt<int>(height);
+	}
+}
+
+inline image_t	*SHIM_Draw_FindPic(char *name)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->img != nullptr))
+	{
+		// Get and return the raw pointer
+		return dx12::ref->img->Load(name).get();
+	}
+
+	return nullptr;
+}
+
+inline void	SHIM_Draw_Pic(int x, int y, char *name)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->Pic(x, y, name);
+	}
+}
+
+inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->StretchPic(msl::utilities::SafeInt<unsigned int>(x),
+								msl::utilities::SafeInt<unsigned int>(y), 
+								msl::utilities::SafeInt<unsigned int>(w), 
+								msl::utilities::SafeInt<unsigned int>(h), 
+								name);
+	}
+}
+
+inline void	SHIM_Draw_Char(int x, int y, int c)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->Char(msl::utilities::SafeInt<unsigned int>(x), msl::utilities::SafeInt<unsigned int>(y), c);
+	}
+}
+
+inline void	SHIM_Draw_TileClear(int x, int y, int w, int h, char *name)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->TileClear(msl::utilities::SafeInt<unsigned int>(x),
+							msl::utilities::SafeInt<unsigned int>(y),
+							msl::utilities::SafeInt<unsigned int>(w),
+							msl::utilities::SafeInt<unsigned int>(h),
+							name);
+	}
+}
+
+inline void	SHIM_Draw_Fill(int x, int y, int w, int h, int c)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->Fill(msl::utilities::SafeInt<unsigned int>(x),
+						msl::utilities::SafeInt<unsigned int>(y),
+						msl::utilities::SafeInt<unsigned int>(w),
+						msl::utilities::SafeInt<unsigned int>(h),
+						c);
+	}
+}
+
+inline void	SHIM_Draw_FadeScreen(void)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->FadeScreen();
+	}
+}
+
+inline void	SHIM_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+{
+	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
+	{
+		dx12::ref->draw->StretchRaw(msl::utilities::SafeInt<unsigned int>(x),
+			msl::utilities::SafeInt<unsigned int>(y),
+			msl::utilities::SafeInt<unsigned int>(w),
+			msl::utilities::SafeInt<unsigned int>(h),
+			msl::utilities::SafeInt<unsigned int>(cols),
+			msl::utilities::SafeInt<unsigned int>(rows),
+			data);
+	}
+}
+
+inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
+{
+	HINSTANCE hInstance = static_cast<HINSTANCE>(hinstance);
+	WNDPROC wndProc = static_cast<WNDPROC>(wndproc);
+	bool retVal = dx12::Init(hInstance, wndProc);
+	if (retVal == true)
+	{
+		return qtrue;
+	}
+	return qfalse;
+}
+
+inline void SHIM_R_Shutdown()
+{
+	dx12::Shutdown();
+}
+
+inline void SHIM_R_SetPalette(const unsigned char *palette)
+{
+
+}
+
+inline void	SHIM_R_BeginFrame(float camera_separation)
+{
+
+}
+
+inline void SHIM_R_EndFrame(void)
+{
+
+}
+
+inline void SHIM_R_AppActivate(qboolean active)
+{
+
+}
+
 /*
 @@@@@@@@@@@@@@@@@@@@@
 GetRefAPI
@@ -35,43 +199,39 @@ refexport_t GetRefAPI(refimport_t rimp)
 {
 	refexport_t	re;
 
-	if (dx12::client == nullptr)
+	if (dx12::ref == nullptr)
 	{
-		dx12::client = new dx12::Client(rimp);
-	}
-	else
-	{
-		dx12::client->SetRefImport(rimp);
+		dx12::ref = std::make_unique<dx12::Ref>(rimp);
 	}
 
 	re.api_version			= API_VERSION;
 
-	re.BeginRegistration	= R_BeginRegistration;
-	re.RegisterModel		= R_RegisterModel;
-	re.RegisterSkin			= R_RegisterSkin;
-	re.RegisterPic			= dx12::draw->FindPic;
-	re.SetSky				= R_SetSky;
-	re.EndRegistration		= R_EndRegistration;
+	re.BeginRegistration	= SHIM_R_BeginRegistration;
+	re.RegisterModel		= SHIM_R_RegisterModel;
+	re.RegisterSkin			= SHIM_R_RegisterSkin;
+	re.RegisterPic			= SHIM_Draw_FindPic;
+	re.SetSky				= SHIM_R_SetSky;
+	re.EndRegistration		= SHIM_R_EndRegistration;
 
-	re.RenderFrame			= R_RenderFrame;
+	re.RenderFrame			= SHIM_R_RenderFrame;
 
-	re.DrawGetPicSize		= dx12::draw->GetPicSize;
-	re.DrawPic				= dx12::draw->Pic;
-	re.DrawStretchPic		= dx12::draw->StretchPic;
-	re.DrawChar				= dx12::draw->Char;
-	re.DrawTileClear		= dx12::draw->TileClear;
-	re.DrawFill				= dx12::draw->Fill;
-	re.DrawFadeScreen		= dx12::draw->FadeScreen;
-	re.DrawStretchRaw		= dx12::draw->StretchRaw;
+	re.DrawGetPicSize		= SHIM_Draw_GetPicSize;
+	re.DrawPic				= SHIM_Draw_Pic;
+	re.DrawStretchPic		= SHIM_Draw_StretchPic;
+	re.DrawChar				= SHIM_Draw_Char;
+	re.DrawTileClear		= SHIM_Draw_TileClear;
+	re.DrawFill				= SHIM_Draw_Fill;
+	re.DrawFadeScreen		= SHIM_Draw_FadeScreen;
+	re.DrawStretchRaw		= SHIM_Draw_StretchRaw;
 
-	re.Init					= dx12::Init;
-	re.Shutdown				= dx12::Shutdown;
+	re.Init					= SHIM_R_Init;
+	re.Shutdown				= SHIM_R_Shutdown;
 
-	re.CinematicSetPalette	= R_SetPalette;
-	re.BeginFrame			= R_BeginFrame;
-	re.EndFrame				= GLimp_EndFrame;
+	re.CinematicSetPalette	= SHIM_R_SetPalette;
+	re.BeginFrame			= SHIM_R_BeginFrame;
+	re.EndFrame				= SHIM_R_EndFrame;
 
-	re.AppActivate			= GLimp_AppActivate;
+	re.AppActivate			= SHIM_R_AppActivate;
 
 	Swap_Init();
 

@@ -34,37 +34,38 @@ namespace dx12
 	class Client {
 	private:
 		refimport_t	ri;
+
+		std::mutex	refImportMutex;
+
 	public:
-					Client					(refimport_t rimp);
-					~Client					();
+						Client					(refimport_t rimp);
+						~Client					();
 
-		void		SetRefImport			(refimport_t rimp);
+		void			SetRefImport			(refimport_t rimp);
 
-		void		Sys_Error				(unsigned short err_level, std::string str);
+		inline	void			Sys_Error				(unsigned short err_level, std::string str);
 
-		void		(*Cmd_AddCommand)		(char *name, void(*cmd)(void));
-		void		(*Cmd_RemoveCommand)	(char *name);
-		int			(*Cmd_Argc)				(void);
-		char		*(*Cmd_Argv)			(int i);
-		void		(*Cmd_ExecuteText)		(int exec_when, char *text);
+		void			(*Cmd_AddCommand)		(char *name, void(*cmd)(void));
+		inline	void			Cmd_RemoveCommand		(std::string name);
+		inline	unsigned int	Cmd_Argc				(void);
+		char			*(*Cmd_Argv)			(int i);
+		void			(*Cmd_ExecuteText)		(int exec_when, char *text);
 
-		void		Con_Printf				(unsigned short print_level, std::string str);
+		inline	void			Con_Printf				(unsigned short print_level, std::string str);
 
-		int			(*FS_LoadFile)			(char *name, void **buf);
-		void		(*FS_FreeFile)			(void *buf);
+		int				(*FS_LoadFile)			(char *name, void **buf);
+		void			(*FS_FreeFile)			(void *buf);
 
-		char		*(*FS_Gamedir)			(void);
+		inline	std::string		FS_Gamedir			(void);
 
-		cvar_t		*(*Cvar_Get)			(char *name, char *value, int flags);
-		cvar_t		*(*Cvar_Set)			(char *name, char *value);
-		void		(*Cvar_SetValue)		(char *name, float value);
+		cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
+		cvar_t			*(*Cvar_Set)			(char *name, char *value);
+		void			(*Cvar_SetValue)		(char *name, float value);
 
-		qboolean	(*Vid_GetModeInfo)		(int *width, int *height, int mode);
-		void		(*Vid_MenuInit)			(void);
-		void		(*Vid_NewWindow)		(int width, int height);
+		inline	bool			Vid_GetModeInfo			(unsigned int &width, unsigned int &height, int mode);
+		inline	void			Vid_MenuInit			(void);
+		inline	void			Vid_NewWindow			(unsigned int width, unsigned int height);
 	};
-
-	Client* client = NULL;
 }
 
 #endif // !__DX12_CLIENT_HPP__

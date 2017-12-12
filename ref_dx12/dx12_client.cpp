@@ -25,35 +25,106 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
+inline void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
 {
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
 	ri.Sys_Error(err_level, const_cast<char*>(str.c_str()));
 }
 
-void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
+// void(*Cmd_AddCommand)		(char *name, void(*cmd)(void));
+
+inline void dx12::Client::Cmd_RemoveCommand(std::string name)
 {
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	ri.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
+}
+
+inline unsigned int dx12::Client::Cmd_Argc (void)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	return msl::utilities::SafeInt<unsigned int>(ri.Cmd_Argc());
+}
+
+//char			*(*Cmd_Argv)			(int i);
+//void(*Cmd_ExecuteText)		(int exec_when, char *text);
+
+inline void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
 	ri.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
 
-void dx12::Client::SetRefImport(refimport_t rimp) 
+//int(*FS_LoadFile)			(char *name, void **buf);
+//void(*FS_FreeFile)			(void *buf);
+
+inline std::string dx12::Client::FS_Gamedir(void)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	return std::string(ri.FS_Gamedir());
+}
+
+//cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
+//cvar_t			*(*Cvar_Set)			(char *name, char *value);
+//void(*Cvar_SetValue)		(char *name, float value);
+
+inline bool dx12::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
+{
+	int clientWidth = 0,
+		clientHeight = 0;
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	qboolean retVal = ri.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
+
+	if (retVal = qtrue)
+	{
+		width = msl::utilities::SafeInt<int>(clientWidth);
+		height = msl::utilities::SafeInt<int>(clientHeight);
+		return true;
+	}
+	return false;
+}
+
+inline void dx12::Client::Vid_MenuInit(void)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	ri.Vid_MenuInit();
+}
+
+inline void dx12::Client::Vid_NewWindow(unsigned int width, unsigned int height)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(refImportMutex);
+
+	ri.Vid_NewWindow(msl::utilities::SafeInt<int>(width), msl::utilities::SafeInt<int>(height));
+}
+
+void dx12::Client::SetRefImport(refimport_t rimp)
 { 
 	ri = rimp;
 
 	// Pass everything through that isn't explicitly overridden in the class functions above
 	dx12::Client::Cmd_AddCommand	= ri.Cmd_AddCommand;
-	dx12::Client::Cmd_Argc			= ri.Cmd_Argc;
 	dx12::Client::Cmd_Argv			= ri.Cmd_Argv;
 	dx12::Client::Cmd_ExecuteText	= ri.Cmd_ExecuteText;
-	dx12::Client::Cmd_RemoveCommand	= ri.Cmd_RemoveCommand;
 	dx12::Client::Cvar_Get			= ri.Cvar_Get;
 	dx12::Client::Cvar_Set			= ri.Cvar_Set;
 	dx12::Client::Cvar_SetValue		= ri.Cvar_SetValue;
 	dx12::Client::FS_FreeFile		= ri.FS_FreeFile;
-	dx12::Client::FS_Gamedir		= ri.FS_Gamedir;
 	dx12::Client::FS_LoadFile		= ri.FS_LoadFile;
-	dx12::Client::Vid_GetModeInfo	= ri.Vid_GetModeInfo;
-	dx12::Client::Vid_MenuInit		= ri.Vid_MenuInit;
-	dx12::Client::Vid_NewWindow		= ri.Vid_NewWindow;
 };
 
 dx12::Client::Client(refimport_t rimp)
@@ -65,17 +136,11 @@ dx12::Client::~Client()
 {
 	// Null everything through that isn't explicitly overridden in the class functions above
 	dx12::Client::Cmd_AddCommand	= nullptr;
-	dx12::Client::Cmd_Argc			= nullptr;
 	dx12::Client::Cmd_Argv			= nullptr;
 	dx12::Client::Cmd_ExecuteText	= nullptr;
-	dx12::Client::Cmd_RemoveCommand	= nullptr;
 	dx12::Client::Cvar_Get			= nullptr;
 	dx12::Client::Cvar_Set			= nullptr;
 	dx12::Client::Cvar_SetValue		= nullptr;
 	dx12::Client::FS_FreeFile		= nullptr;
-	dx12::Client::FS_Gamedir		= nullptr;
 	dx12::Client::FS_LoadFile		= nullptr;
-	dx12::Client::Vid_GetModeInfo	= nullptr;
-	dx12::Client::Vid_MenuInit		= nullptr;
-	dx12::Client::Vid_NewWindow		= nullptr;
 }

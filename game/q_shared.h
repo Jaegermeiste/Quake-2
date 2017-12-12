@@ -52,7 +52,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 typedef unsigned char 		byte;
-typedef enum {qfalse, qtrue}	qboolean;
+
+// Handle lack of bool in C
+#if defined(__STDC__) && __STDC_VERSION__ >= 199901L
+#include <stdbool.h>
+typedef bool	qboolean;
+#else
+typedef enum { qfalse, qtrue } qboolean;
+
+#ifndef FALSE
+#define FALSE					qfalse
+#endif
+
+#ifndef TRUE
+#define TRUE					qtrue
+#endif
+
+#endif
 
 
 #ifndef NULL

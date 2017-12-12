@@ -33,6 +33,14 @@ ref_dx12
 
 // STL Includes
 #include <string>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <filesystem>
+#include <exception>
 
 // Windows Includes
 #include <windows.h>
@@ -40,8 +48,47 @@ ref_dx12
 #include <dxgi1_4.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
-#include "d3dx12.h"
 #include <wrl.h>
 #include <shellapi.h>
+#include <SafeInt.h>
+#include <ppl.h>
+
+// DirectXTK12
+#include "CommonStates.h"
+#include "DDSTextureLoader.h"
+#include "DirectXHelpers.h"
+#include "Effects.h"
+#include "GamePad.h"
+#include "GeometricPrimitive.h"
+#include "GraphicsMemory.h"
+#include "Keyboard.h"
+#include "Model.h"
+#include "Mouse.h"
+#include "PostProcess.h"
+#include "PrimitiveBatch.h"
+#include "ResourceUploadBatch.h"
+#include "ScreenGrab.h"
+#include "SimpleMath.h"
+#include "SpriteBatch.h"
+#include "SpriteFont.h"
+#include "VertexTypes.h"
+#include "WICTextureLoader.h"
+
+#include "d3dx12.h"
+
+// DirectXTex
+#include "DirectXTex.h"
+
+namespace DX
+{
+	inline void ThrowIfFailed(HRESULT hr)
+	{
+		if (FAILED(hr))
+		{
+			// Set a breakpoint on this line to catch DirectX API errors
+			throw std::exception();
+		}
+	}
+}
 
 #endif//__STDAFX_H__

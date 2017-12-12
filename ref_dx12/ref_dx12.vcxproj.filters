@@ -32,7 +32,7 @@
       <UniqueIdentifier>{f37766eb-5a19-4dc8-876c-cc7c5dcd0ef5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\d3dx">
-      <UniqueIdentifier>{dd1924c3-4a1e-4ba1-b51a-3fb996983288}</UniqueIdentifier>
+      <UniqueIdentifier>{fe11c4b7-9bd4-4b5b-8dbf-47221f943aeb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -57,14 +57,26 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Header Files\d3dx</Filter>
-    </ClInclude>
     <ClInclude Include="dx12_client.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dx12_draw.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_system.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_cvar.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_ref.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_image.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Header Files\d3dx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,5 +95,23 @@
     <ClCompile Include="dx12_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx12_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_cvar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_ref.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -30,11 +30,14 @@ ref_dx12
 dx12::Init
 ===============
 */
-qboolean dx12::Init(void *hInstance, void *wndProc)
+bool dx12::Init(HINSTANCE hInstance, WNDPROC wndProc)
 {
-	client->Con_Printf(PRINT_ALL, "ref_dx12 version: " REF_VERSION "\n");
+	if (dx12::ref->client != nullptr)
+	{
+		ref->client->Con_Printf(PRINT_ALL, "ref_dx12 version: " REF_VERSION "\n");
+	}
 
-	return qtrue;
+	return true;
 }
 
 /*
@@ -45,9 +48,5 @@ dx12::Shutdown
 void dx12::Shutdown(void)
 {
 	// Clean up
-	if (dx12::client != nullptr)
-	{
-		delete dx12::client;
-		dx12::client = nullptr;
-	}
+	delete ref;	// ref is a smart pointer - it will call the destructor when dereferenced
 }

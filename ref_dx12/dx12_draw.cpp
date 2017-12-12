@@ -24,3 +24,4 @@ ref_dx12
 */
 
 #include "dx12_local.hpp"
+

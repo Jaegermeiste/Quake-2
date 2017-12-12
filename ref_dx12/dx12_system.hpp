@@ -39,9 +39,11 @@ namespace dx12
 		~System();
 
 		void dx12::System::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
+
+		ID3D12Device* d3dDevice;
 	};
 
-	System* system = nullptr;
+	extern System* sys;
 }
 
 #endif // !__DX12_SYSTEM_HPP__

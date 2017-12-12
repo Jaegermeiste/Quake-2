@@ -32,25 +32,16 @@ ref_dx12
 namespace dx12
 {
 	class Draw {
-	private:
-
 	public:
-		Draw();
-		~Draw();
-
-		image_t	*	FindPic		(char *name);
-
-		void		GetPicSize	(int *w, int *h, char *name);
-		void		Pic			(int x, int y, char *name);
-		void		StretchPic	(int x, int y, int w, int h, char *name);
-		void		Char		(int x, int y, int c);
-		void		TileClear	(int x, int y, int w, int h, char *name);
-		void		Fill		(int x, int y, int w, int h, int c);
+		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
+		void		Pic			(unsigned int x, unsigned int y, std::string name);
+		void		StretchPic	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
+		void		Char		(unsigned int x, unsigned int y, unsigned int c);
+		void		TileClear	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
+		void		Fill		(unsigned int x, unsigned int y, unsigned int w, unsigned int h, int c);
 		void		FadeScreen	(void);
-		void		StretchRaw	(int x, int y, int w, int h, int cols, int rows, byte *data);
+		void		StretchRaw	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int cols, unsigned int rows, byte *data);
 	};
-
-	Draw* draw = nullptr;
 }
 
 #endif // !__DX12_DRAW_HPP__
