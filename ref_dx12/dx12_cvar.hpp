@@ -36,16 +36,33 @@ namespace dx12
 
 	public:
 		class Cvar {
-		public:
-			Cvar(std::string name, std::string defaultString, int flags);
-			Cvar(std::string name, float defaultValue, int flags);
+			std::atomic<std::unique_ptr<cvar_t>> atomicSharedPtr;
 
-			float			Float();
-			std::string		String();
-			bool			Bool();
-			signed int		Int();
-			unsigned int	UInt();
-			double			Double();
+			std::mutex ptrAccessMutex;
+
+			static	bool			InfoValidate(std::string value);
+
+		public:
+									Cvar(std::string name, std::string defaultString, unsigned int flags);
+									Cvar(std::string name, float defaultValue, unsigned int flags);
+
+					bool			Bool();
+					signed int		Int();
+					unsigned int	UInt();
+					float			Float();
+					double			Double();
+					std::string		String();
+					std::string		LatchedString();
+					std::string		Name();
+					unsigned int	Flags();
+					bool			Modified();
+
+					void			Set(std::string string);
+			inline	void			Set(bool value);
+			inline	void			Set(signed int value);
+			inline	void			Set(unsigned int value);
+			inline	void			Set(float value);
+			inline	void			Set(double value);
 		};
 
 		Cvars();
