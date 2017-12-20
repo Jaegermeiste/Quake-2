@@ -62,6 +62,11 @@ inline void dx12::Client::Con_Printf(unsigned short print_level, std::string str
 	ri.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
 
+inline int dx12::Client::FS_LoadFile (std::string fileName, void **buf)
+{
+	return ri.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+}
+
 //int(*FS_LoadFile)			(char *name, void **buf);
 //void(*FS_FreeFile)			(void *buf);
 

@@ -53,7 +53,7 @@ namespace dx12
 
 		inline	void			Con_Printf				(unsigned short print_level, std::string str);
 
-		int				(*FS_LoadFile)			(char *name, void **buf);
+		inline	int				FS_LoadFile				(std::string fileName, void **buf);
 		void			(*FS_FreeFile)			(void *buf);
 
 		inline	std::string		FS_Gamedir			(void);

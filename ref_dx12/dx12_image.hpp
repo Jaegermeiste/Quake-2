@@ -33,7 +33,13 @@ namespace dx12
 {
 	class Image {
 	private:
+		unsigned int	d_8to24table[256];
+
 		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D12Resource>> images;
+
+		void GetPalette(void);
+		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
+		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 	public:
 		std::shared_ptr<image_t>	Load(std::string name);
 	};
