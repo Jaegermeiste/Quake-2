@@ -33,14 +33,24 @@ namespace dx12
 {
 	class System {
 	private:
+		bool	inRegistration;
+		bool	uploadBatchOpen;
 
 	public:
 		System();
 		~System();
 
-		void dx12::System::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
+		void GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
 
-		ID3D12Device* d3dDevice;
+		ID3D12Device					*d3dDevice;
+
+		DirectX::ResourceUploadBatch	*resourceUpload;
+
+		void	BeginRegistration();
+		void	EndRegistration();
+
+		void	BeginUpload();
+		void	EndUpload();
 	};
 
 	extern System* sys;

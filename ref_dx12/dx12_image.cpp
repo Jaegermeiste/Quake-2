@@ -45,6 +45,7 @@ void dx12::Image::GetPalette(void)
 	// get the palette
 
 	LoadPCX("pics/colormap.pcx", &pic, &pal, width, height);
+
 	if (!pal)
 	{
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
@@ -62,8 +63,17 @@ void dx12::Image::GetPalette(void)
 
 	d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
 
-	free(pic);
-	free(pal);
+	if (pic != nullptr)
+	{
+		delete[] pic;
+		pic = nullptr;
+	}
+
+	if (pal != nullptr)
+	{
+		delete[] pal;
+		pal = nullptr;
+	}
 }
 
 /*
@@ -115,7 +125,7 @@ void dx12::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	// load the file
 	//
 	len = ref->client->FS_LoadFile(fileName, (void **)&raw);
-	if (!raw)
+	if ((len < 0) || (!raw))
 	{
 		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad pcx file " + fileName + "\n");
 		return;
@@ -144,11 +154,11 @@ void dx12::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 		|| pcx->xmax >= 640
 		|| pcx->ymax >= 480)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "Bad pcx file " + fileName + "\n");
+		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file " + fileName + "\n");
 		return;
 	}
 
-	out = new byte[(pcx->ymax + 1) * (pcx->xmax + 1)];
+	out = new byte[(pcx->ymax + 1) * (pcx->xmax + 1)]();
 
 	*pic = out;
 
@@ -156,7 +166,7 @@ void dx12::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 
 	if (palette)
 	{
-		*palette = new byte[768];
+		*palette = new byte[768]();
 		memcpy(*palette, reinterpret_cast<byte *>(pcx) + len - 768, 768);
 	}
 
@@ -193,7 +203,66 @@ void dx12::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	ref->client->FS_FreeFile(pcx);
 }
 
-std::shared_ptr<image_t> dx12::Image::Load(std::string name)
+dx12::Image::Texture2D* dx12::Image::CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw)
+{
+	Texture2D* texture = nullptr;
+
+	if ((*raw) != nullptr)
+	{
+		texture = new Texture2D;
+
+		texture->width = width;
+		texture->height = height;
+		texture->format = DXGI_FORMAT_R8G8B8A8_UINT;
+		texture->size = width * height;
+		texture->data = new unsigned int[texture->size]();
+
+		unsigned int *d8to24table = d_8to24table;	// Hack around the lambda function parameter issue
+
+		//for (unsigned int i = 0; i < (width * height); i++)
+		Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
+		{
+			if (*raw[i] == 255)
+			{
+				// Transparent
+				texture->data[i] = 0;
+			}
+			else
+			{
+				// Paletted
+				texture->data[i] = d8to24table[*raw[i]];
+			}
+		});
+	}
+
+	return texture;
+}
+
+void dx12::Image::UploadScratchImage(ScratchImage &image, ID3D12Resource** pResource, bool generateMipMap)
+{
+	DX::ThrowIfFailed(
+		CreateTexture(ref->sys->d3dDevice, image.GetMetadata(), pResource)
+	);
+
+	D3D12_SUBRESOURCE_DATA srData;
+	size_t rowPitch = 0;
+	size_t slicePitch = 0;
+	ComputePitch(image.GetMetadata().format, image.GetMetadata().width, image.GetMetadata().height, rowPitch, slicePitch);
+	srData.RowPitch = rowPitch;
+	srData.SlicePitch = slicePitch;
+	srData.pData = image.GetPixels();
+
+	ref->sys->resourceUpload->Upload(*pResource, 0, &srData, 1);
+
+	ref->sys->resourceUpload->Transition(*pResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	if (generateMipMap)
+	{
+		ref->sys->resourceUpload->GenerateMips(*pResource);
+	}
+}
+
+std::shared_ptr<image_t> dx12::Image::Load(std::string name, imagetype_t type)
 {
 	if (name.length() < 5)
 	{
@@ -223,40 +292,13 @@ std::shared_ptr<image_t> dx12::Image::Load(std::string name)
 		// Determine the image type
 		std::string extension = std::experimental::filesystem::path(name).extension().string();
 
-		ComPtr<ID3D12Resource> tex;
+		bool generateMipMap = ((type != it_pic) && (type != it_sky));
+
+		ref->sys->BeginUpload();
 
 		if (extension.compare(".pcx") == 0)
 		{
 			// Requesting a .pcx file
-			std::unique_ptr<uint8_t[]> decodedData;
-			D3D12_SUBRESOURCE_DATA subresource;
-			DX::ThrowIfFailed(
-				LoadWICTextureFromFile(ref->sys->d3dDevice, 
-						convertToWide.from_bytes(imgPtr->name).c_str(), 
-						tex.ReleaseAndGetAddressOf(),
-						decodedData, 
-						subresource));
-
-			const UINT64 uploadBufferSize = GetRequiredIntermediateSize(tex.Get(), 0, 1);
-
-			// Create the GPU upload buffer.
-			ComPtr<ID3D12Resource> uploadHeap;
-			DX::ThrowIfFailed(
-				ref->sys->d3dDevice->CreateCommittedResource(
-					&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-					D3D12_HEAP_FLAG_NONE,
-					&CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(uploadHeap.GetAddressOf())));
-
-			UpdateSubresources(commandList, tex.Get(), uploadHeap.Get(), 0, 0, 1, &subresource);
-			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(tex.Get(),
-				D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-			DX::ThrowIfFailed(commandList->Close());
-			m_deviceResources->GetCommandQueue()->ExecuteCommandLists(1,
-				CommandListCast(&commandList));
 		}
 		else if (extension.compare(".wal") == 0)
 		{
@@ -265,30 +307,49 @@ std::shared_ptr<image_t> dx12::Image::Load(std::string name)
 		else if (extension.compare(".tga") == 0)
 		{
 			// Requesting a .tga file
+			byte	*buffer = nullptr;
+			int bufferSize = ref->client->FS_LoadFile(name, (void **)&buffer);
+			if ((bufferSize < 0) || (!buffer))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Bad TGA file " + name + "\n");
+				return;
+			}
+
+			ScratchImage image;
+			TexMetadata info;
+			DX::ThrowIfFailed(
+				LoadFromTGAMemory(buffer, bufferSize, &info, image)
+			);
+
+			UploadScratchImage(image, 
+							images.at(imgPtr).ReleaseAndGetAddressOf(), 
+							generateMipMap);
+
+			ref->client->FS_FreeFile(buffer);
 		}
 		else if (extension.compare(".dds") == 0)
 		{
 			// Requesting a .dds file
-			ResourceUploadBatch resourceUpload(ref->sys->d3dDevice);
-
-			resourceUpload.Begin();
-
 			DX::ThrowIfFailed(
-				DirectX::CreateDDSTextureFromFile(ref->sys->d3dDevice,
-												resourceUpload, 
-												convertToWide.from_bytes(imgPtr->name).c_str(), 
-												images.at(imgPtr).ReleaseAndGetAddressOf())
+				CreateDDSTextureFromFile(ref->sys->d3dDevice,
+										*(ref->sys->resourceUpload), 
+										convertToWide.from_bytes(imgPtr->name).c_str(), 
+										images.at(imgPtr).ReleaseAndGetAddressOf(),
+										generateMipMap)
 			);
 
-			// Upload the resources to the GPU.
-			auto uploadResourcesFinished = resourceUpload.End(m_deviceResources->GetCommandQueue());
-
-			// Wait for the upload thread to terminate
-			uploadResourcesFinished.wait();
 		}
 		else if (extension.compare(".hdr") == 0)
 		{
 			// Requesting a .hdr file
+			ScratchImage image;
+			DX::ThrowIfFailed(
+				LoadFromHDRFile(convertToWide.from_bytes(imgPtr->name).c_str(), nullptr, image)
+			);
+
+			UploadScratchImage(image,
+				images.at(imgPtr).ReleaseAndGetAddressOf(),
+				generateMipMap);
 		}
 		else if (extension.compare(".exr") == 0)
 		{
@@ -297,24 +358,16 @@ std::shared_ptr<image_t> dx12::Image::Load(std::string name)
 		else
 		{
 			// Assume a WIC compatible format (.bmp, .jpg, .png, .tif, .gif, .ico, .wdp, .jxr)
-			ResourceUploadBatch resourceUpload(ref->sys->d3dDevice);
-
-			resourceUpload.Begin();
-
 			DX::ThrowIfFailed(
-				DirectX::CreateWICTextureFromFile(ref->sys->d3dDevice,
-												resourceUpload, 
-												convertToWide.from_bytes(imgPtr->name).c_str(),
-												images.at(imgPtr).ReleaseAndGetAddressOf(),
-												true)
+				CreateWICTextureFromFile(ref->sys->d3dDevice,
+										*(ref->sys->resourceUpload),
+										convertToWide.from_bytes(imgPtr->name).c_str(),
+										images.at(imgPtr).ReleaseAndGetAddressOf(),
+										generateMipMap)
 			);
-
-			// Upload the resources to the GPU.
-			auto uploadResourcesFinished = resourceUpload.End(m_deviceResources->GetCommandQueue());
-
-			// Wait for the upload thread to terminate
-			uploadResourcesFinished.wait();
 		}
+
+		ref->sys->EndUpload();
 	}
 
 	// Return the pointer

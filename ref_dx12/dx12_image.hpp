@@ -33,6 +33,15 @@ namespace dx12
 {
 	class Image {
 	private:
+		struct Texture2D
+		{
+			unsigned int	width;
+			unsigned int	height;
+			size_t			size;
+			DXGI_FORMAT		format;
+			unsigned int	*data;
+		};
+
 		unsigned int	d_8to24table[256];
 
 		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D12Resource>> images;
@@ -40,8 +49,14 @@ namespace dx12
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
 		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
+
+		Texture2D*	CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw);
+
+		void UploadScratchImage(DirectX::ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
+
+		bool		UploadTexture2D(Texture2D *texture);
 	public:
-		std::shared_ptr<image_t>	Load(std::string name);
+		std::shared_ptr<image_t>	Load(std::string name, imagetype_t type);
 	};
 }
 

@@ -78,6 +78,7 @@ ref_dx12
 
 // DirectXTex
 #include "DirectXTex.h"
+#include "DirectXTexEXR.h"
 
 namespace DX
 {

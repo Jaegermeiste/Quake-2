@@ -42,12 +42,12 @@ ref_dx12
 // fall over
 #define	ROLL	2
 
-typedef struct
+typedef struct viddef_s
 {
 	unsigned		width, height;			// coordinates from main game
 } viddef_t;
 
-typedef enum
+typedef enum imagetype_e
 {
 	it_skin,
 	it_sprite,
@@ -77,6 +77,7 @@ typedef struct image_s
 #include "dx12_system.hpp"
 #include "dx12_image.hpp"
 #include "dx12_draw.hpp"
+#include "dx12_model.hpp"
 #include "dx12_ref.hpp"
 
 namespace dx12

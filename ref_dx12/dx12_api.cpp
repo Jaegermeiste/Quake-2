@@ -27,27 +27,71 @@ ref_dx12
 
 inline void	SHIM_R_BeginRegistration(char *map)
 {
+	if ((dx12::ref != nullptr) && (dx12::ref->sys != nullptr))
+	{
+		dx12::ref->sys->BeginRegistration();
 
+		if (dx12::ref->model != nullptr)
+		{
+			std::string mapName(map);
+
+			dx12::ref->model->LoadMap(mapName);
+		}
+	}
 }
 
 inline model_s* SHIM_R_RegisterModel(char *name)
 {
-	return nullptr;
+	model_s *model = nullptr;
+
+	if ((dx12::ref != nullptr) && (dx12::ref->model != nullptr))
+	{
+		std::string modelName(name);
+
+		model = dx12::ref->model->LoadModel(modelName).get();
+	}
+
+	return model;
 }
 
 inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 {
-	return nullptr;
+	image_s *image = nullptr;
+
+	if ((dx12::ref != nullptr) && (dx12::ref->img != nullptr))
+	{
+		image = dx12::ref->img->Load(name, it_skin).get();
+	}
+
+	return image;
+}
+
+inline image_t	*SHIM_R_RegisterPic(char *name)
+{
+	image_s *image = nullptr;
+
+	if ((dx12::ref != nullptr) && (dx12::ref->img != nullptr))
+	{
+		image = dx12::ref->img->Load(name, it_pic).get();
+	}
+
+	return image;
 }
 
 inline void SHIM_R_SetSky(char *name, float rotate, vec3_t axis)
 {
-
+	if ((dx12::ref != nullptr) && (dx12::ref->img != nullptr))
+	{
+		dx12::ref->img->Load(name, it_sky);
+	}
 }
 
 inline void	SHIM_R_EndRegistration(void)
 {
-
+	if ((dx12::ref != nullptr) && (dx12::ref->sys != nullptr))
+	{
+		dx12::ref->sys->EndRegistration();
+	}
 }
 
 inline void	SHIM_R_RenderFrame(refdef_t *fd)
@@ -67,16 +111,7 @@ inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
 	}
 }
 
-inline image_t	*SHIM_Draw_FindPic(char *name)
-{
-	if ((dx12::ref != nullptr) && (dx12::ref->img != nullptr))
-	{
-		// Get and return the raw pointer
-		return dx12::ref->img->Load(name).get();
-	}
 
-	return nullptr;
-}
 
 inline void	SHIM_Draw_Pic(int x, int y, char *name)
 {
@@ -209,7 +244,7 @@ refexport_t GetRefAPI(refimport_t rimp)
 	re.BeginRegistration	= SHIM_R_BeginRegistration;
 	re.RegisterModel		= SHIM_R_RegisterModel;
 	re.RegisterSkin			= SHIM_R_RegisterSkin;
-	re.RegisterPic			= SHIM_Draw_FindPic;
+	re.RegisterPic			= SHIM_R_RegisterPic;
 	re.SetSky				= SHIM_R_SetSky;
 	re.EndRegistration		= SHIM_R_EndRegistration;
 

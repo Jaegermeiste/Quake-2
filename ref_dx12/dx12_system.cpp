@@ -78,3 +78,54 @@ void dx12::System::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** p
 
 	*ppAdapter = adapter.Detach();
 }
+
+
+void dx12::System::BeginRegistration()
+{
+	if (!inRegistration)
+	{
+		BeginUpload();
+
+		inRegistration = true;
+	}
+}
+
+void dx12::System::EndRegistration()
+{
+	if (inRegistration)
+	{
+		inRegistration = false;
+
+		EndUpload();
+	}
+}
+
+void dx12::System::BeginUpload()
+{
+	if (resourceUpload == nullptr)
+	{
+		resourceUpload = new DirectX::ResourceUploadBatch(ref->sys->d3dDevice);
+	}
+
+	if (!uploadBatchOpen)
+	{
+		resourceUpload->Begin();
+
+		uploadBatchOpen = true;
+	}
+}
+
+void dx12::System::EndUpload()
+{
+	// Only flush the upload if the batch is open AND we are not in registration mode
+	if (uploadBatchOpen && (!inRegistration))
+	{
+		// Upload the resources to the GPU.
+		auto uploadResourcesFinished = resourceUpload->End(m_deviceResources->GetCommandQueue());
+
+		// Wait for the upload thread to terminate
+		uploadResourcesFinished.wait();
+
+		uploadBatchOpen = false;
+	}
+}
