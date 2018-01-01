@@ -43,6 +43,7 @@ namespace dx12
 		void GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
 
 		ID3D12Device					*d3dDevice;
+		ID3D12CommandQueue				*cmdQueue;
 
 		DirectX::ResourceUploadBatch	*resourceUpload;
 

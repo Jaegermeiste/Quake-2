@@ -1,49 +1,62 @@
-﻿  dx12_ref.cpp
+﻿  dx12_system.cpp
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
+          with
+          [
+              _Ty=cvar_t
+          ]
+  dx12_ref.cpp
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
+          with
+          [
+              _Ty=cvar_t
+          ]
   dx12_main.cpp
-c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_main.cpp(51): error C2440: 'delete': cannot convert from 'std::unique_ptr<dx12::Ref,std::default_delete<_Ty>>' to 'void*'
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
           with
           [
-              _Ty=dx12::Ref
+              _Ty=cvar_t
           ]
-  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_main.cpp(51): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
-  Generating Code...
-  Compiling...
-  dx12_system.cpp
+  dx12_image.cpp
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
+          with
+          [
+              _Ty=cvar_t
+          ]
+c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_image.cpp(101): error C2065: 'image': undeclared identifier
+c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_image.cpp(101): error C2065: 'name': undeclared identifier
+c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_image.cpp(101): error C3861: 'GL_LoadPic': identifier not found
+c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_image.cpp(315): error C2561: 'dx12::Image::Load': function must return a value
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_image.cpp(265): note: see declaration of 'dx12::Image::Load'
   dx12_draw.cpp
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
+          with
+          [
+              _Ty=cvar_t
+          ]
   dx12_cvar.cpp
-d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(1712): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(1778): note: see reference to function template instantiation 'std::_Ref_count_obj<_Ty>::_Ref_count_obj<const char(&)[20],int,int>(const char (&)[20],int &&,int &&)' being compiled
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
           with
           [
-              _Ty=dx12::Cvars::Cvar
+              _Ty=cvar_t
           ]
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(1778): note: see reference to function template instantiation 'std::_Ref_count_obj<_Ty>::_Ref_count_obj<const char(&)[20],int,int>(const char (&)[20],int &&,int &&)' being compiled
-          with
-          [
-              _Ty=dx12::Cvars::Cvar
-          ]
-  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.cpp(30): note: see reference to function template instantiation 'std::shared_ptr<dx12::Cvars::Cvar> std::make_shared<dx12::Cvars::Cvar,const char(&)[20],int,int>(const char (&)[20],int &&,int &&)' being compiled
   dx12_client.cpp
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
+          with
+          [
+              _Ty=cvar_t
+          ]
   dx12_api.cpp
-c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_api.cpp(198): error C2679: binary '=': no operator found which takes a right-hand operand of type 'dx12::Ref *' (or there is no acceptable conversion)
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(2242): note: could be 'std::unique_ptr<dx12::Ref,std::default_delete<_Ty>> &std::unique_ptr<_Ty,std::default_delete<_Ty>>::operator =(const std::unique_ptr<_Ty,std::default_delete<_Ty>> &)'
+d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\atomic(641): error C2338: atomic<T> requires T to be trivially copyable.
+  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_cvar.hpp(39): note: see reference to class template instantiation 'std::atomic<std::unique_ptr<cvar_t,std::default_delete<_Ty>>>' being compiled
           with
           [
-              _Ty=dx12::Ref
-          ]
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(2183): note: or       'std::unique_ptr<dx12::Ref,std::default_delete<_Ty>> &std::unique_ptr<_Ty,std::default_delete<_Ty>>::operator =(std::unique_ptr<_Ty,std::default_delete<_Ty>> &&) noexcept'
-          with
-          [
-              _Ty=dx12::Ref
-          ]
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.11.25503\include\memory(2114): note: or       'std::unique_ptr<dx12::Ref,std::default_delete<_Ty>> &std::unique_ptr<_Ty,std::default_delete<_Ty>>::operator =(std::nullptr_t) noexcept'
-          with
-          [
-              _Ty=dx12::Ref
-          ]
-  c:\users\jgeorge1\documents\github\quake-2\ref_dx12\dx12_api.cpp(198): note: while trying to match the argument list '(std::unique_ptr<dx12::Ref,std::default_delete<_Ty>>, dx12::Ref *)'
-          with
-          [
-              _Ty=dx12::Ref
+              _Ty=cvar_t
           ]
   Generating Code...

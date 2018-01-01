@@ -7,3 +7,7 @@
 *.db-shm
 UpgradeLog.htm
 ref_soft/debug/ref_soft.log
+*.obj
+*.tlog
+*.idb
+*.pdb

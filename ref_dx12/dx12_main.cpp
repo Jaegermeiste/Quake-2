@@ -48,5 +48,5 @@ dx12::Shutdown
 void dx12::Shutdown(void)
 {
 	// Clean up
-	delete ref;	// ref is a smart pointer - it will call the destructor when dereferenced
+	// ref is a smart pointer - it will call the destructor when dereferenced
 }

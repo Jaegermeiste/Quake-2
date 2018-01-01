@@ -121,7 +121,7 @@ void dx12::System::EndUpload()
 	if (uploadBatchOpen && (!inRegistration))
 	{
 		// Upload the resources to the GPU.
-		auto uploadResourcesFinished = resourceUpload->End(m_deviceResources->GetCommandQueue());
+		auto uploadResourcesFinished = resourceUpload->End(ref->sys->cmdQueue);
 
 		// Wait for the upload thread to terminate
 		uploadResourcesFinished.wait();

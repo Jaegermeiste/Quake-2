@@ -129,7 +129,6 @@ void dx12::Client::SetRefImport(refimport_t rimp)
 	dx12::Client::Cvar_Set			= ri.Cvar_Set;
 	dx12::Client::Cvar_SetValue		= ri.Cvar_SetValue;
 	dx12::Client::FS_FreeFile		= ri.FS_FreeFile;
-	dx12::Client::FS_LoadFile		= ri.FS_LoadFile;
 };
 
 dx12::Client::Client(refimport_t rimp)
@@ -147,5 +146,4 @@ dx12::Client::~Client()
 	dx12::Client::Cvar_Set			= nullptr;
 	dx12::Client::Cvar_SetValue		= nullptr;
 	dx12::Client::FS_FreeFile		= nullptr;
-	dx12::Client::FS_LoadFile		= nullptr;
 }
