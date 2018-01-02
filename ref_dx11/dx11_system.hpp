@@ -27,25 +27,34 @@ ref_dx11
 #define __DX11_SYSTEM_HPP__
 #pragma once
 
+#define NUM_D3D_FEATURE_LEVELS	9
+
 #include "dx11_local.hpp"
 
 namespace dx11
 {
 	class System {
 	private:
-		bool	inRegistration;
-		bool	uploadBatchOpen;
+		HINSTANCE			hInstance;
+		WNDPROC				wndProc;
+		HWND				hWnd;
+
+		bool				inRegistration;
+		bool				uploadBatchOpen;
+
+		D3D_FEATURE_LEVEL	featureLevelArray[NUM_D3D_FEATURE_LEVELS];
+
+		void				FillFeatureLevelArray	(void);
+		
 
 	public:
-		System();
-		~System();
+							System					();
+							~System					();
 
-		void GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
+		bool				VID_CreateWindow(unsigned int width, unsigned int height, bool fullscreen);
+		bool				InitDevice(HINSTANCE hInstance, WNDPROC wndProc);
 
 		ID3D11Device					*d3dDevice;
-		ID3D11CommandQueue				*cmdQueue;
-
-		DirectX::ResourceUploadBatch	*resourceUpload;
 
 		void	BeginRegistration();
 		void	EndRegistration();

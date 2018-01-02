@@ -69,6 +69,9 @@ namespace dx11
 		Cvars();
 		~Cvars();
 
+		std::shared_ptr<Cvar>  vid_xPos;
+		std::shared_ptr<Cvar>  vid_yPos;
+
 		std::shared_ptr<Cvar>  forceScreenRes;
 		std::shared_ptr<Cvar>  featureLevel;
 		std::shared_ptr<Cvar>  bufferCount;

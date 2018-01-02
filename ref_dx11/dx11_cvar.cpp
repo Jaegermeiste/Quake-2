@@ -27,8 +27,11 @@ ref_dx11
 
 dx11::Cvars::Cvars()
 {
+	vid_xPos			= std::make_shared<Cvar>("vid_xpos",				"0",							0);
+	vid_yPos			= std::make_shared<Cvar>("vid_ypos",				"0",							0);
+
 	forceScreenRes		= std::make_shared<Cvar>("dx11_forceScreenRes",		1,								CVAR_ARCHIVE);
-	featureLevel		= std::make_shared<Cvar>("dx11_featureLevel",		"D3D_FEATURE_LEVEL_11_1",		CVAR_ARCHIVE);
+	featureLevel		= std::make_shared<Cvar>("dx11_featureLevel",		"D3D_FEATURE_LEVEL_12_1",		CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
 	bufferCount			= std::make_shared<Cvar>("dx11_bufferCount",		2,								CVAR_ARCHIVE);
 	backBufferFormat	= std::make_shared<Cvar>("dx11_backBufferFormat",	"DXGI_FORMAT_R8G8B8A8_UNORM",	CVAR_ARCHIVE);
 	Vsync				= std::make_shared<Cvar>("dx11_Vsync",				1,								CVAR_ARCHIVE);

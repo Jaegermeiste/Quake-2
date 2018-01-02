@@ -30,6 +30,7 @@ ref_dx11
 #include "stdafx.h"
 
 #include "../client/ref.h"
+#include "../win32/winquake.h"
 
 #define	REF_VERSION	"DX11 0.01"
 
@@ -41,6 +42,10 @@ ref_dx11
 
 // fall over
 #define	ROLL	2
+
+// Courtesy https://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value
+#define QUOTE(name) #name
+#define STR(macro) QUOTE(macro)
 
 typedef struct viddef_s
 {
