@@ -37,7 +37,7 @@ namespace dx11
 		
 	public:
 		class Cvar {
-			std::atomic<std::unique_ptr<cvar_t>> atomicSharedPtr;
+			std::unique_ptr<cvar_t> clientMemPtr;
 
 			std::mutex ptrAccessMutex;
 
@@ -64,15 +64,21 @@ namespace dx11
 			inline	void			Set(unsigned int value);
 			inline	void			Set(float value);
 			inline	void			Set(double value);
+			inline	void			SetModified(bool value);
 		};
 
 		Cvars();
-		~Cvars();
 
+		std::shared_ptr<Cvar>  vid_ref;
 		std::shared_ptr<Cvar>  vid_xPos;
 		std::shared_ptr<Cvar>  vid_yPos;
+		std::shared_ptr<Cvar>  vid_fullscreen;
+		std::shared_ptr<Cvar>  vid_gamma;
 
-		std::shared_ptr<Cvar>  forceScreenRes;
+		std::shared_ptr<Cvar>  r_mode;
+		std::shared_ptr<Cvar>  r_customWidth;
+		std::shared_ptr<Cvar>  r_customHeight;
+		
 		std::shared_ptr<Cvar>  featureLevel;
 		std::shared_ptr<Cvar>  bufferCount;
 		std::shared_ptr<Cvar>  backBufferFormat;

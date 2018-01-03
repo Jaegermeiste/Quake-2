@@ -25,3 +25,34 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name)
+{
+}
+
+void dx11::Draw::Pic(unsigned int x, unsigned int y, std::string name)
+{
+}
+
+void dx11::Draw::StretchPic(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name)
+{
+}
+
+void dx11::Draw::Char(unsigned int x, unsigned int y, unsigned int c)
+{
+}
+
+void dx11::Draw::TileClear(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name)
+{
+}
+
+void dx11::Draw::Fill(unsigned int x, unsigned int y, unsigned int w, unsigned int h, int c)
+{
+}
+
+void dx11::Draw::FadeScreen(void)
+{
+}
+
+void dx11::Draw::StretchRaw(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int cols, unsigned int rows, byte * data)
+{
+}

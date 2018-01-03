@@ -123,7 +123,7 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 
 	qboolean retVal = ri.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
 
-	if (retVal = qtrue)
+	if (retVal = true)
 	{
 		width = msl::utilities::SafeInt<int>(clientWidth);
 		height = msl::utilities::SafeInt<int>(clientHeight);

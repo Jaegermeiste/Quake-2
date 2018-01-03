@@ -44,6 +44,7 @@ ref_dx11
 
 // Windows Includes
 #include <windows.h>
+#include <mmsystem.h>
 #include <d3d11.h>
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
@@ -78,7 +79,7 @@ ref_dx11
 
 // DirectXTex
 #include "DirectXTex.h"
-#include "DirectXTexEXR.h"
+//#include "DirectXTexEXR.h"
 
 namespace DX
 {

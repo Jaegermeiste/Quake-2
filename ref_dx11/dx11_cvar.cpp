@@ -27,10 +27,16 @@ ref_dx11
 
 dx11::Cvars::Cvars()
 {
-	vid_xPos			= std::make_shared<Cvar>("vid_xpos",				"0",							0);
-	vid_yPos			= std::make_shared<Cvar>("vid_ypos",				"0",							0);
+	vid_ref				= std::make_shared<Cvar>("vid_ref",					"dx11",							CVAR_ARCHIVE);
+	vid_xPos			= std::make_shared<Cvar>("vid_xpos",				0,								0);
+	vid_yPos			= std::make_shared<Cvar>("vid_ypos",				0,								0);
+	vid_fullscreen		= std::make_shared<Cvar>("vid_fullscreen",			0,								CVAR_ARCHIVE);
+	vid_gamma			= std::make_shared<Cvar>("vid_gamma",				1,								CVAR_ARCHIVE);
 
-	forceScreenRes		= std::make_shared<Cvar>("dx11_forceScreenRes",		1,								CVAR_ARCHIVE);
+	r_mode				= std::make_shared<Cvar>("r_mode",					-1,								CVAR_ARCHIVE);
+	r_customWidth		= std::make_shared<Cvar>("r_customwidth",			1920,							CVAR_ARCHIVE);
+	r_customHeight		= std::make_shared<Cvar>("r_customheight",			1080,							CVAR_ARCHIVE);
+
 	featureLevel		= std::make_shared<Cvar>("dx11_featureLevel",		"D3D_FEATURE_LEVEL_12_1",		CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
 	bufferCount			= std::make_shared<Cvar>("dx11_bufferCount",		2,								CVAR_ARCHIVE);
 	backBufferFormat	= std::make_shared<Cvar>("dx11_backBufferFormat",	"DXGI_FORMAT_R8G8B8A8_UNORM",	CVAR_ARCHIVE);
@@ -43,7 +49,7 @@ dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned in
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	std::atomic_store(&atomicSharedPtr, std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags)));
+	clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
@@ -51,7 +57,7 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	std::atomic_store(&atomicSharedPtr, std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags)));
+	clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
 float dx11::Cvars::Cvar::Float()
@@ -59,7 +65,7 @@ float dx11::Cvars::Cvar::Float()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return  std::atomic_load(&atomicSharedPtr)->value;
+	return  clientMemPtr->value;
 }
 
 bool dx11::Cvars::Cvar::Bool()
@@ -67,7 +73,7 @@ bool dx11::Cvars::Cvar::Bool()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	if (std::atomic_load(&atomicSharedPtr)->value > 0.0)
+	if (clientMemPtr->value > 0.0)
 	{
 		return true;
 	}
@@ -79,7 +85,7 @@ int dx11::Cvars::Cvar::Int()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return msl::utilities::SafeInt<int>(round(std::atomic_load(&atomicSharedPtr)->value));
+	return msl::utilities::SafeInt<int>(static_cast<int>(round(clientMemPtr->value)));
 }
 
 unsigned int dx11::Cvars::Cvar::UInt()
@@ -87,7 +93,7 @@ unsigned int dx11::Cvars::Cvar::UInt()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return msl::utilities::SafeInt<unsigned int>(round(std::atomic_load(&atomicSharedPtr)->value));
+	return msl::utilities::SafeInt<unsigned int>(static_cast<unsigned int>(round(clientMemPtr->value)));
 }
 
 double dx11::Cvars::Cvar::Double()
@@ -95,7 +101,7 @@ double dx11::Cvars::Cvar::Double()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return  std::atomic_load(&atomicSharedPtr)->value;
+	return  clientMemPtr->value;
 }
 
 std::string dx11::Cvars::Cvar::String()
@@ -103,7 +109,7 @@ std::string dx11::Cvars::Cvar::String()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return  std::string(std::atomic_load(&atomicSharedPtr)->string);
+	return  std::string(clientMemPtr->string);
 }
 
 std::string dx11::Cvars::Cvar::LatchedString()
@@ -111,7 +117,7 @@ std::string dx11::Cvars::Cvar::LatchedString()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return  std::string(std::atomic_load(&atomicSharedPtr)->latched_string);
+	return  std::string(clientMemPtr->latched_string);
 }
 
 std::string dx11::Cvars::Cvar::Name()
@@ -119,7 +125,7 @@ std::string dx11::Cvars::Cvar::Name()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return  std::string(std::atomic_load(&atomicSharedPtr)->name);
+	return  std::string(clientMemPtr->name);
 }
 
 unsigned int dx11::Cvars::Cvar::Flags()
@@ -127,7 +133,7 @@ unsigned int dx11::Cvars::Cvar::Flags()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	return msl::utilities::SafeInt<unsigned int>(std::atomic_load(&atomicSharedPtr)->flags);
+	return msl::utilities::SafeInt<unsigned int>(clientMemPtr->flags);
 }
 
 bool dx11::Cvars::Cvar::Modified()
@@ -135,7 +141,7 @@ bool dx11::Cvars::Cvar::Modified()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(ptrAccessMutex);
 
-	if (std::atomic_load(&atomicSharedPtr)->modified > 0)
+	if (clientMemPtr->modified == true)
 	{
 		return true;
 	}
@@ -174,12 +180,12 @@ void dx11::Cvars::Cvar::Set(std::string value)
 
 	// Cvar_Set is costly and poorly implemented when we already have a pointer to the cvar (linear string search)
 	// so avoid calling it if at all possible
-	if (value.compare(std::atomic_load(&atomicSharedPtr)->string) == 0)
+	if (value.compare(clientMemPtr->string) == 0)
 	{
 		return;		// not changed
 	}
 
-	if (std::atomic_load(&atomicSharedPtr)->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
+	if (clientMemPtr->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
 		if (!InfoValidate(value))
 		{
@@ -188,17 +194,17 @@ void dx11::Cvars::Cvar::Set(std::string value)
 		}
 	}
 
-	if (std::atomic_load(&atomicSharedPtr)->flags & CVAR_NOSET)
+	if (clientMemPtr->flags & CVAR_NOSET)
 	{
-		ref->client->Con_Printf(PRINT_ALL, std::string(std::atomic_load(&atomicSharedPtr)->name) + " is write protected.\n");
+		ref->client->Con_Printf(PRINT_ALL, std::string(clientMemPtr->name) + " is write protected.\n");
 		return;
 	}
 
-	if (std::atomic_load(&atomicSharedPtr)->flags & CVAR_LATCH)
+	if (clientMemPtr->flags & CVAR_LATCH)
 	{
-		if ((std::atomic_load(&atomicSharedPtr)->latched_string != nullptr) || (std::atomic_load(&atomicSharedPtr)->latched_string != NULL))
+		if ((clientMemPtr->latched_string != nullptr) || (clientMemPtr->latched_string != NULL))
 		{
-			if (value.compare(std::atomic_load(&atomicSharedPtr)->latched_string) == 0)
+			if (value.compare(clientMemPtr->latched_string) == 0)
 			{
 				return;
 			}
@@ -206,7 +212,7 @@ void dx11::Cvars::Cvar::Set(std::string value)
 	}
 
 	// Cvar_Set uses some client side functionality for latching, server state, etc that we can't safely replicate here, so we have to use it
-	ref->client->Cvar_Set(std::atomic_load(&atomicSharedPtr)->name, const_cast<char*>(value.c_str()));
+	ref->client->Cvar_Set(clientMemPtr->name, const_cast<char*>(value.c_str()));
 }
 
 inline void dx11::Cvars::Cvar::Set(float value)
@@ -217,6 +223,28 @@ inline void dx11::Cvars::Cvar::Set(float value)
 inline void dx11::Cvars::Cvar::Set(double value)
 {
 	Set(std::to_string(value));
+}
+
+inline void dx11::Cvars::Cvar::SetModified(bool value)
+{
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+
+	if (value == Modified())
+	{
+		return;		// not changed
+	}
+	else
+	{
+		if (value == true)
+		{
+			clientMemPtr->modified = true;
+		}
+		else
+		{
+			clientMemPtr->modified = false;
+		}
+	}
 }
 
 inline void dx11::Cvars::Cvar::Set(bool value)

@@ -29,6 +29,8 @@ ref_dx11
 
 #define NUM_D3D_FEATURE_LEVELS	9
 
+#define	WINDOW_CLASS_NAME	"Quake 2"
+
 #include "dx11_local.hpp"
 
 namespace dx11
@@ -37,7 +39,21 @@ namespace dx11
 	private:
 		HINSTANCE			hInstance;
 		WNDPROC				wndProc;
+		WNDCLASS			wndClass;
 		HWND				hWnd;
+
+		D3D_DRIVER_TYPE         driverType = D3D_DRIVER_TYPE_NULL;
+		D3D_FEATURE_LEVEL       featureLevel = D3D_FEATURE_LEVEL_11_0;
+
+		ID3D11Device*           d3dDevice = nullptr;
+		ID3D11Device1*          d3dDevice1 = nullptr;
+		ID3D11DeviceContext*    ImmediateContext = nullptr;
+		ID3D11DeviceContext1*   ImmediateContext1 = nullptr;
+		IDXGISwapChain*         SwapChain = nullptr;
+		IDXGISwapChain1*        SwapChain1 = nullptr;
+		ID3D11RenderTargetView* RenderTargetView = nullptr;
+
+		bool					d3dInitialized;
 
 		bool				inRegistration;
 		bool				uploadBatchOpen;
@@ -46,24 +62,27 @@ namespace dx11
 
 		void				FillFeatureLevelArray	(void);
 		
+		bool				VID_CreateWindow();
+		void				VID_DestroyWindow();
+
+		bool				D3D_InitDevice();
+		void				D3D_Shutdown();
 
 	public:
 							System					();
 							~System					();
 
-		bool				VID_CreateWindow(unsigned int width, unsigned int height, bool fullscreen);
-		bool				InitDevice(HINSTANCE hInstance, WNDPROC wndProc);
+		bool				Initialize(HINSTANCE hInstance, WNDPROC wndProc);
+		void				Shutdown();
 
-		ID3D11Device					*d3dDevice;
+		void				AppActivate(bool active);
 
-		void	BeginRegistration();
-		void	EndRegistration();
+		void				BeginRegistration();
+		void				EndRegistration();
 
-		void	BeginUpload();
-		void	EndUpload();
+		void				BeginUpload();
+		void				EndUpload();
 	};
-
-	extern System* sys;
 }
 
 #endif // !__DX11_SYSTEM_HPP__

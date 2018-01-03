@@ -189,19 +189,25 @@ inline void	SHIM_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows,
 
 inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 {
-	HINSTANCE hInstance = static_cast<HINSTANCE>(hinstance);
-	WNDPROC wndProc = static_cast<WNDPROC>(wndproc);
-	bool retVal = dx11::Init(hInstance, wndProc);
-	if (retVal == true)
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
 	{
-		return qtrue;
+		HINSTANCE hInstance = static_cast<HINSTANCE>(hinstance);
+		WNDPROC wndProc = static_cast<WNDPROC>(wndproc);
+		bool retVal = dx11::ref->sys->Initialize(hInstance, wndProc);
+		if (retVal == true)
+		{
+			return true;
+		}
 	}
-	return qfalse;
+	return false;
 }
 
 inline void SHIM_R_Shutdown()
 {
-	dx11::Shutdown();
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		dx11::ref->sys->Shutdown();
+	}
 }
 
 inline void SHIM_R_SetPalette(const unsigned char *palette)
@@ -221,7 +227,17 @@ inline void SHIM_R_EndFrame(void)
 
 inline void SHIM_R_AppActivate(qboolean active)
 {
-
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		if (active == true)
+		{
+			dx11::ref->sys->AppActivate(true);
+		}
+		else
+		{
+			dx11::ref->sys->AppActivate(false);
+		}
+	}
 }
 
 /*

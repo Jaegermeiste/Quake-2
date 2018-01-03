@@ -110,6 +110,9 @@
     <ClCompile Include="dx11_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx11_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

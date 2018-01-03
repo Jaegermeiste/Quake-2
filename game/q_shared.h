@@ -58,14 +58,20 @@ typedef unsigned char 		byte;
 #include <stdbool.h>
 typedef bool	qboolean;
 #else
-typedef enum { qfalse, qtrue } qboolean;
+
+#ifndef __cplusplus
+typedef enum qboolean_e { false, true } qboolean;
 
 #ifndef FALSE
-#define FALSE					qfalse
+#define FALSE					false
 #endif
 
 #ifndef TRUE
-#define TRUE					qtrue
+#define TRUE					true
+#endif
+
+#else
+typedef bool	qboolean;
 #endif
 
 #endif

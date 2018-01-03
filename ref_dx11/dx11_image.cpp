@@ -98,7 +98,7 @@ void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width,
 	height = LittleLong(mt->height);
 	ofs = LittleLong(mt->offsets[0]);
 
-	image = GL_LoadPic(name, (byte *)mt + ofs, width, height, it_wall, 8);
+	//image = GL_LoadPic(name, (byte *)mt + ofs, width, height, it_wall, 8);
 
 	ref->client->FS_FreeFile((void *)mt);
 }
@@ -240,11 +240,11 @@ dx11::Image::Texture2D* dx11::Image::CreateTexture2DFromRaw(unsigned int width, 
 
 void dx11::Image::UploadScratchImage(ScratchImage &image, ID3D11Resource** pResource, bool generateMipMap)
 {
-	DX::ThrowIfFailed(
+	/*DX::ThrowIfFailed(
 		CreateTexture(ref->sys->d3dDevice, image.GetMetadata(), pResource)
 	);
 
-	D3D12_SUBRESOURCE_DATA srData;
+	D3D11_SUBRESOURCE_DATA srData;
 	size_t rowPitch = 0;
 	size_t slicePitch = 0;
 	ComputePitch(image.GetMetadata().format, image.GetMetadata().width, image.GetMetadata().height, rowPitch, slicePitch);
@@ -259,7 +259,7 @@ void dx11::Image::UploadScratchImage(ScratchImage &image, ID3D11Resource** pReso
 	if (generateMipMap)
 	{
 		ref->sys->resourceUpload->GenerateMips(*pResource);
-	}
+	}*/
 }
 
 std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
@@ -272,14 +272,14 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 	// Create a new image
 	std::shared_ptr<image_t> imgPtr = nullptr;
 
-	Concurrency::parallel_for_each(images.begin(), images.end(), [&](std::shared_ptr<image_t> image)
+	/*Concurrency::parallel_for_each(images.begin(), images.end(), [&](std::shared_ptr<image_t> image)
 	{
 		if (name.compare(image->name) == 0)
 		{
 			// Found it
 			imgPtr = image;
 		}
-	});
+	});*/
 
 	if (imgPtr == nullptr)
 	{
@@ -312,7 +312,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 			if ((bufferSize < 0) || (!buffer))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Bad TGA file " + name + "\n");
-				return;
+				return nullptr;
 			}
 
 			ScratchImage image;
@@ -330,13 +330,13 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 		else if (extension.compare(".dds") == 0)
 		{
 			// Requesting a .dds file
-			DX::ThrowIfFailed(
+			/*DX::ThrowIfFailed(
 				CreateDDSTextureFromFile(ref->sys->d3dDevice,
 										*(ref->sys->resourceUpload), 
 										convertToWide.from_bytes(imgPtr->name).c_str(), 
 										images.at(imgPtr).ReleaseAndGetAddressOf(),
 										generateMipMap)
-			);
+			);*/
 
 		}
 		else if (extension.compare(".hdr") == 0)
@@ -358,13 +358,13 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 		else
 		{
 			// Assume a WIC compatible format (.bmp, .jpg, .png, .tif, .gif, .ico, .wdp, .jxr)
-			DX::ThrowIfFailed(
+			/*DX::ThrowIfFailed(
 				CreateWICTextureFromFile(ref->sys->d3dDevice,
 										*(ref->sys->resourceUpload),
 										convertToWide.from_bytes(imgPtr->name).c_str(),
 										images.at(imgPtr).ReleaseAndGetAddressOf(),
 										generateMipMap)
-			);
+			);*/
 		}
 
 		ref->sys->EndUpload();

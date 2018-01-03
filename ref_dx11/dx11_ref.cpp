@@ -37,4 +37,5 @@ dx11::Ref::Ref(refimport_t rimp)
 	img		= std::make_unique<Image>();
 	draw	= std::make_unique<Draw>();
 	sys		= std::make_unique<System>();
+	model	= std::make_unique<Model>();
 }

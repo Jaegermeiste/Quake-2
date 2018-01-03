@@ -52,6 +52,16 @@ typedef struct viddef_s
 	unsigned		width, height;			// coordinates from main game
 } viddef_t;
 
+typedef enum rserr_e
+{
+	rserr_ok,
+
+	rserr_invalid_fullscreen,
+	rserr_invalid_mode,
+
+	rserr_unknown
+} rserr_t;
+
 typedef enum imagetype_e
 {
 	it_skin,
@@ -81,8 +91,9 @@ typedef struct image_s
 #include "dx11_client.hpp"
 #include "dx11_system.hpp"
 #include "dx11_image.hpp"
-#include "dx11_draw.hpp"
 #include "dx11_model.hpp"
+#include "dx11_draw.hpp"
+
 #include "dx11_ref.hpp"
 
 namespace dx11
