@@ -136,8 +136,6 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\game\q_shared.c" />
-    <ClCompile Include="..\win32\q_shwin.c" />
     <ClCompile Include="dx11_api.cpp" />
     <ClCompile Include="dx11_client.cpp" />
     <ClCompile Include="dx11_cvar.cpp" />
@@ -147,6 +145,8 @@
     <ClCompile Include="dx11_model.cpp" />
     <ClCompile Include="dx11_ref.cpp" />
     <ClCompile Include="dx11_system.cpp" />
+    <ClCompile Include="q_shared.cpp" />
+    <ClCompile Include="q_shwin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

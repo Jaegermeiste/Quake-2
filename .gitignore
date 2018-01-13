@@ -11,3 +11,8 @@ ref_soft/debug/ref_soft.log
 *.tlog
 *.idb
 *.pdb
+*.log
+*.log
+*.ilk
+*.log
+*.log

@@ -38,39 +38,40 @@ namespace dx11
 
 		std::mutex	refImportMutex;
 
-		cvar_t					*(*Cvar_Get)			(char *name, char *value, int flags);
-		cvar_t					*(*Cvar_Set)			(char *name, char *value);
-		void					(*Cvar_SetValue)		(char *name, float value);
+		cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
+		cvar_t			*(*Cvar_Set)			(char *name, char *value);
+		void			(*Cvar_SetValue)		(char *name, float value);
 
 		// Friends
 		friend dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags);
 		friend dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags);
+		friend dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags);
 		friend void dx11::Cvars::Cvar::Set(std::string value);
 
 	public:
-								Client					(refimport_t rimp);
-								~Client					();
+						Client					(refimport_t rimp);
+						~Client					();
 
-		void					SetRefImport			(refimport_t rimp);
+		void			SetRefImport			(refimport_t rimp);
 
-		inline	void			Sys_Error				(unsigned short err_level, std::string str);
+		void			Sys_Error				(unsigned short err_level, std::string str);
 
-		void					Cmd_AddCommand			(std::string name, void(*cmd)(void));
-		inline	void			Cmd_RemoveCommand		(std::string name);
-		inline	unsigned int	Cmd_Argc				(void);
-		std::string				Cmd_Argv				(unsigned int i);
-		void					Cmd_ExecuteText			(unsigned int exec_when, std::string text);
+		void			Cmd_AddCommand			(std::string name, void(*cmd)(void));
+		void			Cmd_RemoveCommand		(std::string name);
+		unsigned int	Cmd_Argc				(void);
+		std::string		Cmd_Argv				(unsigned int i);
+		void			Cmd_ExecuteText			(unsigned int exec_when, std::string text);
 
-		inline	void			Con_Printf				(unsigned short print_level, std::string str);
+		void			Con_Printf				(unsigned short print_level, std::string str);
 
-		inline	int				FS_LoadFile				(std::string fileName, void **buf);
-		inline	void			FS_FreeFile				(void *buf);
+		int				FS_LoadFile				(std::string fileName, void **buf);
+		void			FS_FreeFile				(void *buf);
 
-		inline	std::string		FS_Gamedir				(void);
+		std::string		FS_Gamedir				(void);
 
-		inline	bool			Vid_GetModeInfo			(unsigned int &width, unsigned int &height, int mode);
-		inline	void			Vid_MenuInit			(void);
-		inline	void			Vid_NewWindow			(unsigned int width, unsigned int height);
+		bool			Vid_GetModeInfo			(unsigned int &width, unsigned int &height, int mode);
+		void			Vid_MenuInit			(void);
+		void			Vid_NewWindow			(unsigned int width, unsigned int height);
 	};
 }
 

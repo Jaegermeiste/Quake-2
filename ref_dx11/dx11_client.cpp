@@ -85,7 +85,7 @@ inline void dx11::Client::Con_Printf(unsigned short print_level, std::string str
 	ri.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
 
-inline int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
+int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 {
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(refImportMutex);
@@ -93,7 +93,7 @@ inline int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 	return ri.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
 }
 
-inline void dx11::Client::FS_FreeFile(void *buf)
+void dx11::Client::FS_FreeFile(void *buf)
 {
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(refImportMutex);
@@ -140,7 +140,7 @@ inline void dx11::Client::Vid_MenuInit(void)
 	ri.Vid_MenuInit();
 }
 
-inline void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
+void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(refImportMutex);
@@ -170,3 +170,31 @@ dx11::Client::~Client()
 	dx11::Client::Cvar_Set			= nullptr;
 	dx11::Client::Cvar_SetValue		= nullptr;
 }
+
+#ifndef REF_HARD_LINKED
+// this is only here so the functions in q_shared.c and q_shwin.c can link
+void Sys_Error(char *error, ...)
+{
+	va_list		argptr;
+	char		text[1024];
+
+	va_start(argptr, error);
+	vsprintf(text, error, argptr);
+	va_end(argptr);
+
+	dx11::ref->client->Sys_Error(ERR_FATAL, text);
+}
+
+void Com_Printf(char *fmt, ...)
+{
+	va_list		argptr;
+	char		text[1024];
+
+	va_start(argptr, fmt);
+	vsprintf(text, fmt, argptr);
+	va_end(argptr);
+
+	dx11::ref->client->Con_Printf(PRINT_ALL, text);
+}
+
+#endif

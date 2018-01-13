@@ -25,12 +25,6 @@
     <Filter Include="Header Files\win32">
       <UniqueIdentifier>{c9592045-9681-4a97-9bd9-2bc726c4d01d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\game">
-      <UniqueIdentifier>{f223a387-83e3-4139-b4f4-1b6856017d7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\win32">
-      <UniqueIdentifier>{7c589d62-8a4e-48cf-8bf8-b58436429660}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\d3dx">
       <UniqueIdentifier>{ee52ec58-674b-4aaa-8af6-9bc1150f3791}</UniqueIdentifier>
     </Filter>
@@ -80,12 +74,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\game\q_shared.c">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\win32\q_shwin.c">
-      <Filter>Source Files\win32</Filter>
-    </ClCompile>
     <ClCompile Include="dx11_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -111,6 +99,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx11_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shared.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shwin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -46,6 +46,7 @@ namespace dx11
 		public:
 									Cvar(std::string name, std::string defaultString, unsigned int flags);
 									Cvar(std::string name, float defaultValue, unsigned int flags);
+									Cvar(std::string name, int defaultValue, unsigned int flags);
 
 					bool			Bool();
 					signed int		Int();

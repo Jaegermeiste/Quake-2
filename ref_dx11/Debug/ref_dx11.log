@@ -1,28 +1,13 @@
-﻿  q_shwin.c
-  q_shared.c
-  Generating Code...
+﻿  q_shwin.cpp
+  q_shared.cpp
   dx11_system.cpp
   dx11_ref.cpp
   dx11_model.cpp
-c:\users\jgeorge1\documents\github\quake-2\ref_dx11\dx11_ref.hpp(45): error C2065: 'Model': undeclared identifier
-c:\users\jgeorge1\documents\github\quake-2\ref_dx11\dx11_ref.hpp(45): error C2923: 'std::unique_ptr': 'Model' is not a valid template type argument for parameter '_Ty'
-c:\users\jgeorge1\documents\github\quake-2\ref_dx11\dx11_ref.hpp(45): error C3203: 'default_delete': unspecialized class template can't be used as a template argument for template parameter '_Dx', expected a real type
   dx11_main.cpp
   dx11_image.cpp
   dx11_draw.cpp
   dx11_cvar.cpp
-d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\memory(1849): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\memory(1913): note: see reference to function template instantiation 'std::_Ref_count_obj<_Ty>::_Ref_count_obj<const char(&)[9],int,int>(const char (&)[9],int &&,int &&)' being compiled
-          with
-          [
-              _Ty=dx11::Cvars::Cvar
-          ]
-  d:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\memory(1914): note: see reference to function template instantiation 'std::_Ref_count_obj<_Ty>::_Ref_count_obj<const char(&)[9],int,int>(const char (&)[9],int &&,int &&)' being compiled
-          with
-          [
-              _Ty=dx11::Cvars::Cvar
-          ]
-  c:\users\jgeorge1\documents\github\quake-2\ref_dx11\dx11_cvar.cpp(31): note: see reference to function template instantiation 'std::shared_ptr<dx11::Cvars::Cvar> std::make_shared<dx11::Cvars::Cvar,const char(&)[9],int,int>(const char (&)[9],int &&,int &&)' being compiled
   dx11_client.cpp
   dx11_api.cpp
   Generating Code...
+  ref_dx11.vcxproj -> C:\Users\jgeorge1\Documents\GitHub\Quake-2\Debug\ref_dx11.dll

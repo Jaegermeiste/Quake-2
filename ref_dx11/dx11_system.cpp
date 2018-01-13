@@ -25,8 +25,6 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-dx11::System* sys = nullptr;
-
 D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 {
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_9_1;
@@ -229,7 +227,7 @@ bool dx11::System::VID_CreateWindow()
 	SetFocus(hWnd);
 
 	// let the sound and input subsystems know about the new window
-	ref->client->Vid_NewWindow(width, height);
+	dx11::ref->client->Vid_NewWindow(width, height);
 
 	return true;
 }

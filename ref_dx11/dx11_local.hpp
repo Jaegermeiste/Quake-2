@@ -88,8 +88,9 @@ typedef struct image_s
 } image_t;
 
 #include "dx11_cvar.hpp"
-#include "dx11_client.hpp"
 #include "dx11_system.hpp"
+#include "dx11_client.hpp"
+
 #include "dx11_image.hpp"
 #include "dx11_model.hpp"
 #include "dx11_draw.hpp"

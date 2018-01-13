@@ -108,9 +108,8 @@ typedef struct model_s
 
 namespace dx11
 {
-	class Model {
-	private:
-
+	class Model 
+	{
 	public:
 		std::shared_ptr<model_t>	LoadMap(std::string name);
 		std::shared_ptr<model_t>	LoadModel(std::string name);
