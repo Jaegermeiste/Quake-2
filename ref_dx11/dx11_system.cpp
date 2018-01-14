@@ -303,10 +303,11 @@ bool dx11::System::D3D_InitDevice()
 {
 	HRESULT hr = S_OK;
 	RECT rc = {};
-	GetClientRect(hWnd, &rc);
-	UINT width = rc.right - rc.left;
-	UINT height = rc.bottom - rc.top;
 	UINT createDeviceFlags = 0;
+
+	GetClientRect(hWnd, &rc);
+	windowWidth = rc.right - rc.left;
+	windowHeight = rc.bottom - rc.top;
 
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -379,6 +380,19 @@ bool dx11::System::D3D_InitDevice()
 
 			if (SUCCEEDED(hr))
 			{
+				DXGI_ADAPTER_DESC desc;
+
+				hr = adapter->GetDesc(&desc);
+
+				if (SUCCEEDED(hr))
+				{
+					if ((desc.VendorId == 0x1414) && (desc.DeviceId == 0x8c))
+					{
+						// Microsoft Basic Render Driver
+						ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
+					}
+				}
+
 				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
 				adapter->Release();
 			}
@@ -407,8 +421,8 @@ bool dx11::System::D3D_InitDevice()
 
 		DXGI_SWAP_CHAIN_DESC1 sd;
 		ZeroMemory(&sd, sizeof(sd));
-		sd.Width = width;
-		sd.Height = height;
+		sd.Width = windowWidth;
+		sd.Height = windowHeight;
 		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
@@ -431,8 +445,8 @@ bool dx11::System::D3D_InitDevice()
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferCount = 1;
-		sd.BufferDesc.Width = width;
-		sd.BufferDesc.Height = height;
+		sd.BufferDesc.Width = windowWidth;
+		sd.BufferDesc.Height = windowHeight;
 		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.BufferDesc.RefreshRate.Numerator = 60;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -479,14 +493,75 @@ bool dx11::System::D3D_InitDevice()
 
 	// Setup the viewport
 	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)width;
-	vp.Height = (FLOAT)height;
+	vp.Width = (FLOAT)windowWidth;
+	vp.Height = (FLOAT)windowHeight;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 
 	ImmediateContext->RSSetViewports(1, &vp);
+
+	return true;
+}
+
+bool dx11::System::D3D_Init2DOverlay()
+{
+	D3D11_TEXTURE2D_DESC textureDesc;
+	HRESULT hr;
+	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+
+
+	// Initialize the render target texture description.
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+
+	// Setup the render target texture description.
+	textureDesc.Width = windowWidth;
+	textureDesc.Height = windowHeight;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+
+	// Create the render target texture.
+	hr = d3dDevice->CreateTexture2D(&textureDesc, nullptr, &renderTargetTexture2D);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	// Setup the description of the render target view.
+	renderTargetViewDesc.Format = textureDesc.Format;
+	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	renderTargetViewDesc.Texture2D.MipSlice = 0;
+
+	// Create the render target view.
+	hr = d3dDevice->CreateRenderTargetView(renderTargetTexture2D, &renderTargetViewDesc, &renderTargetView2D);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	// Setup the description of the shader resource view.
+	shaderResourceViewDesc.Format = textureDesc.Format;
+	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+	shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+	// Create the shader resource view.
+	hr = d3dDevice->CreateShaderResourceView(renderTargetTexture2D, &shaderResourceViewDesc, &shaderResourceView2D);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	deferredContext2D->OMSetRenderTargets(1, &renderTargetView2D, nullptr);
 
 	return true;
 }
@@ -514,6 +589,30 @@ void dx11::System::D3D_Shutdown()
 	{ 
 		SwapChain->Release(); 
 		SwapChain = nullptr; 
+	}
+
+	if (deferredContext2D)
+	{
+		deferredContext2D->Release();
+		deferredContext2D = nullptr;
+	}
+
+	if (shaderResourceView2D)
+	{
+		shaderResourceView2D->Release();
+		shaderResourceView2D = 0;
+	}
+
+	if (renderTargetView2D)
+	{
+		renderTargetView2D->Release();
+		renderTargetView2D = 0;
+	}
+
+	if (renderTargetTexture2D)
+	{
+		renderTargetTexture2D->Release();
+		renderTargetTexture2D = 0;
 	}
 
 	if (ImmediateContext1) 

@@ -42,6 +42,9 @@ namespace dx11
 		WNDCLASS			wndClass;
 		HWND				hWnd;
 
+		UINT						windowWidth = 0;
+		UINT						windowHeight = 0;
+
 		D3D_DRIVER_TYPE         driverType = D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL       featureLevel = D3D_FEATURE_LEVEL_11_0;
 
@@ -49,9 +52,17 @@ namespace dx11
 		ID3D11Device1*          d3dDevice1 = nullptr;
 		ID3D11DeviceContext*    ImmediateContext = nullptr;
 		ID3D11DeviceContext1*   ImmediateContext1 = nullptr;
+
 		IDXGISwapChain*         SwapChain = nullptr;
 		IDXGISwapChain1*        SwapChain1 = nullptr;
 		ID3D11RenderTargetView* RenderTargetView = nullptr;
+
+		// 2D Rendering
+		ID3D11DeviceContext*		deferredContext2D = nullptr;
+		ID3D11Texture2D*			renderTargetTexture2D = nullptr;
+		ID3D11RenderTargetView*		renderTargetView2D = nullptr;
+		ID3D11ShaderResourceView*	shaderResourceView2D = nullptr;
+
 
 		bool					d3dInitialized;
 
@@ -66,6 +77,7 @@ namespace dx11
 		void				VID_DestroyWindow();
 
 		bool				D3D_InitDevice();
+		bool				D3D_Init2DOverlay();
 		void				D3D_Shutdown();
 
 	public:
