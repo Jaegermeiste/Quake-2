@@ -96,7 +96,10 @@ inline void	SHIM_R_EndRegistration(void)
 
 inline void	SHIM_R_RenderFrame(refdef_t *fd)
 {
-
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		dx11::ref->sys->RenderFrame(fd);
+	}
 }
 
 inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
@@ -110,8 +113,6 @@ inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
 		*h = msl::utilities::SafeInt<int>(height);
 	}
 }
-
-
 
 inline void	SHIM_Draw_Pic(int x, int y, char *name)
 {
@@ -217,12 +218,18 @@ inline void SHIM_R_SetPalette(const unsigned char *palette)
 
 inline void	SHIM_R_BeginFrame(float camera_separation)
 {
-
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		dx11::ref->sys->BeginFrame();
+	}
 }
 
 inline void SHIM_R_EndFrame(void)
 {
-
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		dx11::ref->sys->EndFrame();
+	}
 }
 
 inline void SHIM_R_AppActivate(qboolean active)

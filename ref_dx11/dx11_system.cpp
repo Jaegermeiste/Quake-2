@@ -66,6 +66,7 @@ dx11::System::System()
 {
 	m_hInstance = nullptr;
 	m_wndProc = nullptr;
+	ZeroMemory(&m_wndClass, sizeof(WNDCLASS));
 	m_hWnd = nullptr;
 	FillFeatureLevelArray();
 
@@ -78,7 +79,7 @@ dx11::System::System()
 	m_immediateContext1 = nullptr;
 	m_swapChain = nullptr;
 	m_swapChain1 = nullptr;
-	m_3DrenderTargetView = nullptr;
+	m_backBufferRTV = nullptr;
 
 	m_d3dInitialized = false;
 }
@@ -138,6 +139,58 @@ void dx11::System::EndUpload()
 	}
 }
 
+void dx11::System::BeginFrame(void)
+{
+	// Clear immediate context
+	if (m_immediateContext)
+	{
+		if (m_backBufferRTV)
+		{
+			// clear the back buffer to a deep blue
+			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
+		}
+
+		if (m_DepthStencilView)
+		{
+			// Clear the depth buffer
+			m_immediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		}
+	}
+
+	// Clear 2D deferred
+	if (m_2DdeferredContext)
+	{
+		// Clear the GUI Overlay buffer to transparent
+		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
+	}
+
+	// Clear 3D deferred
+	/*if (m_3DdeferredContext)
+	{
+
+	}*/
+}
+
+void dx11::System::RenderFrame(refdef_t * fd)
+{
+	// Draw 3D
+
+	// Draw 2D
+	if (m_2DcommandList)
+	{
+		m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
+	}
+}
+
+void dx11::System::EndFrame(void)
+{
+	if (m_swapChain)
+	{
+		// Switch the back buffer and the front buffer
+		m_swapChain->Present(0, 0);
+	}
+}
+
 
 /*
 ** VID_CreateWindow
@@ -163,7 +216,7 @@ bool dx11::System::VID_CreateWindow()
 	m_wndClass.hInstance = m_hInstance;
 	m_wndClass.hIcon = 0;
 	m_wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	m_wndClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
+	//m_wndClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
 	m_wndClass.lpszMenuName = nullptr;
 	m_wndClass.lpszClassName = WINDOW_CLASS_NAME;
 
@@ -380,13 +433,13 @@ bool dx11::System::D3D_InitDevice()
 
 			if (SUCCEEDED(hr))
 			{
-				DXGI_ADAPTER_DESC desc;
-
-				hr = adapter->GetDesc(&desc);
+				DXGI_ADAPTER_DESC adapterDesc;
+				ZeroMemory(&adapterDesc, sizeof(DXGI_ADAPTER_DESC));
+				hr = adapter->GetDesc(&adapterDesc);
 
 				if (SUCCEEDED(hr))
 				{
-					if ((desc.VendorId == 0x1414) && (desc.DeviceId == 0x8c))
+					if ((adapterDesc.VendorId == 0x1414) && (adapterDesc.DeviceId == 0x8c))
 					{
 						// Microsoft Basic Render Driver
 						ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
@@ -419,17 +472,19 @@ bool dx11::System::D3D_InitDevice()
 			(void)m_immediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
 		}
 
-		DXGI_SWAP_CHAIN_DESC1 sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.Width = m_windowWidth;
-		sd.Height = m_windowHeight;
-		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.BufferCount = 1;
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
+		swapChainDesc.Width = m_windowWidth;
+		swapChainDesc.Height = m_windowHeight;
+		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.SampleDesc.Count = 1;
+		swapChainDesc.SampleDesc.Quality = 0;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferCount = 1;
+		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		swapChainDesc.Stereo = FALSE;
 
-		hr = dxgiFactory2->CreateSwapChainForHwnd(m_d3dDevice, m_hWnd, &sd, nullptr, nullptr, &m_swapChain1);
+		hr = dxgiFactory2->CreateSwapChainForHwnd(m_d3dDevice, m_hWnd, &swapChainDesc, nullptr, nullptr, &m_swapChain1);
 
 		if (SUCCEEDED(hr))
 		{
@@ -442,21 +497,22 @@ bool dx11::System::D3D_InitDevice()
 	else
 	{
 		// DirectX 11.0 systems
-		DXGI_SWAP_CHAIN_DESC sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.BufferCount = 1;
-		sd.BufferDesc.Width = m_windowWidth;
-		sd.BufferDesc.Height = m_windowHeight;
-		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.BufferDesc.RefreshRate.Numerator = 60;
-		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow = m_hWnd;
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.Windowed = TRUE;
+		DXGI_SWAP_CHAIN_DESC swapChainDesc;
+		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+		swapChainDesc.BufferCount = 1;
+		swapChainDesc.BufferDesc.Width = m_windowWidth;
+		swapChainDesc.BufferDesc.Height = m_windowHeight;
+		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.OutputWindow = m_hWnd;
+		swapChainDesc.SampleDesc.Count = 1;
+		swapChainDesc.SampleDesc.Quality = 0;
+		swapChainDesc.Windowed = TRUE;
+		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-		hr = dxgiFactory->CreateSwapChain(m_d3dDevice, &sd, &m_swapChain);
+		hr = dxgiFactory->CreateSwapChain(m_d3dDevice, &swapChainDesc, &m_swapChain);
 	}
 
 	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
@@ -479,8 +535,7 @@ bool dx11::System::D3D_InitDevice()
 		return false;
 	}
 
-
-	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_3DrenderTargetView);
+	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_backBufferRTV);
 
 	pBackBuffer->Release();
 
@@ -489,18 +544,19 @@ bool dx11::System::D3D_InitDevice()
 		return false;
 	}
 
-	m_immediateContext->OMSetRenderTargets(1, &m_3DrenderTargetView, nullptr);
+	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
 
 	// Setup the viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)m_windowWidth;
-	vp.Height = (FLOAT)m_windowHeight;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
+	D3D11_VIEWPORT viewport;
+	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+	viewport.Width = (FLOAT)m_windowWidth;
+	viewport.Height = (FLOAT)m_windowHeight;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
 
-	m_immediateContext->RSSetViewports(1, &vp);
+	m_immediateContext->RSSetViewports(1, &viewport);
 
 	return true;
 }
@@ -544,7 +600,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	hr = m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DrenderTargetView);
+	hr = m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
 	if (FAILED(hr))
 	{
 		return false;
@@ -564,7 +620,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	}
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DrenderTargetView, nullptr);
+	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 
 	// Create an orthographic projection matrix for 2D rendering.
 	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
@@ -578,11 +634,17 @@ void dx11::System::D3D_Shutdown()
 	{
 		m_immediateContext->ClearState();
 	}
-	
-	if (m_3DrenderTargetView) 
+
+	if (m_swapChain)
 	{
-		m_3DrenderTargetView->Release();
-		m_3DrenderTargetView = nullptr;
+		// switch to windowed mode to allow proper cleanup
+		m_swapChain->SetFullscreenState(FALSE, nullptr);   
+	}
+	
+	if (m_backBufferRTV) 
+	{
+		m_backBufferRTV->Release();
+		m_backBufferRTV = nullptr;
 	}
 
 	if (m_swapChain1)
@@ -609,10 +671,10 @@ void dx11::System::D3D_Shutdown()
 		m_2DshaderResourceView = 0;
 	}
 
-	if (m_2DrenderTargetView)
+	if (m_2DoverlayRTV)
 	{
-		m_2DrenderTargetView->Release();
-		m_2DrenderTargetView = 0;
+		m_2DoverlayRTV->Release();
+		m_2DoverlayRTV = 0;
 	}
 
 	if (m_2DrenderTargetTexture)

@@ -56,16 +56,19 @@ namespace dx11
 
 		IDXGISwapChain*				m_swapChain = nullptr;
 		IDXGISwapChain1*			m_swapChain1 = nullptr;
+
+		ID3D11DepthStencilView*		m_DepthStencilView;
 		
 		// 2D Rendering
 		ID3D11DeviceContext*		m_2DdeferredContext = nullptr;
+		ID3D11CommandList*			m_2DcommandList = nullptr;
 		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
-		ID3D11RenderTargetView*		m_2DrenderTargetView = nullptr;
+		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
 		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
 
 		// 3D Rendering
-		ID3D11RenderTargetView*		m_3DrenderTargetView = nullptr;
+		ID3D11RenderTargetView*		m_backBufferRTV = nullptr;
 		DirectX::XMMATRIX           m_3DworldMatrix;
 		DirectX::XMMATRIX           m_3DviewMatrix;
 		DirectX::XMMATRIX           m_3DprojectionMatrix;
@@ -100,6 +103,10 @@ namespace dx11
 
 		void						BeginUpload();
 		void						EndUpload();
+
+		void						BeginFrame();
+		void						RenderFrame(refdef_t *fd);
+		void						EndFrame();
 
 		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 		void* operator new(size_t i)
