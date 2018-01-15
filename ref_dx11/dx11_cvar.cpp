@@ -52,41 +52,41 @@ dx11::Cvars::Cvars()
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
 float dx11::Cvars::Cvar::Float()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return  clientMemPtr->value;
+	return  m_clientMemPtr->value;
 }
 
 bool dx11::Cvars::Cvar::Bool()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	if (clientMemPtr->value > 0.0)
+	if (m_clientMemPtr->value > 0.0)
 	{
 		return true;
 	}
@@ -96,65 +96,65 @@ bool dx11::Cvars::Cvar::Bool()
 int dx11::Cvars::Cvar::Int()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return msl::utilities::SafeInt<int>(static_cast<int>(round(clientMemPtr->value)));
+	return msl::utilities::SafeInt<int>(static_cast<int>(round(m_clientMemPtr->value)));
 }
 
 unsigned int dx11::Cvars::Cvar::UInt()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return msl::utilities::SafeInt<unsigned int>(static_cast<unsigned int>(round(clientMemPtr->value)));
+	return msl::utilities::SafeInt<unsigned int>(static_cast<unsigned int>(round(m_clientMemPtr->value)));
 }
 
 double dx11::Cvars::Cvar::Double()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return  clientMemPtr->value;
+	return  m_clientMemPtr->value;
 }
 
 std::string dx11::Cvars::Cvar::String()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return  std::string(clientMemPtr->string);
+	return  std::string(m_clientMemPtr->string);
 }
 
 std::string dx11::Cvars::Cvar::LatchedString()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return  std::string(clientMemPtr->latched_string);
+	return  std::string(m_clientMemPtr->latched_string);
 }
 
 std::string dx11::Cvars::Cvar::Name()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return  std::string(clientMemPtr->name);
+	return  std::string(m_clientMemPtr->name);
 }
 
 unsigned int dx11::Cvars::Cvar::Flags()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	return msl::utilities::SafeInt<unsigned int>(clientMemPtr->flags);
+	return msl::utilities::SafeInt<unsigned int>(m_clientMemPtr->flags);
 }
 
 bool dx11::Cvars::Cvar::Modified()
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	if (clientMemPtr->modified == true)
+	if (m_clientMemPtr->modified == true)
 	{
 		return true;
 	}
@@ -189,16 +189,16 @@ bool dx11::Cvars::Cvar::InfoValidate(std::string value)
 void dx11::Cvars::Cvar::Set(std::string value)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
 	// Cvar_Set is costly and poorly implemented when we already have a pointer to the cvar (linear string search)
 	// so avoid calling it if at all possible
-	if (value.compare(clientMemPtr->string) == 0)
+	if (value.compare(m_clientMemPtr->string) == 0)
 	{
 		return;		// not changed
 	}
 
-	if (clientMemPtr->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
+	if (m_clientMemPtr->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
 		if (!InfoValidate(value))
 		{
@@ -207,17 +207,17 @@ void dx11::Cvars::Cvar::Set(std::string value)
 		}
 	}
 
-	if (clientMemPtr->flags & CVAR_NOSET)
+	if (m_clientMemPtr->flags & CVAR_NOSET)
 	{
-		ref->client->Con_Printf(PRINT_ALL, std::string(clientMemPtr->name) + " is write protected.\n");
+		ref->client->Con_Printf(PRINT_ALL, std::string(m_clientMemPtr->name) + " is write protected.\n");
 		return;
 	}
 
-	if (clientMemPtr->flags & CVAR_LATCH)
+	if (m_clientMemPtr->flags & CVAR_LATCH)
 	{
-		if ((clientMemPtr->latched_string != nullptr) || (clientMemPtr->latched_string != NULL))
+		if ((m_clientMemPtr->latched_string != nullptr) || (m_clientMemPtr->latched_string != NULL))
 		{
-			if (value.compare(clientMemPtr->latched_string) == 0)
+			if (value.compare(m_clientMemPtr->latched_string) == 0)
 			{
 				return;
 			}
@@ -225,7 +225,7 @@ void dx11::Cvars::Cvar::Set(std::string value)
 	}
 
 	// Cvar_Set uses some client side functionality for latching, server state, etc that we can't safely replicate here, so we have to use it
-	ref->client->Cvar_Set(clientMemPtr->name, const_cast<char*>(value.c_str()));
+	ref->client->Cvar_Set(m_clientMemPtr->name, const_cast<char*>(value.c_str()));
 }
 
 inline void dx11::Cvars::Cvar::Set(float value)
@@ -241,7 +241,7 @@ inline void dx11::Cvars::Cvar::Set(double value)
 inline void dx11::Cvars::Cvar::SetModified(bool value)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(ptrAccessMutex);
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
 	if (value == Modified())
 	{
@@ -251,11 +251,11 @@ inline void dx11::Cvars::Cvar::SetModified(bool value)
 	{
 		if (value == true)
 		{
-			clientMemPtr->modified = true;
+			m_clientMemPtr->modified = true;
 		}
 		else
 		{
-			clientMemPtr->modified = false;
+			m_clientMemPtr->modified = false;
 		}
 	}
 }

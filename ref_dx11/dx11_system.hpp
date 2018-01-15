@@ -38,72 +38,68 @@ namespace dx11
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 	__declspec(align(16)) class System {
 	private:
-		HINSTANCE			hInstance;
-		WNDPROC				wndProc;
-		WNDCLASS			wndClass;
-		HWND				hWnd;
+		HINSTANCE					m_hInstance;
+		WNDPROC						m_wndProc;
+		WNDCLASS					m_wndClass;
+		HWND						m_hWnd;
 
-		UINT						windowWidth = 0;
-		UINT						windowHeight = 0;
+		UINT						m_windowWidth = 0;
+		UINT						m_windowHeight = 0;
 
-		D3D_DRIVER_TYPE         driverType = D3D_DRIVER_TYPE_NULL;
-		D3D_FEATURE_LEVEL       featureLevel = D3D_FEATURE_LEVEL_11_0;
+		D3D_DRIVER_TYPE				m_driverType = D3D_DRIVER_TYPE_NULL;
+		D3D_FEATURE_LEVEL			m_featureLevel = D3D_FEATURE_LEVEL_11_0;
 
-		ID3D11Device*           d3dDevice = nullptr;
-		ID3D11Device1*          d3dDevice1 = nullptr;
-		ID3D11DeviceContext*    ImmediateContext = nullptr;
-		ID3D11DeviceContext1*   ImmediateContext1 = nullptr;
+		ID3D11Device*				m_d3dDevice = nullptr;
+		ID3D11Device1*				m_d3dDevice1 = nullptr;
+		ID3D11DeviceContext*		m_immediateContext = nullptr;
+		ID3D11DeviceContext1*		m_immediateContext1 = nullptr;
 
-		IDXGISwapChain*         SwapChain = nullptr;
-		IDXGISwapChain1*        SwapChain1 = nullptr;
-		ID3D11RenderTargetView* RenderTargetView = nullptr;
-
-		DirectX::XMMATRIX			world3DMatrix;
-		DirectX::XMMATRIX			view3DMatrix;
-		DirectX::XMMATRIX			projection3DMatrix;
-
+		IDXGISwapChain*				m_swapChain = nullptr;
+		IDXGISwapChain1*			m_swapChain1 = nullptr;
+		
 		// 2D Rendering
-		ID3D11DeviceContext*		deferredContext2D = nullptr;
-		ID3D11Texture2D*			renderTargetTexture2D = nullptr;
-		ID3D11RenderTargetView*		renderTargetView2D = nullptr;
-		ID3D11ShaderResourceView*	shaderResourceView2D = nullptr;
-
+		ID3D11DeviceContext*		m_2DdeferredContext = nullptr;
+		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
+		ID3D11RenderTargetView*		m_2DrenderTargetView = nullptr;
+		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
 
+		// 3D Rendering
+		ID3D11RenderTargetView*		m_3DrenderTargetView = nullptr;
 		DirectX::XMMATRIX           m_3DworldMatrix;
 		DirectX::XMMATRIX           m_3DviewMatrix;
 		DirectX::XMMATRIX           m_3DprojectionMatrix;
 
-		bool					d3dInitialized;
+		bool						m_d3dInitialized;
 
-		bool				inRegistration;
-		bool				uploadBatchOpen;
+		bool						m_inRegistration;
+		bool						m_uploadBatchOpen;
 
-		D3D_FEATURE_LEVEL	featureLevelArray[NUM_D3D_FEATURE_LEVELS];
+		D3D_FEATURE_LEVEL			m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
 
-		void				FillFeatureLevelArray	(void);
+		void						FillFeatureLevelArray	(void);
 		
-		bool				VID_CreateWindow();
-		void				VID_DestroyWindow();
+		bool						VID_CreateWindow();
+		void						VID_DestroyWindow();
 
-		bool				D3D_InitDevice();
-		bool				D3D_Init2DOverlay();
-		void				D3D_Shutdown();
+		bool						D3D_InitDevice();
+		bool						D3D_Init2DOverlay();
+		void						D3D_Shutdown();
 
 	public:
-							System					();
-							~System					();
+									System					();
+									~System					();
 
-		bool				Initialize(HINSTANCE hInstance, WNDPROC wndProc);
-		void				Shutdown();
+		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);
+		void						Shutdown();
 
-		void				AppActivate(bool active);
+		void						AppActivate(bool active);
 
-		void				BeginRegistration();
-		void				EndRegistration();
+		void						BeginRegistration();
+		void						EndRegistration();
 
-		void				BeginUpload();
-		void				EndUpload();
+		void						BeginUpload();
+		void						EndUpload();
 
 		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 		void* operator new(size_t i)

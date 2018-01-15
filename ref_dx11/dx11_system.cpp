@@ -51,36 +51,36 @@ D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 
 void dx11::System::FillFeatureLevelArray(void)
 {
-	featureLevelArray[0] = D3D_FEATURE_LEVEL_12_1;
-	featureLevelArray[1] = D3D_FEATURE_LEVEL_12_0;
-	featureLevelArray[2] = D3D_FEATURE_LEVEL_11_1;
-	featureLevelArray[3] = D3D_FEATURE_LEVEL_11_0;
-	featureLevelArray[4] = D3D_FEATURE_LEVEL_10_1;
-	featureLevelArray[5] = D3D_FEATURE_LEVEL_10_0;
-	featureLevelArray[6] = D3D_FEATURE_LEVEL_9_3;
-	featureLevelArray[7] = D3D_FEATURE_LEVEL_9_2;
-	featureLevelArray[8] = D3D_FEATURE_LEVEL_9_1;
+	m_featureLevelArray[0] = D3D_FEATURE_LEVEL_12_1;
+	m_featureLevelArray[1] = D3D_FEATURE_LEVEL_12_0;
+	m_featureLevelArray[2] = D3D_FEATURE_LEVEL_11_1;
+	m_featureLevelArray[3] = D3D_FEATURE_LEVEL_11_0;
+	m_featureLevelArray[4] = D3D_FEATURE_LEVEL_10_1;
+	m_featureLevelArray[5] = D3D_FEATURE_LEVEL_10_0;
+	m_featureLevelArray[6] = D3D_FEATURE_LEVEL_9_3;
+	m_featureLevelArray[7] = D3D_FEATURE_LEVEL_9_2;
+	m_featureLevelArray[8] = D3D_FEATURE_LEVEL_9_1;
 }
 
 dx11::System::System()
 {
-	hInstance = nullptr;
-	wndProc = nullptr;
-	hWnd = nullptr;
+	m_hInstance = nullptr;
+	m_wndProc = nullptr;
+	m_hWnd = nullptr;
 	FillFeatureLevelArray();
 
-	driverType = D3D_DRIVER_TYPE_NULL;
-	featureLevel = D3D_FEATURE_LEVEL_12_1;
+	m_driverType = D3D_DRIVER_TYPE_NULL;
+	m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 
-	d3dDevice = nullptr;
-	d3dDevice1 = nullptr;
-	ImmediateContext = nullptr;
-	ImmediateContext1 = nullptr;
-	SwapChain = nullptr;
-	SwapChain1 = nullptr;
-	RenderTargetView = nullptr;
+	m_d3dDevice = nullptr;
+	m_d3dDevice1 = nullptr;
+	m_immediateContext = nullptr;
+	m_immediateContext1 = nullptr;
+	m_swapChain = nullptr;
+	m_swapChain1 = nullptr;
+	m_3DrenderTargetView = nullptr;
 
-	d3dInitialized = false;
+	m_d3dInitialized = false;
 }
 
 dx11::System::~System()
@@ -90,19 +90,19 @@ dx11::System::~System()
 
 void dx11::System::BeginRegistration()
 {
-	if (!inRegistration)
+	if (!m_inRegistration)
 	{
 		BeginUpload();
 
-		inRegistration = true;
+		m_inRegistration = true;
 	}
 }
 
 void dx11::System::EndRegistration()
 {
-	if (inRegistration)
+	if (m_inRegistration)
 	{
-		inRegistration = false;
+		m_inRegistration = false;
 
 		EndUpload();
 	}
@@ -115,18 +115,18 @@ void dx11::System::BeginUpload()
 		resourceUpload = new DirectX::ResourceUploadBatch(ref->sys->d3dDevice);
 	}*/
 
-	if (!uploadBatchOpen)
+	if (!m_uploadBatchOpen)
 	{
 		//resourceUpload->Begin();
 
-		uploadBatchOpen = true;
+		m_uploadBatchOpen = true;
 	}
 }
 
 void dx11::System::EndUpload()
 {
 	// Only flush the upload if the batch is open AND we are not in registration mode
-	if (uploadBatchOpen && (!inRegistration))
+	if (m_uploadBatchOpen && (!m_inRegistration))
 	{
 		// Upload the resources to the GPU.
 		//auto uploadResourcesFinished = resourceUpload->End(ref->sys->cmdQueue);
@@ -134,7 +134,7 @@ void dx11::System::EndUpload()
 		// Wait for the upload thread to terminate
 		//uploadResourcesFinished.wait();
 
-		uploadBatchOpen = false;
+		m_uploadBatchOpen = false;
 	}
 }
 
@@ -156,18 +156,18 @@ bool dx11::System::VID_CreateWindow()
 	bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
 
 	/* Register the frame class */
-	wndClass.style = CS_HREDRAW | CS_VREDRAW;
-	wndClass.lpfnWndProc = wndProc;
-	wndClass.cbClsExtra = 0;
-	wndClass.cbWndExtra = 0;
-	wndClass.hInstance = hInstance;
-	wndClass.hIcon = 0;
-	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
-	wndClass.lpszMenuName = nullptr;
-	wndClass.lpszClassName = WINDOW_CLASS_NAME;
+	m_wndClass.style = CS_HREDRAW | CS_VREDRAW;
+	m_wndClass.lpfnWndProc = m_wndProc;
+	m_wndClass.cbClsExtra = 0;
+	m_wndClass.cbWndExtra = 0;
+	m_wndClass.hInstance = m_hInstance;
+	m_wndClass.hIcon = 0;
+	m_wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	m_wndClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
+	m_wndClass.lpszMenuName = nullptr;
+	m_wndClass.lpszClassName = WINDOW_CLASS_NAME;
 
-	if (!RegisterClass(&wndClass))
+	if (!RegisterClass(&m_wndClass))
 	{
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't register window class");
 	}
@@ -204,7 +204,7 @@ bool dx11::System::VID_CreateWindow()
 		y = ref->cvars->vid_yPos->UInt();
 	}
 
-	hWnd = CreateWindowEx(
+	m_hWnd = CreateWindowEx(
 		exstyle,
 		WINDOW_CLASS_NAME,
 		"Quake 2",
@@ -212,19 +212,19 @@ bool dx11::System::VID_CreateWindow()
 		x, y, w, h,
 		NULL,
 		NULL,
-		hInstance,
+		m_hInstance,
 		nullptr);
 
-	if (!hWnd)
+	if (!m_hWnd)
 	{
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't create window");
 	}
 
-	ShowWindow(hWnd, SW_SHOW);
-	UpdateWindow(hWnd);
+	ShowWindow(m_hWnd, SW_SHOW);
+	UpdateWindow(m_hWnd);
 
-	SetForegroundWindow(hWnd);
-	SetFocus(hWnd);
+	SetForegroundWindow(m_hWnd);
+	SetFocus(m_hWnd);
 
 	// let the sound and input subsystems know about the new window
 	dx11::ref->client->Vid_NewWindow(width, height);
@@ -234,28 +234,28 @@ bool dx11::System::VID_CreateWindow()
 
 void dx11::System::VID_DestroyWindow()
 {
-	if (hWnd != nullptr)
+	if (m_hWnd != nullptr)
 	{
-		DestroyWindow(hWnd);
-		hWnd = nullptr;
+		DestroyWindow(m_hWnd);
+		m_hWnd = nullptr;
 	}
 }
 
 
 bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 {
-	if (d3dInitialized)
+	if (m_d3dInitialized)
 	{
 		D3D_Shutdown();
 	}
 
-	if (hWnd != nullptr)
+	if (m_hWnd != nullptr)
 	{
 		VID_DestroyWindow();
 	}
 
-	this->hInstance = hInstance;
-	this->wndProc = wndProc;
+	m_hInstance = hInstance;
+	m_wndProc = wndProc;
 
 	if (!VID_CreateWindow())
 	{
@@ -272,12 +272,12 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 void dx11::System::Shutdown()
 {
-	if (d3dInitialized)
+	if (m_d3dInitialized)
 	{
 		D3D_Shutdown();
 	}
 
-	if (hWnd != nullptr)
+	if (m_hWnd != nullptr)
 	{
 		VID_DestroyWindow();
 	}
@@ -287,14 +287,14 @@ void dx11::System::AppActivate(bool active)
 {
 	if (active)
 	{
-		SetForegroundWindow(hWnd);
-		ShowWindow(hWnd, SW_RESTORE);
+		SetForegroundWindow(m_hWnd);
+		ShowWindow(m_hWnd, SW_RESTORE);
 	}
 	else
 	{
 		if (ref->cvars->vid_fullscreen->Bool())
 		{
-			ShowWindow(hWnd, SW_MINIMIZE);
+			ShowWindow(m_hWnd, SW_MINIMIZE);
 		}
 	}
 }
@@ -305,9 +305,9 @@ bool dx11::System::D3D_InitDevice()
 	RECT rc = {};
 	UINT createDeviceFlags = 0;
 
-	GetClientRect(hWnd, &rc);
-	windowWidth = rc.right - rc.left;
-	windowHeight = rc.bottom - rc.top;
+	GetClientRect(m_hWnd, &rc);
+	m_windowWidth = rc.right - rc.left;
+	m_windowHeight = rc.bottom - rc.top;
 
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -337,19 +337,19 @@ bool dx11::System::D3D_InitDevice()
 
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
-		driverType = driverTypes[driverTypeIndex];
+		m_driverType = driverTypes[driverTypeIndex];
 
-		hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &d3dDevice, &featureLevel, &ImmediateContext);
+		hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 		if (hr == E_INVALIDARG)
 		{
 			// DirectX 11.1 runtime will not recognize D3D_FEATURE_LEVEL_12_x, so try without them
-			hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, &featureLevels[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &d3dDevice, &featureLevel, &ImmediateContext);
+			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 			if (hr == E_INVALIDARG)
 			{
 				// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1+ so we need to retry without it
-				hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, &featureLevels[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &d3dDevice, &featureLevel, &ImmediateContext);
+				hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 			}
 		}
 
@@ -370,7 +370,7 @@ bool dx11::System::D3D_InitDevice()
 	{
 		IDXGIDevice* dxgiDevice = nullptr;
 
-		hr = d3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+		hr = m_d3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
 
 		if (SUCCEEDED(hr))
 		{
@@ -412,28 +412,28 @@ bool dx11::System::D3D_InitDevice()
 	if (dxgiFactory2)
 	{
 		// DirectX 11.1 or later
-		hr = d3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&d3dDevice1));
+		hr = m_d3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&m_d3dDevice1));
 
 		if (SUCCEEDED(hr))
 		{
-			(void)ImmediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&ImmediateContext1));
+			(void)m_immediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
 		}
 
 		DXGI_SWAP_CHAIN_DESC1 sd;
 		ZeroMemory(&sd, sizeof(sd));
-		sd.Width = windowWidth;
-		sd.Height = windowHeight;
+		sd.Width = m_windowWidth;
+		sd.Height = m_windowHeight;
 		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		sd.BufferCount = 1;
 
-		hr = dxgiFactory2->CreateSwapChainForHwnd(d3dDevice, hWnd, &sd, nullptr, nullptr, &SwapChain1);
+		hr = dxgiFactory2->CreateSwapChainForHwnd(m_d3dDevice, m_hWnd, &sd, nullptr, nullptr, &m_swapChain1);
 
 		if (SUCCEEDED(hr))
 		{
-			hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&SwapChain));
+			hr = m_swapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&m_swapChain));
 		}
 
 		dxgiFactory2->Release();
@@ -445,22 +445,22 @@ bool dx11::System::D3D_InitDevice()
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferCount = 1;
-		sd.BufferDesc.Width = windowWidth;
-		sd.BufferDesc.Height = windowHeight;
+		sd.BufferDesc.Width = m_windowWidth;
+		sd.BufferDesc.Height = m_windowHeight;
 		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.BufferDesc.RefreshRate.Numerator = 60;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow = hWnd;
+		sd.OutputWindow = m_hWnd;
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
 		sd.Windowed = TRUE;
 
-		hr = dxgiFactory->CreateSwapChain(d3dDevice, &sd, &SwapChain);
+		hr = dxgiFactory->CreateSwapChain(m_d3dDevice, &sd, &m_swapChain);
 	}
 
 	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
-	dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+	dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
 
 	dxgiFactory->Release();
 	dxgiFactory = nullptr;
@@ -472,7 +472,7 @@ bool dx11::System::D3D_InitDevice()
 
 	// Create a render target view
 	ID3D11Texture2D* pBackBuffer = nullptr;
-	hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+	hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
 
 	if (FAILED(hr))
 	{
@@ -480,7 +480,7 @@ bool dx11::System::D3D_InitDevice()
 	}
 
 
-	hr = d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &RenderTargetView);
+	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_3DrenderTargetView);
 
 	pBackBuffer->Release();
 
@@ -489,18 +489,18 @@ bool dx11::System::D3D_InitDevice()
 		return false;
 	}
 
-	ImmediateContext->OMSetRenderTargets(1, &RenderTargetView, nullptr);
+	m_immediateContext->OMSetRenderTargets(1, &m_3DrenderTargetView, nullptr);
 
 	// Setup the viewport
 	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)windowWidth;
-	vp.Height = (FLOAT)windowHeight;
+	vp.Width = (FLOAT)m_windowWidth;
+	vp.Height = (FLOAT)m_windowHeight;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 
-	ImmediateContext->RSSetViewports(1, &vp);
+	m_immediateContext->RSSetViewports(1, &vp);
 
 	return true;
 }
@@ -520,8 +520,8 @@ bool dx11::System::D3D_Init2DOverlay()
 	ZeroMemory(&textureDesc, sizeof(textureDesc));
 
 	// Setup the render target texture description.
-	textureDesc.Width = windowWidth;
-	textureDesc.Height = windowHeight;
+	textureDesc.Width = m_windowWidth;
+	textureDesc.Height = m_windowHeight;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -532,7 +532,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	textureDesc.MiscFlags = 0;
 
 	// Create the render target texture.
-	hr = d3dDevice->CreateTexture2D(&textureDesc, nullptr, &renderTargetTexture2D);
+	hr = m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
 	if (FAILED(hr))
 	{
 		return false;
@@ -544,7 +544,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	hr = d3dDevice->CreateRenderTargetView(renderTargetTexture2D, &renderTargetViewDesc, &renderTargetView2D);
+	hr = m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DrenderTargetView);
 	if (FAILED(hr))
 	{
 		return false;
@@ -557,93 +557,93 @@ bool dx11::System::D3D_Init2DOverlay()
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
 	// Create the shader resource view.
-	hr = d3dDevice->CreateShaderResourceView(renderTargetTexture2D, &shaderResourceViewDesc, &shaderResourceView2D);
+	hr = m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
 	if (FAILED(hr))
 	{
 		return false;
 	}
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	deferredContext2D->OMSetRenderTargets(1, &renderTargetView2D, nullptr);
+	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DrenderTargetView, nullptr);
 
 	// Create an orthographic projection matrix for 2D rendering.
-	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH((float)windowWidth, (float)windowHeight, ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
+	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
 
 	return true;
 }
 
 void dx11::System::D3D_Shutdown()
 {
-	if (ImmediateContext)
+	if (m_immediateContext)
 	{
-		ImmediateContext->ClearState();
+		m_immediateContext->ClearState();
 	}
 	
-	if (RenderTargetView) 
+	if (m_3DrenderTargetView) 
 	{
-		RenderTargetView->Release();
-		RenderTargetView = nullptr;
+		m_3DrenderTargetView->Release();
+		m_3DrenderTargetView = nullptr;
 	}
 
-	if (SwapChain1)
+	if (m_swapChain1)
 	{ 
-		SwapChain1->Release(); 
-	SwapChain1 = nullptr;
+		m_swapChain1->Release();
+		m_swapChain1 = nullptr;
 	}
 
-	if (SwapChain) 
+	if (m_swapChain) 
 	{ 
-		SwapChain->Release(); 
-		SwapChain = nullptr; 
+		m_swapChain->Release();
+		m_swapChain = nullptr;
 	}
 
-	if (deferredContext2D)
+	if (m_2DdeferredContext)
 	{
-		deferredContext2D->Release();
-		deferredContext2D = nullptr;
+		m_2DdeferredContext->Release();
+		m_2DdeferredContext = nullptr;
 	}
 
-	if (shaderResourceView2D)
+	if (m_2DshaderResourceView)
 	{
-		shaderResourceView2D->Release();
-		shaderResourceView2D = 0;
+		m_2DshaderResourceView->Release();
+		m_2DshaderResourceView = 0;
 	}
 
-	if (renderTargetView2D)
+	if (m_2DrenderTargetView)
 	{
-		renderTargetView2D->Release();
-		renderTargetView2D = 0;
+		m_2DrenderTargetView->Release();
+		m_2DrenderTargetView = 0;
 	}
 
-	if (renderTargetTexture2D)
+	if (m_2DrenderTargetTexture)
 	{
-		renderTargetTexture2D->Release();
-		renderTargetTexture2D = 0;
+		m_2DrenderTargetTexture->Release();
+		m_2DrenderTargetTexture = 0;
 	}
 
-	if (ImmediateContext1) 
+	if (m_immediateContext1)
 	{ 
-		ImmediateContext1->Release(); 
-		ImmediateContext1 = nullptr; 
+		m_immediateContext1->Release();
+		m_immediateContext1 = nullptr;
 	}
 
-	if (ImmediateContext) 
+	if (m_immediateContext)
 	{
-		ImmediateContext->Release();
-		ImmediateContext = nullptr;
+		m_immediateContext->Release();
+		m_immediateContext = nullptr;
 	}
 
-	if (d3dDevice1)
+	if (m_d3dDevice1)
 	{
-		d3dDevice1->Release();
-		d3dDevice1 = nullptr;
+		m_d3dDevice1->Release();
+		m_d3dDevice1 = nullptr;
 	}
 
-	if (d3dDevice)
+	if (m_d3dDevice)
 	{
-		d3dDevice->Release();
-		d3dDevice = nullptr;
+		m_d3dDevice->Release();
+		m_d3dDevice = nullptr;
 	}
 
-	d3dInitialized = false;
+	m_d3dInitialized = false;
 }

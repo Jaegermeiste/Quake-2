@@ -37,9 +37,9 @@ namespace dx11
 		
 	public:
 		class Cvar {
-			std::unique_ptr<cvar_t> clientMemPtr;
+			std::unique_ptr<cvar_t> m_clientMemPtr;
 
-			std::mutex ptrAccessMutex;
+			std::mutex				m_ptrAccessMutex;
 
 			static	bool			InfoValidate(std::string value);
 

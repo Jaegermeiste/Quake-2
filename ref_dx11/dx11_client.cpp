@@ -28,33 +28,33 @@ ref_dx11
 inline void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Sys_Error(err_level, const_cast<char*>(str.c_str()));
+	m_refImport.Sys_Error(err_level, const_cast<char*>(str.c_str()));
 }
 
 inline void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)(void))
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Cmd_AddCommand(const_cast<char*>(name.c_str()), cmd);
+	m_refImport.Cmd_AddCommand(const_cast<char*>(name.c_str()), cmd);
 }
 
 inline void dx11::Client::Cmd_RemoveCommand(std::string name)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
+	m_refImport.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
 }
 
 inline unsigned int dx11::Client::Cmd_Argc (void)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return msl::utilities::SafeInt<unsigned int>(ri.Cmd_Argc());
+	return msl::utilities::SafeInt<unsigned int>(m_refImport.Cmd_Argc());
 }
 
 inline std::string dx11::Client::Cmd_Argv(unsigned int i)
@@ -62,9 +62,9 @@ inline std::string dx11::Client::Cmd_Argv(unsigned int i)
 	int clientIndex = msl::utilities::SafeInt<int>(i);
 
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return ri.Cmd_Argv(clientIndex);
+	return m_refImport.Cmd_Argv(clientIndex);
 }
 
 inline void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
@@ -72,41 +72,41 @@ inline void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string 
 	int clientWhen = msl::utilities::SafeInt<int>(exec_when);
 
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
+	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
 }
 
 inline void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Con_Printf(print_level, const_cast<char*>(str.c_str()));
+	m_refImport.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
 
 int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return ri.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+	return m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
 }
 
 void dx11::Client::FS_FreeFile(void *buf)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.FS_FreeFile(buf);
+	m_refImport.FS_FreeFile(buf);
 }
 
 inline std::string dx11::Client::FS_Gamedir(void)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return std::string(ri.FS_Gamedir());
+	return std::string(m_refImport.FS_Gamedir());
 }
 
 //cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
@@ -119,9 +119,9 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 		clientHeight = 0;
 
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	qboolean retVal = ri.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
+	qboolean retVal = m_refImport.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
 
 	if (retVal = true)
 	{
@@ -135,27 +135,27 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 inline void dx11::Client::Vid_MenuInit(void)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Vid_MenuInit();
+	m_refImport.Vid_MenuInit();
 }
 
 void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	ri.Vid_NewWindow(msl::utilities::SafeInt<int>(width), msl::utilities::SafeInt<int>(height));
+	m_refImport.Vid_NewWindow(msl::utilities::SafeInt<int>(width), msl::utilities::SafeInt<int>(height));
 }
 
 void dx11::Client::SetRefImport(refimport_t rimp)
 { 
-	ri = rimp;
+	m_refImport = rimp;
 
 	// Pass everything through that isn't explicitly overridden in the class functions above
-	dx11::Client::Cvar_Get			= ri.Cvar_Get;
-	dx11::Client::Cvar_Set			= ri.Cvar_Set;
-	dx11::Client::Cvar_SetValue		= ri.Cvar_SetValue;
+	dx11::Client::Cvar_Get			= m_refImport.Cvar_Get;
+	dx11::Client::Cvar_Set			= m_refImport.Cvar_Set;
+	dx11::Client::Cvar_SetValue		= m_refImport.Cvar_SetValue;
 };
 
 dx11::Client::Client(refimport_t rimp)

@@ -35,16 +35,16 @@ namespace dx11
 	private:
 		struct Texture2D
 		{
-			unsigned int	width;
-			unsigned int	height;
-			size_t			size;
-			DXGI_FORMAT		format;
-			unsigned int	*data;
+			unsigned int	m_width;
+			unsigned int	m_height;
+			size_t			m_size;
+			DXGI_FORMAT		m_format;
+			unsigned int	*m_data;
 		};
 
-		unsigned int	d_8to24table[256];
+		unsigned int	m_8to24table[256];
 
-		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D11Resource>> images;
+		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D11Resource>> m_images;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);

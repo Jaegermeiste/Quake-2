@@ -58,10 +58,10 @@ void dx11::Image::GetPalette(void)
 		unsigned int b = pal[i * 3 + 2];
 
 		unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		d_8to24table[i] = LittleLong(v);
+		m_8to24table[i] = LittleLong(v);
 	}
 
-	d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
+	m_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
 
 	if (pic != nullptr)
 	{
@@ -98,7 +98,7 @@ void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width,
 	height = LittleLong(mt->height);
 	ofs = LittleLong(mt->offsets[0]);
 
-	//image = GL_LoadPic(name, (byte *)mt + ofs, width, height, it_wall, 8);
+	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
 
 	ref->client->FS_FreeFile((void *)mt);
 }
@@ -211,26 +211,26 @@ dx11::Image::Texture2D* dx11::Image::CreateTexture2DFromRaw(unsigned int width, 
 	{
 		texture = new Texture2D;
 
-		texture->width = width;
-		texture->height = height;
-		texture->format = DXGI_FORMAT_R8G8B8A8_UINT;
-		texture->size = width * height;
-		texture->data = new unsigned int[texture->size]();
+		texture->m_width = width;
+		texture->m_height = height;
+		texture->m_format = DXGI_FORMAT_R8G8B8A8_UINT;
+		texture->m_size = width * height;
+		texture->m_data = new unsigned int[texture->m_size]();
 
-		unsigned int *d8to24table = d_8to24table;	// Hack around the lambda function parameter issue
+		unsigned int *d8to24table = m_8to24table;	// Hack around the lambda function parameter issue
 
-		//for (unsigned int i = 0; i < (width * height); i++)
+		//for (unsigned int i = 0; i < (m_width * m_height); i++)
 		Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
 		{
 			if (*raw[i] == 255)
 			{
 				// Transparent
-				texture->data[i] = 0;
+				texture->m_data[i] = 0;
 			}
 			else
 			{
 				// Paletted
-				texture->data[i] = d8to24table[*raw[i]];
+				texture->m_data[i] = d8to24table[*raw[i]];
 			}
 		});
 	}
@@ -247,7 +247,7 @@ void dx11::Image::UploadScratchImage(ScratchImage &image, ID3D11Resource** pReso
 	D3D11_SUBRESOURCE_DATA srData;
 	size_t rowPitch = 0;
 	size_t slicePitch = 0;
-	ComputePitch(image.GetMetadata().format, image.GetMetadata().width, image.GetMetadata().height, rowPitch, slicePitch);
+	ComputePitch(image.GetMetadata().format, image.GetMetadata().m_width, image.GetMetadata().m_height, rowPitch, slicePitch);
 	srData.RowPitch = rowPitch;
 	srData.SlicePitch = slicePitch;
 	srData.pData = image.GetPixels();
@@ -266,7 +266,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 {
 	if (name.length() < 5)
 	{
-		return nullptr;	//	ri.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
+		return nullptr;	//	m_refImport.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
 	}
 
 	// Create a new image
@@ -322,7 +322,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 			);
 
 			UploadScratchImage(image, 
-							images.at(imgPtr).ReleaseAndGetAddressOf(), 
+							m_images.at(imgPtr).ReleaseAndGetAddressOf(), 
 							generateMipMap);
 
 			ref->client->FS_FreeFile(buffer);
@@ -348,7 +348,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 			);
 
 			UploadScratchImage(image,
-				images.at(imgPtr).ReleaseAndGetAddressOf(),
+				m_images.at(imgPtr).ReleaseAndGetAddressOf(),
 				generateMipMap);
 		}
 		else if (extension.compare(".exr") == 0)

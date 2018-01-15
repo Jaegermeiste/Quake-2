@@ -34,9 +34,9 @@ namespace dx11
 	class Client {
 	friend class Cvar;
 	private:
-		refimport_t	ri;
+		refimport_t	m_refImport;
 
-		std::mutex	refImportMutex;
+		std::mutex	m_refImportMutex;
 
 		cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
 		cvar_t			*(*Cvar_Set)			(char *name, char *value);
