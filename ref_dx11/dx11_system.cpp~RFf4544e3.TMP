@@ -70,7 +70,6 @@ dx11::System::System()
 	m_hWnd = nullptr;
 	FillFeatureLevelArray();
 
-	// Timing
 	if (QueryPerformanceFrequency(&m_clockFrequency) == TRUE)
 	{
 		m_clockFrequencyObtained = true;
@@ -152,7 +151,6 @@ void dx11::System::EndUpload()
 
 void dx11::System::BeginFrame(void)
 {
-	// Timing
 	if ((m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
 	{
 		m_clockRunning = true;
@@ -211,7 +209,6 @@ void dx11::System::EndFrame(void)
 		m_swapChain->Present(0, 0);
 	}
 
-	// Timing
 	if ((m_clockRunning) && (QueryPerformanceCounter(&m_clockFrameEnd) == TRUE))
 	{
 		m_frameTime = static_cast<double>(m_clockFrameEnd.QuadPart - m_clockFrameStart.QuadPart) / m_clockFrequency.QuadPart;
@@ -226,17 +223,16 @@ void dx11::System::EndFrame(void)
 */
 bool dx11::System::VID_CreateWindow()
 {
-	RECT				r			= {};
-	ZeroMemory(&r, sizeof(RECT));
-	int					stylebits	= 0;
-	int					x			= 0,
-						y			= 0,
-						w			= 0,
-						h			= 0;
-	int					exstyle		= 0;
-	const unsigned int	width		= ref->cvars->r_customWidth->UInt();
-	const unsigned int	height		= ref->cvars->r_customHeight->UInt();
-	const bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
+	RECT			r			= {};
+	int				stylebits	= 0;
+	int				x			= 0,
+					y			= 0,
+					w			= 0,
+					h			= 0;
+	int				exstyle		= 0;
+	unsigned int	width		= ref->cvars->r_customWidth->UInt(),
+					height		= ref->cvars->r_customHeight->UInt();
+	bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
 
 	/* Register the frame class */
 	m_wndClass.style = CS_HREDRAW | CS_VREDRAW;

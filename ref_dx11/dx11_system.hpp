@@ -80,6 +80,20 @@ namespace dx11
 
 		D3D_FEATURE_LEVEL			m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
 
+		// Timing
+		LARGE_INTEGER				m_clockFrequency;
+		bool						m_clockFrequencyObtained;
+		LARGE_INTEGER				m_clockFrameStart;
+		LARGE_INTEGER				m_clockFrameEnd;
+		bool						m_clockRunning;
+		double						m_frameTime;
+
+		// Calculation.
+
+
+		LARGE_INTEGER end;
+
+
 		void						FillFeatureLevelArray	(void);
 		
 		bool						VID_CreateWindow();
