@@ -29,23 +29,23 @@ void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name
 {
 }
 
-void dx11::Draw::Pic(unsigned int x, unsigned int y, std::string name)
+void dx11::Draw::Pic(int x, int y, std::string name)
 {
 }
 
-void dx11::Draw::StretchPic(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name)
+void dx11::Draw::StretchPic(int x, int y, int w, int h, std::string name)
 {
 }
 
-void dx11::Draw::Char(unsigned int x, unsigned int y, unsigned int c)
+void dx11::Draw::Char(int x, int y, unsigned int c)
 {
 }
 
-void dx11::Draw::TileClear(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name)
+void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)
 {
 }
 
-void dx11::Draw::Fill(unsigned int x, unsigned int y, unsigned int w, unsigned int h, int c)
+void dx11::Draw::Fill(int x, int y, int w, int h, int c)
 {
 }
 
@@ -53,6 +53,6 @@ void dx11::Draw::FadeScreen(void)
 {
 }
 
-void dx11::Draw::StretchRaw(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int cols, unsigned int rows, byte * data)
+void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
 {
 }

@@ -54,3 +54,10 @@ baseq2/config.cfg
 *.pak
 *.bsc
 ctf/readme.txt
+ref_dx11/Debug/ref_dx11.log
+*.sbr
+Debug/quake2.exe
+*.ilk
+Debug/ref_dx11.dll
+Debug/quake2.bsc
+*.log

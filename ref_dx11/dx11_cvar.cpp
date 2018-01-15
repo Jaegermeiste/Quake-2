@@ -34,8 +34,13 @@ dx11::Cvars::Cvars()
 	vid_gamma			= std::make_shared<Cvar>("vid_gamma",				1,								CVAR_ARCHIVE);
 
 	r_mode				= std::make_shared<Cvar>("r_mode",					-1,								CVAR_ARCHIVE);
+#ifndef _DEBUG
 	r_customWidth		= std::make_shared<Cvar>("r_customwidth",			1920,							CVAR_ARCHIVE);
 	r_customHeight		= std::make_shared<Cvar>("r_customheight",			1080,							CVAR_ARCHIVE);
+#else
+	r_customWidth		= std::make_shared<Cvar>("r_customwidth",			1600,							CVAR_ARCHIVE);
+	r_customHeight		= std::make_shared<Cvar>("r_customheight",			900,							CVAR_ARCHIVE);
+#endif
 
 	featureLevel		= std::make_shared<Cvar>("dx11_featureLevel",		"D3D_FEATURE_LEVEL_12_1",		CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
 	bufferCount			= std::make_shared<Cvar>("dx11_bufferCount",		2,								CVAR_ARCHIVE);
@@ -53,8 +58,8 @@ dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned in
 {
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
-	cvar_t* clientPtr = ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags);
-	m_clientMemPtr = std::make_shared<cvar_t>(*clientPtr);
+
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
@@ -62,7 +67,7 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
@@ -70,7 +75,7 @@ dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
 float dx11::Cvars::Cvar::Float()

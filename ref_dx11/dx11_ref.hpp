@@ -35,7 +35,7 @@ namespace dx11
 	private:
 
 	public:
-		Ref(refimport_t rimp);
+		void					Init(refimport_t rimp);
 
 		std::unique_ptr<Cvars>	cvars;
 		std::unique_ptr<Client>	client;

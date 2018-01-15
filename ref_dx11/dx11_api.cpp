@@ -110,8 +110,8 @@ inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
 {
 	if ((dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
-		unsigned int width = msl::utilities::SafeInt<unsigned int>(*w);
-		unsigned int height = msl::utilities::SafeInt<unsigned int>(*h);
+		unsigned int	width	= 0,
+						height	= 0;
 		dx11::ref->draw->GetPicSize(width, height, name);
 		*w = msl::utilities::SafeInt<int>(width);
 		*h = msl::utilities::SafeInt<int>(height);
@@ -130,10 +130,10 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 {
 	if ((dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
-		dx11::ref->draw->StretchPic(msl::utilities::SafeInt<unsigned int>(x),
-								msl::utilities::SafeInt<unsigned int>(y), 
-								msl::utilities::SafeInt<unsigned int>(w), 
-								msl::utilities::SafeInt<unsigned int>(h), 
+		dx11::ref->draw->StretchPic(msl::utilities::SafeInt<int>(x),
+								msl::utilities::SafeInt<int>(y), 
+								msl::utilities::SafeInt<int>(w), 
+								msl::utilities::SafeInt<int>(h), 
 								name);
 	}
 }
@@ -289,7 +289,8 @@ extern "C" __declspec(dllexport) refexport_t GetRefAPI(refimport_t rimp)
 
 	if (dx11::ref == nullptr)
 	{
-		dx11::ref = std::make_unique<dx11::Ref>(rimp);
+		dx11::ref = std::make_unique<dx11::Ref>();
+		dx11::ref->Init(rimp);
 	}
 
 	re.api_version			= API_VERSION;

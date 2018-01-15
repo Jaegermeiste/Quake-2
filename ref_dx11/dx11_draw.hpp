@@ -34,13 +34,13 @@ namespace dx11
 	class Draw {
 	public:
 		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
-		void		Pic			(unsigned int x, unsigned int y, std::string name);
-		void		StretchPic	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
-		void		Char		(unsigned int x, unsigned int y, unsigned int c);
-		void		TileClear	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
-		void		Fill		(unsigned int x, unsigned int y, unsigned int w, unsigned int h, int c);
+		void		Pic			(int x, int y, std::string name);
+		void		StretchPic	(int x, int y, int w, int h, std::string name);
+		void		Char		(int x, int y, unsigned int c);
+		void		TileClear	(int x, int y, int w, int h, std::string name);
+		void		Fill		(int x, int y, int w, int h, int c);
 		void		FadeScreen	(void);
-		void		StretchRaw	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int cols, unsigned int rows, byte *data);
+		void		StretchRaw	(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte *data);
 	};
 }
 

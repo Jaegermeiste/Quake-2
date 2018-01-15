@@ -30,11 +30,10 @@ namespace dx11
 	std::unique_ptr<Ref> ref = nullptr;
 }
 
-dx11::Ref::Ref(refimport_t rimp)
+void	dx11::Ref::Init(refimport_t rimp)
 {
-	client = std::make_unique<Client>(rimp);
+	client	= std::make_unique<Client>(rimp);
 	cvars	= std::make_unique<Cvars>();
-
 	img		= std::make_unique<Image>();
 	draw	= std::make_unique<Draw>();
 	sys		= std::make_unique<System>();

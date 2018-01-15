@@ -1,13 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctf", "ctf\ctf.vcxproj", "{88EABB12-5075-49EB-8FC3-69490285B078}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game\game.vcxproj", "{84324601-E9C8-4EF0-A1CB-DA27D63D4703}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quake2", "quake2.vcxproj", "{FCCC7437-EE7A-4D84-AB65-51FB7A051965}"
+	ProjectSection(ProjectDependencies) = postProject
+		{407F2CC5-77C9-438B-B38D-763403978416} = {407F2CC5-77C9-438B-B38D-763403978416}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ref_gl", "ref_gl\ref_gl.vcxproj", "{6AE82FB1-E59F-4E32-9562-09398613C8B1}"
 EndProject
