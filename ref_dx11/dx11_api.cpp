@@ -25,6 +25,10 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+#ifdef _DEBUG
+TRACELOGGING_DEFINE_PROVIDER(loggingProvider, TRACELOGGING_PROVIDER_NAME, TRACELOGGING_GUID);
+#endif
+
 inline void	SHIM_R_BeginRegistration(char *map)
 {
 	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
@@ -253,9 +257,35 @@ GetRefAPI
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-refexport_t GetRefAPI(refimport_t rimp)
+extern "C" __declspec(dllexport) refexport_t GetRefAPI(refimport_t rimp)
 {
 	refexport_t	re;
+
+#ifdef _DEBUG
+	TraceLoggingWrite(loggingProvider,
+		"GetRefAPI",
+		TraceLoggingLevel(WINEVENT_LEVEL_VERBOSE) );/* ,
+		TraceLoggingStruct(16, "refimport_t rimp"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+			TraceLoggingPointer((LPCVOID)&rimp.Sys_Error, "Sys_Error"),
+		TraceLoggingPointer(hFind, "Result")
+	);*/
+#endif
+
 
 	if (dx11::ref == nullptr)
 	{

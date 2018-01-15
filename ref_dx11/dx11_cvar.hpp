@@ -37,7 +37,7 @@ namespace dx11
 		
 	public:
 		class Cvar {
-			std::unique_ptr<cvar_t> m_clientMemPtr;
+			std::shared_ptr<cvar_t> m_clientMemPtr;
 
 			std::mutex				m_ptrAccessMutex;
 

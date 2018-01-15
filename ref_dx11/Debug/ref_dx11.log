@@ -1,15 +1,3 @@
-﻿  dx11_system.cpp
-  Generating Code...
-  Compiling...
-  dx11_ref.cpp
-  dx11_api.cpp
-  Generating Code...
-  Skipping... (no relevant changes detected)
-  dx11_model.cpp
-  dx11_main.cpp
-  dx11_image.cpp
-  dx11_draw.cpp
-  dx11_cvar.cpp
-  dx11_client.cpp
+﻿  dx11_ref.cpp
   ref_dx11.vcxproj -> F:\GitHub\Quake-2\Debug\ref_dx11.dll
   ref_dx11.vcxproj -> F:\GitHub\Quake-2\Debug\ref_dx11.pdb (Partial PDB)

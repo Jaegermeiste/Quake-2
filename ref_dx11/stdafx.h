@@ -54,6 +54,27 @@ ref_dx11
 #include <SafeInt.h>
 #include <ppl.h>
 
+#ifdef _DEBUG
+// https://msdn.microsoft.com/en-us/library/windows/desktop/dn904627
+#include <TraceLoggingProvider.h>  // The native TraceLogging API
+#include <winmeta.h> // for WINEVENT_LEVEL_* definitions
+
+// Forward-declare the loggingProvider variable that you will use for tracing in this component
+TRACELOGGING_DECLARE_PROVIDER(loggingProvider);
+
+// {53430B16-C35C-428D-834F-B1C86D38E499}
+#define TRACELOGGING_GUID_RAW		0x53430b16, 0xc35c, 0x428d, 0x83, 0x4f, 0xb1, 0xc8, 0x6d, 0x38, 0xe4, 0x99
+
+#ifdef DEFINE_GUID
+
+DEFINE_GUID(TRACELOGGING_DEBUG_QUAKE2_DX11 , 0x53430b16, 0xc35c, 0x428d, 0x83, 0x4f, 0xb1, 0xc8, 0x6d, 0x38, 0xe4, 0x99);
+#endif
+
+#define TRACELOGGING_GUID			(TRACELOGGING_GUID_RAW)
+
+#define TRACELOGGING_PROVIDER_NAME	"Quake2DX11LoggingProvider"
+#endif
+
 // DirectXTK11
 #include "CommonStates.h"
 #include "DDSTextureLoader.h"
