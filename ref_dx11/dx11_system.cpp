@@ -505,6 +505,9 @@ bool dx11::System::D3D_InitDevice()
 	return true;
 }
 
+/*
+http://rastertek.com/dx11tut11.html
+*/
 bool dx11::System::D3D_Init2DOverlay()
 {
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -562,6 +565,9 @@ bool dx11::System::D3D_Init2DOverlay()
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	deferredContext2D->OMSetRenderTargets(1, &renderTargetView2D, nullptr);
+
+	// Create an orthographic projection matrix for 2D rendering.
+	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH((float)windowWidth, (float)windowHeight, ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
 
 	return true;
 }

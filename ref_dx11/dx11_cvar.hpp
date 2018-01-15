@@ -85,6 +85,11 @@ namespace dx11
 		std::shared_ptr<Cvar>  backBufferFormat;
 		std::shared_ptr<Cvar>  Vsync;
 		std::shared_ptr<Cvar>  samplesPerPixel;
+
+		std::shared_ptr<Cvar>  zNear2D;
+		std::shared_ptr<Cvar>  zNear3D;
+		std::shared_ptr<Cvar>  zFar2D;
+		std::shared_ptr<Cvar>  zFar3D;
 	};
 };
 

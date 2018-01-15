@@ -42,6 +42,11 @@ dx11::Cvars::Cvars()
 	backBufferFormat	= std::make_shared<Cvar>("dx11_backBufferFormat",	"DXGI_FORMAT_R8G8B8A8_UNORM",	CVAR_ARCHIVE);
 	Vsync				= std::make_shared<Cvar>("dx11_Vsync",				1,								CVAR_ARCHIVE);
 	samplesPerPixel		= std::make_shared<Cvar>("dx11_samplesPerPixel",	2,								CVAR_ARCHIVE);	// 1 disables multisampling
+
+	zNear2D				= std::make_shared<Cvar>("dx11_zNear2D",			0,								CVAR_ARCHIVE);
+	zNear3D				= std::make_shared<Cvar>("dx11_zNear3D",			4,								CVAR_ARCHIVE);
+	zFar2D				= std::make_shared<Cvar>("dx11_zFar2D",				99999,							CVAR_ARCHIVE);
+	zFar3D				= std::make_shared<Cvar>("dx11_zFar3D",				4096,							CVAR_ARCHIVE);
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)

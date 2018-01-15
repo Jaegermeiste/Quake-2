@@ -28,6 +28,7 @@ ref_dx11
 #pragma once
 
 #include "stdafx.h"
+#include <DirectXMath.h>
 
 #include "../client/ref.h"
 #include "../win32/winquake.h"

@@ -35,7 +35,8 @@ ref_dx11
 
 namespace dx11
 {
-	class System {
+	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
+	__declspec(align(16)) class System {
 	private:
 		HINSTANCE			hInstance;
 		WNDPROC				wndProc;
@@ -57,12 +58,21 @@ namespace dx11
 		IDXGISwapChain1*        SwapChain1 = nullptr;
 		ID3D11RenderTargetView* RenderTargetView = nullptr;
 
+		DirectX::XMMATRIX			world3DMatrix;
+		DirectX::XMMATRIX			view3DMatrix;
+		DirectX::XMMATRIX			projection3DMatrix;
+
 		// 2D Rendering
 		ID3D11DeviceContext*		deferredContext2D = nullptr;
 		ID3D11Texture2D*			renderTargetTexture2D = nullptr;
 		ID3D11RenderTargetView*		renderTargetView2D = nullptr;
 		ID3D11ShaderResourceView*	shaderResourceView2D = nullptr;
 
+		DirectX::XMMATRIX			m_2DorthographicMatrix;
+
+		DirectX::XMMATRIX           m_3DworldMatrix;
+		DirectX::XMMATRIX           m_3DviewMatrix;
+		DirectX::XMMATRIX           m_3DprojectionMatrix;
 
 		bool					d3dInitialized;
 
@@ -94,6 +104,17 @@ namespace dx11
 
 		void				BeginUpload();
 		void				EndUpload();
+
+		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
+		void* operator new(size_t i)
+		{
+			return _mm_malloc(i, 16);
+		}
+
+		void operator delete(void* p)
+		{
+			_mm_free(p);
+		}
 	};
 }
 

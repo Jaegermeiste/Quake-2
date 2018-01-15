@@ -1,14 +1,13 @@
-﻿  dx11_system.cpp
-  Generating Code...
-  Compiling...
+﻿  q_shwin.cpp
+  q_shared.cpp
+  dx11_system.cpp
   dx11_ref.cpp
-  dx11_image.cpp
-  dx11_api.cpp
-  Generating Code...
-  Skipping... (no relevant changes detected)
   dx11_model.cpp
   dx11_main.cpp
+  dx11_image.cpp
   dx11_draw.cpp
   dx11_cvar.cpp
   dx11_client.cpp
+  dx11_api.cpp
+  Generating Code...
   ref_dx11.vcxproj -> C:\Users\jgeorge1\Documents\GitHub\Quake-2\Debug\ref_dx11.dll
