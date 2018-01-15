@@ -84,9 +84,12 @@ namespace dx11
 		LARGE_INTEGER				m_clockFrequency;
 		bool						m_clockFrequencyObtained;
 		LARGE_INTEGER				m_clockFrameStart;
-		LARGE_INTEGER				m_clockFrameEnd;
+		LARGE_INTEGER				m_clockFrameEndCurrent;
+		LARGE_INTEGER				m_clockFrameEndPrevious;
 		bool						m_clockRunning;
 		double						m_frameTime;
+		double						m_frameTimeEMA;
+		double						m_frameRateEMA;
 
 		// Calculation.
 

@@ -88,6 +88,8 @@ typedef struct image_s
 	qboolean			paletted;
 } image_t;
 
+#define EMA_ALPHA	0.9
+
 #include "dx11_cvar.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"
