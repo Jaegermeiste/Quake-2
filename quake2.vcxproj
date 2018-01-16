@@ -85,6 +85,7 @@
     <OutDir>.\debug\</OutDir>
     <IntDir>.\debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\release\</OutDir>
@@ -470,13 +471,19 @@
     <ClInclude Include="qcommon\bspfile.h" />
     <ClInclude Include="qcommon\qcommon.h" />
     <ClInclude Include="qcommon\qfiles.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="server\server.h" />
     <ClInclude Include="win32\afxres.h" />
     <ClInclude Include="win32\conproc.h" />
     <ClInclude Include="win32\winquake.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="win32\q2.ico" />
+    <Image Include="win32\q2.ico">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="quake2.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

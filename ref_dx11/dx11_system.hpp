@@ -40,7 +40,7 @@ namespace dx11
 	private:
 		HINSTANCE					m_hInstance;
 		WNDPROC						m_wndProc;
-		WNDCLASS					m_wndClass;
+		WNDCLASSEX					m_wndClassEx;
 		HWND						m_hWnd;
 
 		UINT						m_windowWidth = 0;
@@ -48,6 +48,8 @@ namespace dx11
 
 		D3D_DRIVER_TYPE				m_driverType = D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL			m_featureLevel = D3D_FEATURE_LEVEL_11_0;
+
+		DXGI_ADAPTER_DESC			m_adapterDesc;
 
 		ID3D11Device*				m_d3dDevice = nullptr;
 		ID3D11Device1*				m_d3dDevice1 = nullptr;
@@ -127,6 +129,8 @@ namespace dx11
 		void						BeginFrame();
 		void						RenderFrame(refdef_t *fd);
 		void						EndFrame();
+
+		void						D3D_Strings_f();
 
 		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 		void* operator new(size_t i)

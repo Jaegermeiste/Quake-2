@@ -33,6 +33,8 @@ ref_dx11
 
 // STL Includes
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include <memory>
 #include <mutex>
 #include <atomic>

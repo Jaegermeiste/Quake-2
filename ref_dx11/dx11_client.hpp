@@ -56,7 +56,7 @@ namespace dx11
 
 		void			Sys_Error				(unsigned short err_level, std::string str);
 
-		void			Cmd_AddCommand			(std::string name, void(*cmd)(void));
+		void			Cmd_AddCommand			(std::string name, void(*cmd)());
 		void			Cmd_RemoveCommand		(std::string name);
 		unsigned int	Cmd_Argc				(void);
 		std::string		Cmd_Argv				(unsigned int i);

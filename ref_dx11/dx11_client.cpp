@@ -25,7 +25,7 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-inline void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
+void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Sys_Error");
 
@@ -52,7 +52,7 @@ inline void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 	m_refImport.Sys_Error(err_level, const_cast<char*>(str.c_str()));
 }
 
-inline void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)(void))
+void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Cmd_AddCommand");
 
@@ -64,7 +64,7 @@ inline void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)(void))
 	m_refImport.Cmd_AddCommand(const_cast<char*>(name.c_str()), cmd);
 }
 
-inline void dx11::Client::Cmd_RemoveCommand(std::string name)
+void dx11::Client::Cmd_RemoveCommand(std::string name)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Cmd_RemoveCommand");
 
@@ -76,7 +76,7 @@ inline void dx11::Client::Cmd_RemoveCommand(std::string name)
 	m_refImport.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
 }
 
-inline unsigned int dx11::Client::Cmd_Argc (void)
+unsigned int dx11::Client::Cmd_Argc (void)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argc");
 
@@ -86,7 +86,7 @@ inline unsigned int dx11::Client::Cmd_Argc (void)
 	return msl::utilities::SafeInt<unsigned int>(m_refImport.Cmd_Argc());
 }
 
-inline std::string dx11::Client::Cmd_Argv(unsigned int i)
+std::string dx11::Client::Cmd_Argv(unsigned int i)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argv");
 
@@ -98,7 +98,7 @@ inline std::string dx11::Client::Cmd_Argv(unsigned int i)
 	return m_refImport.Cmd_Argv(clientIndex);
 }
 
-inline void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
+void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Cmd_ExecuteText");
 
@@ -123,7 +123,7 @@ inline void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string 
 	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
 }
 
-inline void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
+void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Con_Printf");
 
@@ -138,6 +138,8 @@ inline void dx11::Client::Con_Printf(unsigned short print_level, std::string str
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
 	LOG(info) << "<print_level> " << printLevelStr << " <string> " << str;
+
+	str += "\n";
 
 	m_refImport.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
@@ -203,7 +205,7 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 	return false;
 }
 
-inline void dx11::Client::Vid_MenuInit(void)
+void dx11::Client::Vid_MenuInit(void)
 {
 	BOOST_LOG_NAMED_SCOPE("Client::Vid_MenuInit");
 

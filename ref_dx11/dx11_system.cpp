@@ -49,6 +49,30 @@ D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 	return featureLevel;
 }
 
+std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
+{
+	std::string featureLevelString = "";
+
+	std::map<D3D_FEATURE_LEVEL, std::string> featureLevelMap;
+	featureLevelMap[D3D_FEATURE_LEVEL_12_1] = STR(D3D_FEATURE_LEVEL_12_1);
+	featureLevelMap[D3D_FEATURE_LEVEL_12_0] = STR(D3D_FEATURE_LEVEL_12_0);
+	featureLevelMap[D3D_FEATURE_LEVEL_11_1] = STR(D3D_FEATURE_LEVEL_11_1);
+	featureLevelMap[D3D_FEATURE_LEVEL_11_0] = STR(D3D_FEATURE_LEVEL_11_0);
+	featureLevelMap[D3D_FEATURE_LEVEL_10_1] = STR(D3D_FEATURE_LEVEL_10_1);
+	featureLevelMap[D3D_FEATURE_LEVEL_10_0] = STR(D3D_FEATURE_LEVEL_10_0);
+	featureLevelMap[D3D_FEATURE_LEVEL_9_3] = STR(D3D_FEATURE_LEVEL_9_3);
+	featureLevelMap[D3D_FEATURE_LEVEL_9_2] = STR(D3D_FEATURE_LEVEL_9_2);
+	featureLevelMap[D3D_FEATURE_LEVEL_9_1] = STR(D3D_FEATURE_LEVEL_9_1);
+
+	auto search = featureLevelMap.find(featureLevel);
+	if (search != featureLevelMap.end())
+	{
+		featureLevelString = search->second;
+	}
+
+	return featureLevelString;
+}
+
 void dx11::System::FillFeatureLevelArray(void)
 {
 	m_featureLevelArray[0] = D3D_FEATURE_LEVEL_12_1;
@@ -70,7 +94,7 @@ dx11::System::System()
 
 	m_hInstance = nullptr;
 	m_wndProc = nullptr;
-	ZeroMemory(&m_wndClass, sizeof(WNDCLASS));
+	ZeroMemory(&m_wndClassEx, sizeof(WNDCLASS));
 	m_hWnd = nullptr;
 	FillFeatureLevelArray();
 
@@ -246,6 +270,51 @@ void dx11::System::EndFrame(void)
 	m_clockRunning = false;
 }
 
+void dx11::System::D3D_Strings_f()
+{
+	if ((m_adapterDesc.VendorId == 0x1414) && (m_adapterDesc.DeviceId == 0x8c))
+	{
+		// Microsoft Basic Render Driver
+		ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
+	}
+
+	ref->client->Con_Printf(PRINT_ALL, "D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
+
+	// We need this to get a compliant string
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToUTF8;
+
+	std::stringstream hexValue;
+
+	ref->client->Con_Printf(PRINT_ALL, "Adapter Description: " + convertToUTF8.to_bytes(m_adapterDesc.Description));
+	hexValue.str(std::string());
+	hexValue.clear();
+	hexValue << std::hex << std::showbase << m_adapterDesc.VendorId;
+	ref->client->Con_Printf(PRINT_ALL, "        Vendor ID: " + hexValue.str());
+	hexValue.str(std::string());
+	hexValue.clear();
+	hexValue << std::hex << std::showbase << m_adapterDesc.DeviceId;
+	ref->client->Con_Printf(PRINT_ALL, "        Device ID: " + hexValue.str());
+	hexValue.str(std::string());
+	hexValue.clear();
+	hexValue << std::hex << std::showbase << m_adapterDesc.SubSysId;
+	ref->client->Con_Printf(PRINT_ALL, "        Subsystem ID: " + hexValue.str());
+	hexValue.str(std::string());
+	hexValue.clear();
+	hexValue << std::hex << std::showbase << m_adapterDesc.Revision;
+	ref->client->Con_Printf(PRINT_ALL, "        Revision: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, "Dedicated Video Memory: " + std::to_string(m_adapterDesc.DedicatedVideoMemory));
+	ref->client->Con_Printf(PRINT_ALL, "Dedicated System Memory: " + std::to_string(m_adapterDesc.DedicatedSystemMemory));
+	ref->client->Con_Printf(PRINT_ALL, "Shared System Memory: " + std::to_string(m_adapterDesc.SharedSystemMemory));
+}
+
+extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f (void)
+{
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	{
+		dx11::ref->sys->D3D_Strings_f();
+	}
+}
+
 
 /*
 ** VID_CreateWindow
@@ -266,34 +335,37 @@ bool dx11::System::VID_CreateWindow()
 	const unsigned int	height		= ref->cvars->r_customHeight->UInt();
 	const bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
 
-	LOG(info) << "Creating Window.";
+	ref->client->Con_Printf(PRINT_ALL, "Creating window");
 
 	/* Register the frame class */
-	m_wndClass.style = CS_HREDRAW | CS_VREDRAW;
-	m_wndClass.lpfnWndProc = m_wndProc;
-	m_wndClass.cbClsExtra = 0;
-	m_wndClass.cbWndExtra = 0;
-	m_wndClass.hInstance = m_hInstance;
-	m_wndClass.hIcon = 0;
-	m_wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	//m_wndClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
-	m_wndClass.lpszMenuName = nullptr;
-	m_wndClass.lpszClassName = WINDOW_CLASS_NAME;
+	m_wndClassEx.style = CS_HREDRAW | CS_VREDRAW;
+	m_wndClassEx.lpfnWndProc = m_wndProc;
+	m_wndClassEx.cbClsExtra = 0;
+	m_wndClassEx.cbWndExtra = 0;
+	m_wndClassEx.hInstance = m_hInstance;
+	m_wndClassEx.hIcon = (HICON)LoadImage(m_hInstance, "q2.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+	m_wndClassEx.hIconSm = (HICON)LoadImage(m_hInstance, "q2.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+	m_wndClassEx.hCursor = LoadCursor(NULL, IDC_ARROW);
+	//m_wndClassEx.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_GRAYTEXT + 1);
+	m_wndClassEx.lpszMenuName = nullptr;
+	m_wndClassEx.lpszClassName = WINDOW_CLASS_NAME;
+	m_wndClassEx.cbSize = sizeof(WNDCLASSEX);
 
-	if (!RegisterClass(&m_wndClass))
+	if (!RegisterClassEx(&m_wndClassEx))
 	{
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't register window class");
 	}
 
+	// Note that adding the sysmenu and hitting close puts the game thread into an infinite loop, so don't do it
 	if (fullscreen)
 	{
 		exstyle = WS_EX_TOPMOST;
-		stylebits = WS_POPUP | WS_VISIBLE;
+		stylebits = WS_POPUP | WS_VISIBLE; //| WS_SYSMENU;
 	}
 	else
 	{
 		exstyle = 0;
-		stylebits = WINDOW_STYLE;
+		stylebits = WINDOW_STYLE; //| WS_SYSMENU;
 	}
 
 	r.left = 0;
@@ -351,10 +423,13 @@ void dx11::System::VID_DestroyWindow()
 
 	if (m_hWnd != nullptr)
 	{
-		LOG(info) << "Destroying Window.";
+		ref->client->Con_Printf(PRINT_ALL, "...destroying window\n");
 
+		ShowWindow(m_hWnd, SW_SHOWNORMAL);	// prevents leaving empty slots in the taskbar
 		DestroyWindow(m_hWnd);
 		m_hWnd = nullptr;
+
+		UnregisterClass(WINDOW_CLASS_NAME, m_hInstance);
 	}
 }
 
@@ -455,35 +530,23 @@ bool dx11::System::D3D_InitDevice()
 	};
 	UINT numDriverTypes = ARRAYSIZE(driverTypes);
 
-	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_12_1,
-		D3D_FEATURE_LEVEL_12_0,
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3,
-		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
-	};
-	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+	UINT numFeatureLevels = ARRAYSIZE(m_featureLevelArray);
 
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
 		m_driverType = driverTypes[driverTypeIndex];
 
-		hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
+		hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, m_featureLevelArray, numFeatureLevels, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 		if (hr == E_INVALIDARG)
 		{
 			LOG(warning) << "DirectX 11.1 runtime will not recognize D3D_FEATURE_LEVEL_12_x, so trying again without them.";
-			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
+			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &m_featureLevelArray[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 			if (hr == E_INVALIDARG)
 			{
 				LOG(warning) << "DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1+ so trying again without them.";
-				hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
+				hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &m_featureLevelArray[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 			}
 		}
 
@@ -515,17 +578,16 @@ bool dx11::System::D3D_InitDevice()
 
 			if (SUCCEEDED(hr))
 			{
-				DXGI_ADAPTER_DESC adapterDesc;
-				ZeroMemory(&adapterDesc, sizeof(DXGI_ADAPTER_DESC));
-				hr = adapter->GetDesc(&adapterDesc);
+				
+				ZeroMemory(&m_adapterDesc, sizeof(DXGI_ADAPTER_DESC));
+				hr = adapter->GetDesc(&m_adapterDesc);
 
 				if (SUCCEEDED(hr))
 				{
-					if ((adapterDesc.VendorId == 0x1414) && (adapterDesc.DeviceId == 0x8c))
-					{
-						// Microsoft Basic Render Driver
-						ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
-					}
+					D3D_Strings_f();
+
+					// Create command
+					ref->client->Cmd_AddCommand("dx11_strings", SHIM_D3D_Strings_f);
 				}
 
 				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
