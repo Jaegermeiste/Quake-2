@@ -64,6 +64,10 @@ void dx11::System::FillFeatureLevelArray(void)
 
 dx11::System::System()
 {
+	BOOST_LOG_NAMED_SCOPE("System");
+
+	LOG(info) << "Initializing";
+
 	m_hInstance = nullptr;
 	m_wndProc = nullptr;
 	ZeroMemory(&m_wndClass, sizeof(WNDCLASS));
@@ -92,16 +96,19 @@ dx11::System::System()
 	m_swapChain1 = nullptr;
 	m_backBufferRTV = nullptr;
 
+	m_depthDisabledStencilState = nullptr;
+
 	m_d3dInitialized = false;
 }
 
 dx11::System::~System()
 {
-	Shutdown();
+	//Shutdown();
 }
 
 void dx11::System::BeginRegistration()
 {
+	BOOST_LOG_NAMED_SCOPE("System::BeginRegistration");
 	if (!m_inRegistration)
 	{
 		BeginUpload();
@@ -112,6 +119,7 @@ void dx11::System::BeginRegistration()
 
 void dx11::System::EndRegistration()
 {
+	BOOST_LOG_NAMED_SCOPE("System::EndRegistration");
 	if (m_inRegistration)
 	{
 		m_inRegistration = false;
@@ -122,6 +130,7 @@ void dx11::System::EndRegistration()
 
 void dx11::System::BeginUpload()
 {
+	BOOST_LOG_NAMED_SCOPE("System::BeginUpload");
 	/*if (resourceUpload == nullptr)
 	{
 		resourceUpload = new DirectX::ResourceUploadBatch(ref->sys->d3dDevice);
@@ -137,6 +146,7 @@ void dx11::System::BeginUpload()
 
 void dx11::System::EndUpload()
 {
+	BOOST_LOG_NAMED_SCOPE("System::EndUpload");
 	// Only flush the upload if the batch is open AND we are not in registration mode
 	if (m_uploadBatchOpen && (!m_inRegistration))
 	{
@@ -152,6 +162,7 @@ void dx11::System::EndUpload()
 
 void dx11::System::BeginFrame(void)
 {
+	BOOST_LOG_NAMED_SCOPE("System::BeginFrame");
 	// Timing
 	if ((m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
 	{
@@ -194,9 +205,15 @@ void dx11::System::BeginFrame(void)
 
 void dx11::System::RenderFrame(refdef_t * fd)
 {
+	BOOST_LOG_NAMED_SCOPE("System::RenderFrame");
 	// Draw 3D
+	//m_immediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
+
 
 	// Draw 2D
+	//LOG(trace) << "Drawing 2D";
+	m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+
 	if (m_2DcommandList)
 	{
 		m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
@@ -205,6 +222,8 @@ void dx11::System::RenderFrame(refdef_t * fd)
 
 void dx11::System::EndFrame(void)
 {
+	BOOST_LOG_NAMED_SCOPE("System::EndFrame");
+
 	if (m_swapChain)
 	{
 		// Switch the back buffer and the front buffer
@@ -220,6 +239,8 @@ void dx11::System::EndFrame(void)
 
 		m_frameRateEMA = EMA_ALPHA * m_frameRateEMA + (1.0 - EMA_ALPHA) * (m_clockFrameEndCurrent.QuadPart - m_clockFrameEndPrevious.QuadPart);
 		m_clockFrameEndPrevious = m_clockFrameEndCurrent;
+
+		//LOG(trace) << "Frame <rate> " << m_frameRateEMA << " fps <time> " << (m_frameTime * 1000) << " ms";
 	}
 
 	m_clockRunning = false;
@@ -231,6 +252,8 @@ void dx11::System::EndFrame(void)
 */
 bool dx11::System::VID_CreateWindow()
 {
+	BOOST_LOG_NAMED_SCOPE("System::VID_CreateWindow");
+
 	RECT				r			= {};
 	ZeroMemory(&r, sizeof(RECT));
 	int					stylebits	= 0;
@@ -242,6 +265,8 @@ bool dx11::System::VID_CreateWindow()
 	const unsigned int	width		= ref->cvars->r_customWidth->UInt();
 	const unsigned int	height		= ref->cvars->r_customHeight->UInt();
 	const bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
+
+	LOG(info) << "Creating Window.";
 
 	/* Register the frame class */
 	m_wndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -322,8 +347,12 @@ bool dx11::System::VID_CreateWindow()
 
 void dx11::System::VID_DestroyWindow()
 {
+	BOOST_LOG_NAMED_SCOPE("System::VID_DestroyWindow");
+
 	if (m_hWnd != nullptr)
 	{
+		LOG(info) << "Destroying Window.";
+
 		DestroyWindow(m_hWnd);
 		m_hWnd = nullptr;
 	}
@@ -332,6 +361,10 @@ void dx11::System::VID_DestroyWindow()
 
 bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 {
+	BOOST_LOG_NAMED_SCOPE("System::Initialize");
+
+	LOG(info) << "Starting up.";
+
 	if (m_d3dInitialized)
 	{
 		D3D_Shutdown();
@@ -360,6 +393,10 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 void dx11::System::Shutdown()
 {
+	BOOST_LOG_NAMED_SCOPE("System::Shutdown");
+
+	LOG(info) << "Shutting down.";
+
 	if (m_d3dInitialized)
 	{
 		D3D_Shutdown();
@@ -373,8 +410,12 @@ void dx11::System::Shutdown()
 
 void dx11::System::AppActivate(bool active)
 {
+	BOOST_LOG_NAMED_SCOPE("System::AppActivate");
+
 	if (active)
 	{
+		LOG(info) << "Restoring Window.";
+
 		SetForegroundWindow(m_hWnd);
 		ShowWindow(m_hWnd, SW_RESTORE);
 	}
@@ -382,6 +423,8 @@ void dx11::System::AppActivate(bool active)
 	{
 		if (ref->cvars->vid_fullscreen->Bool())
 		{
+			LOG(info) << "Minimizing Window.";
+
 			ShowWindow(m_hWnd, SW_MINIMIZE);
 		}
 	}
@@ -389,6 +432,7 @@ void dx11::System::AppActivate(bool active)
 
 bool dx11::System::D3D_InitDevice()
 {
+	BOOST_LOG_NAMED_SCOPE("System::D3D_InitDevice");
 	HRESULT hr = S_OK;
 	RECT rc = {};
 	UINT createDeviceFlags = 0;
@@ -396,6 +440,8 @@ bool dx11::System::D3D_InitDevice()
 	GetClientRect(m_hWnd, &rc);
 	m_windowWidth = rc.right - rc.left;
 	m_windowHeight = rc.bottom - rc.top;
+
+	LOG(info) << "Creating D3D Device.";
 
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -431,12 +477,12 @@ bool dx11::System::D3D_InitDevice()
 
 		if (hr == E_INVALIDARG)
 		{
-			// DirectX 11.1 runtime will not recognize D3D_FEATURE_LEVEL_12_x, so try without them
+			LOG(warning) << "DirectX 11.1 runtime will not recognize D3D_FEATURE_LEVEL_12_x, so trying again without them.";
 			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 			if (hr == E_INVALIDARG)
 			{
-				// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1+ so we need to retry without it
+				LOG(warning) << "DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1+ so trying again without them.";
 				hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &featureLevels[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 			}
 		}
@@ -449,6 +495,7 @@ bool dx11::System::D3D_InitDevice()
 
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to create D3D device.";
 		return false;
 	}
 
@@ -490,6 +537,7 @@ bool dx11::System::D3D_InitDevice()
 
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to obtain DGXIFactory.";
 		return false;
 	}
 
@@ -558,6 +606,7 @@ bool dx11::System::D3D_InitDevice()
 
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to obtain DGXIFactory.";
 		return false;
 	}
 
@@ -567,6 +616,7 @@ bool dx11::System::D3D_InitDevice()
 
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to get BackBuffer.";
 		return false;
 	}
 
@@ -576,6 +626,7 @@ bool dx11::System::D3D_InitDevice()
 
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to create BackBuffer RenderTargetView.";
 		return false;
 	}
 
@@ -593,7 +644,9 @@ bool dx11::System::D3D_InitDevice()
 
 	m_immediateContext->RSSetViewports(1, &viewport);
 
-	return true;
+	m_d3dInitialized = true;
+
+	return m_d3dInitialized;
 }
 
 /*
@@ -601,14 +654,20 @@ http://rastertek.com/dx11tut11.html
 */
 bool dx11::System::D3D_Init2DOverlay()
 {
+	BOOST_LOG_NAMED_SCOPE("System::D3D_Init2DOverlay");
+
 	D3D11_TEXTURE2D_DESC textureDesc;
 	HRESULT hr;
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 
-
-	// Initialize the render target texture description.
-	ZeroMemory(&textureDesc, sizeof(textureDesc));
+	// Wipe Structs
+	ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	ZeroMemory(&hr, sizeof(HRESULT));
+	ZeroMemory(&renderTargetViewDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 
 	// Setup the render target texture description.
 	textureDesc.Width = m_windowWidth;
@@ -626,6 +685,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	hr = m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to create Texture2D.";
 		return false;
 	}
 
@@ -638,6 +698,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	hr = m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to create RenderTargetView.";
 		return false;
 	}
 
@@ -651,6 +712,7 @@ bool dx11::System::D3D_Init2DOverlay()
 	hr = m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
 	if (FAILED(hr))
 	{
+		LOG(error) << "Unable to create ShaderResourceView.";
 		return false;
 	}
 
@@ -660,11 +722,44 @@ bool dx11::System::D3D_Init2DOverlay()
 	// Create an orthographic projection matrix for 2D rendering.
 	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
 
+	// Clear the second depth stencil state before setting the parameters.
+	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
+
+	// Now create a second depth stencil state which turns off the Z buffer for 2D rendering.  The only difference is 
+	// that DepthEnable is set to false, all other parameters are the same as the other depth stencil state.
+	depthDisabledStencilDesc.DepthEnable = false;
+	depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthDisabledStencilDesc.StencilEnable = true;
+	depthDisabledStencilDesc.StencilReadMask = 0xFF;
+	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Create the state using the device.
+	hr = m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create DepthStencilState.";
+		return false;
+	}
+
 	return true;
 }
 
 void dx11::System::D3D_Shutdown()
 {
+	BOOST_LOG_NAMED_SCOPE("System::D3D_Shutdown");
+
+	LOG(info) << "Shutting down D3D.";
+
 	if (m_immediateContext)
 	{
 		m_immediateContext->ClearState();
@@ -672,7 +767,7 @@ void dx11::System::D3D_Shutdown()
 
 	if (m_swapChain)
 	{
-		// switch to windowed mode to allow proper cleanup
+		LOG(info) << "Switching to windowed mode to allow proper cleanup.";
 		m_swapChain->SetFullscreenState(FALSE, nullptr);   
 	}
 	
@@ -692,6 +787,12 @@ void dx11::System::D3D_Shutdown()
 	{ 
 		m_swapChain->Release();
 		m_swapChain = nullptr;
+	}
+
+	if (m_depthDisabledStencilState)
+	{
+		m_depthDisabledStencilState->Release();
+		m_depthDisabledStencilState = nullptr;
 	}
 
 	if (m_2DdeferredContext)

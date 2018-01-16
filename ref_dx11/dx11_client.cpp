@@ -27,30 +27,59 @@ ref_dx11
 
 inline void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Sys_Error");
+
+	std::string errLevelStr = "ERR_FATAL";
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	if (err_level == ERR_DROP)
+	{
+		errLevelStr = "ERR_DROP";
+		LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
+	else if (err_level == ERR_QUIT)
+	{
+		errLevelStr = "ERR_QUIT";
+		LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
+	else
+	{
+		LOG(fatal) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
 
 	m_refImport.Sys_Error(err_level, const_cast<char*>(str.c_str()));
 }
 
 inline void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)(void))
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Cmd_AddCommand");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
 	m_refImport.Cmd_AddCommand(const_cast<char*>(name.c_str()), cmd);
 }
 
 inline void dx11::Client::Cmd_RemoveCommand(std::string name)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Cmd_RemoveCommand");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<name> " << name;
 
 	m_refImport.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
 }
 
 inline unsigned int dx11::Client::Cmd_Argc (void)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argc");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
@@ -59,6 +88,8 @@ inline unsigned int dx11::Client::Cmd_Argc (void)
 
 inline std::string dx11::Client::Cmd_Argv(unsigned int i)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argv");
+
 	int clientIndex = msl::utilities::SafeInt<int>(i);
 
 	// Wait for exclusive access
@@ -69,40 +100,76 @@ inline std::string dx11::Client::Cmd_Argv(unsigned int i)
 
 inline void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Cmd_ExecuteText");
+
 	int clientWhen = msl::utilities::SafeInt<int>(exec_when);
+
+	std::string execWhenStr = "EXEC_NOW";
+
+	if (exec_when == EXEC_INSERT)
+	{
+		execWhenStr = "EXEC_INSERT";
+	}
+	else if (exec_when == EXEC_APPEND)
+	{
+		execWhenStr = "EXEC_APPEND";
+	}
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<exec_when> " << execWhenStr << " <text> " << text;
 
 	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
 }
 
 inline void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Con_Printf");
+
+	std::string printLevelStr = "PRINT_ALL";
+
+	if (print_level == PRINT_DEVELOPER)
+	{
+		printLevelStr = "PRINT_DEVELOPER";
+	}
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<print_level> " << printLevelStr << " <string> " << str;
 
 	m_refImport.Con_Printf(print_level, const_cast<char*>(str.c_str()));
 }
 
 int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::FS_LoadFile");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<fileName> " << fileName << " <buf> " << buf;
 
 	return m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
 }
 
 void dx11::Client::FS_FreeFile(void *buf)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::FS_FreeFile");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<buf> " << buf;
 
 	m_refImport.FS_FreeFile(buf);
 }
 
 inline std::string dx11::Client::FS_Gamedir(void)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::FS_Gamedir");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
@@ -115,6 +182,8 @@ inline std::string dx11::Client::FS_Gamedir(void)
 
 inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Vid_GetModeInfo");
+
 	int clientWidth = 0,
 		clientHeight = 0;
 
@@ -122,6 +191,8 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
 	qboolean retVal = m_refImport.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
+
+	LOG(info) << "<width> " << width << " <height> " << height << " <mode> " << mode << " {return value} " << retVal;
 
 	if (retVal = true)
 	{
@@ -134,6 +205,8 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 
 inline void dx11::Client::Vid_MenuInit(void)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Vid_MenuInit");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
@@ -142,6 +215,8 @@ inline void dx11::Client::Vid_MenuInit(void)
 
 void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
+	BOOST_LOG_NAMED_SCOPE("Client::Vid_NewWindow");
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
@@ -150,6 +225,8 @@ void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 
 void dx11::Client::SetRefImport(refimport_t rimp)
 { 
+	BOOST_LOG_NAMED_SCOPE("Client::SetRefImport");
+
 	m_refImport = rimp;
 
 	// Pass everything through that isn't explicitly overridden in the class functions above
@@ -160,6 +237,8 @@ void dx11::Client::SetRefImport(refimport_t rimp)
 
 dx11::Client::Client(refimport_t rimp)
 {
+	BOOST_LOG_NAMED_SCOPE("Client");
+
 	SetRefImport(rimp);
 }
 

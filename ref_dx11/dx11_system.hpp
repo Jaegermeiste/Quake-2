@@ -66,12 +66,15 @@ namespace dx11
 		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
 		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
+		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
+
 
 		// 3D Rendering
 		ID3D11RenderTargetView*		m_backBufferRTV = nullptr;
 		DirectX::XMMATRIX           m_3DworldMatrix;
 		DirectX::XMMATRIX           m_3DviewMatrix;
 		DirectX::XMMATRIX           m_3DprojectionMatrix;
+		ID3D11DepthStencilState*	m_depthStencilState = nullptr;
 
 		bool						m_d3dInitialized;
 

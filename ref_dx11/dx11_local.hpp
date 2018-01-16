@@ -90,6 +90,7 @@ typedef struct image_s
 
 #define EMA_ALPHA	0.9
 
+#include "dx11_log.hpp"
 #include "dx11_cvar.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"

@@ -17,6 +17,8 @@ ref_dx11/x64/
 ref_dx12/Debug/
 ref_dx12/Release/
 ref_dx12/x64/
+packages/
+logs/
 *.pak
 *.ico
 *.exe
@@ -61,3 +63,4 @@ Debug/quake2.exe
 Debug/ref_dx11.dll
 Debug/quake2.bsc
 *.log
+*.TMP

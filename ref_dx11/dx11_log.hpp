@@ -23,33 +23,36 @@ ref_dx11
 2017 Bleeding Eye Studios
 */
 
+#ifndef __DX11_LOG_HPP__
+#define __DX11_LOG_HPP__
+#pragma once
+
 #include "dx11_local.hpp"
 
-/*
-===============
-dx11::Init
-===============
-*/
-bool dx11::Init(HINSTANCE hInstance, WNDPROC wndProc)
-{
-	BOOST_LOG_NAMED_SCOPE("Init");
+#define LOG_FILE_NAME	"%y%m%d_%H%M_ref_dx11.log"
+#define LOG_PATH		"logs/ref_dx11"
 
-	if (dx11::ref->client != nullptr)
+#define LOG(level) BOOST_LOG_TRIVIAL(level)
+
+enum severity_level
+{
+	trace,
+	debug,
+	info,
+	warning,
+	error,
+	fatal
+};
+
+namespace dx11
+{
+	class Log 
 	{
-		ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION "\n");
-	}
+	public:
+		Log();
+	};
 
-	return true;
+	extern std::unique_ptr<Log> log;
 }
 
-/*
-===============
-dx11::Shutdown
-===============
-*/
-void dx11::Shutdown(void)
-{
-	BOOST_LOG_NAMED_SCOPE("Shutdown");
-	// Clean up
-	// ref is a smart pointer - it will call the destructor when dereferenced
-}
+#endif // !__DX11_LOG_HPP__

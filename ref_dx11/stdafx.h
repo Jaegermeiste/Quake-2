@@ -42,6 +42,21 @@ ref_dx11
 #include <filesystem>
 #include <exception>
 
+// Boost Includes
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/logger.hpp>
+#include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/expressions/keyword_fwd.hpp>
+#include <boost/log/expressions/keyword.hpp>
+
 // Windows Includes
 #include <windows.h>
 #include <mmsystem.h>
@@ -54,6 +69,7 @@ ref_dx11
 #include <SafeInt.h>
 #include <ppl.h>
 
+/*
 #ifdef _DEBUG
 // https://msdn.microsoft.com/en-us/library/windows/desktop/dn904627
 #include <TraceLoggingProvider.h>  // The native TraceLogging API
@@ -74,6 +90,7 @@ DEFINE_GUID(TRACELOGGING_DEBUG_QUAKE2_DX11 , 0x53430b16, 0xc35c, 0x428d, 0x83, 0
 
 #define TRACELOGGING_PROVIDER_NAME	"Quake2DX11LoggingProvider"
 #endif
+*/
 
 // DirectXTK11
 #include "CommonStates.h"
