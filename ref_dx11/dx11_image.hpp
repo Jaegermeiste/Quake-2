@@ -58,6 +58,21 @@ namespace dx11
 	public:
 		std::shared_ptr<image_t>	Load(std::string name, imagetype_t type);
 	};
+
+	class Pic : Image
+	{
+	private:
+		struct Vertex2D
+		{
+			DirectX::XMFLOAT3 position;
+			DirectX::XMFLOAT2 texCoord;
+		};
+
+		ID3D11Buffer	*m_vertexBuffer = nullptr,
+						*m_indexBuffer = nullptr;
+		unsigned int	m_vertexCount = 0,
+						m_indexCount = 0;
+	};
 }
 
 #endif // !__DX11_IMAGE_HPP__

@@ -120,7 +120,7 @@ dx11::System::System()
 	m_swapChain1 = nullptr;
 	m_backBufferRTV = nullptr;
 
-	m_depthDisabledStencilState = nullptr;
+	m_overlaySystem = std::make_unique<Subsystem2D>();
 
 	m_d3dInitialized = false;
 }
@@ -187,6 +187,7 @@ void dx11::System::EndUpload()
 void dx11::System::BeginFrame(void)
 {
 	BOOST_LOG_NAMED_SCOPE("System::BeginFrame");
+
 	// Timing
 	if ((m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
 	{
@@ -213,11 +214,9 @@ void dx11::System::BeginFrame(void)
 		}
 	}
 
-	// Clear 2D deferred
-	if (m_2DdeferredContext)
+	if (m_overlaySystem)
 	{
-		// Clear the GUI Overlay buffer to transparent
-		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
+		m_overlaySystem->Clear();
 	}
 
 	// Clear 3D deferred
@@ -235,13 +234,7 @@ void dx11::System::RenderFrame(refdef_t * fd)
 
 
 	// Draw 2D
-	//LOG(trace) << "Drawing 2D";
-	m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
-
-	if (m_2DcommandList)
-	{
-		m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
-	}
+	//LOG(trace) << "Drawing 2D"
 }
 
 void dx11::System::EndFrame(void)
@@ -440,15 +433,7 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 	LOG(info) << "Starting up.";
 
-	if (m_d3dInitialized)
-	{
-		D3D_Shutdown();
-	}
-
-	if (m_hWnd != nullptr)
-	{
-		VID_DestroyWindow();
-	}
+	Shutdown();
 
 	m_hInstance = hInstance;
 	m_wndProc = wndProc;
@@ -463,6 +448,11 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 		return false;
 	}
 
+	if ((!m_overlaySystem) || (!m_overlaySystem->Initialize()))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -470,7 +460,10 @@ void dx11::System::Shutdown()
 {
 	BOOST_LOG_NAMED_SCOPE("System::Shutdown");
 
-	LOG(info) << "Shutting down.";
+	if (m_overlaySystem)
+	{
+		m_overlaySystem->Shutdown();
+	}
 
 	if (m_d3dInitialized)
 	{
@@ -711,110 +704,7 @@ bool dx11::System::D3D_InitDevice()
 	return m_d3dInitialized;
 }
 
-/*
-http://rastertek.com/dx11tut11.html
-*/
-bool dx11::System::D3D_Init2DOverlay()
-{
-	BOOST_LOG_NAMED_SCOPE("System::D3D_Init2DOverlay");
 
-	D3D11_TEXTURE2D_DESC textureDesc;
-	HRESULT hr;
-	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
-
-	// Wipe Structs
-	ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-	ZeroMemory(&hr, sizeof(HRESULT));
-	ZeroMemory(&renderTargetViewDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
-	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
-
-	// Setup the render target texture description.
-	textureDesc.Width = m_windowWidth;
-	textureDesc.Height = m_windowHeight;
-	textureDesc.MipLevels = 1;
-	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	textureDesc.SampleDesc.Count = 1;
-	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	textureDesc.CPUAccessFlags = 0;
-	textureDesc.MiscFlags = 0;
-
-	// Create the render target texture.
-	hr = m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create Texture2D.";
-		return false;
-	}
-
-	// Setup the description of the render target view.
-	renderTargetViewDesc.Format = textureDesc.Format;
-	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-	// Create the render target view.
-	hr = m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create RenderTargetView.";
-		return false;
-	}
-
-	// Setup the description of the shader resource view.
-	shaderResourceViewDesc.Format = textureDesc.Format;
-	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-	shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-	// Create the shader resource view.
-	hr = m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create ShaderResourceView.";
-		return false;
-	}
-
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
-
-	// Create an orthographic projection matrix for 2D rendering.
-	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
-
-	// Clear the second depth stencil state before setting the parameters.
-	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
-
-	// Now create a second depth stencil state which turns off the Z buffer for 2D rendering.  The only difference is 
-	// that DepthEnable is set to false, all other parameters are the same as the other depth stencil state.
-	depthDisabledStencilDesc.DepthEnable = false;
-	depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	depthDisabledStencilDesc.StencilEnable = true;
-	depthDisabledStencilDesc.StencilReadMask = 0xFF;
-	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
-	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	// Create the state using the device.
-	hr = m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create DepthStencilState.";
-		return false;
-	}
-
-	return true;
-}
 
 void dx11::System::D3D_Shutdown()
 {
@@ -851,34 +741,9 @@ void dx11::System::D3D_Shutdown()
 		m_swapChain = nullptr;
 	}
 
-	if (m_depthDisabledStencilState)
+	if (m_overlaySystem)
 	{
-		m_depthDisabledStencilState->Release();
-		m_depthDisabledStencilState = nullptr;
-	}
-
-	if (m_2DdeferredContext)
-	{
-		m_2DdeferredContext->Release();
-		m_2DdeferredContext = nullptr;
-	}
-
-	if (m_2DshaderResourceView)
-	{
-		m_2DshaderResourceView->Release();
-		m_2DshaderResourceView = 0;
-	}
-
-	if (m_2DoverlayRTV)
-	{
-		m_2DoverlayRTV->Release();
-		m_2DoverlayRTV = 0;
-	}
-
-	if (m_2DrenderTargetTexture)
-	{
-		m_2DrenderTargetTexture->Release();
-		m_2DrenderTargetTexture = 0;
+		m_overlaySystem->Shutdown();
 	}
 
 	if (m_immediateContext1)

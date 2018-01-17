@@ -92,6 +92,7 @@ typedef struct image_s
 
 #include "dx11_log.hpp"
 #include "dx11_cvar.hpp"
+#include "dx11_2D.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"
 

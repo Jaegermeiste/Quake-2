@@ -36,80 +36,70 @@ ref_dx11
 namespace dx11
 {
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-	__declspec(align(16)) class System {
+	__declspec(align(16)) class System 
+	{
+		friend class Subsystem2D;
 	private:
-		HINSTANCE					m_hInstance;
-		WNDPROC						m_wndProc;
-		WNDCLASSEX					m_wndClassEx;
-		HWND						m_hWnd;
+		HINSTANCE						m_hInstance;
+		WNDPROC							m_wndProc;
+		WNDCLASSEX						m_wndClassEx;
+		HWND							m_hWnd;
 
-		UINT						m_windowWidth = 0;
-		UINT						m_windowHeight = 0;
+		UINT							m_windowWidth = 0;
+		UINT							m_windowHeight = 0;
 
-		D3D_DRIVER_TYPE				m_driverType = D3D_DRIVER_TYPE_NULL;
-		D3D_FEATURE_LEVEL			m_featureLevel = D3D_FEATURE_LEVEL_11_0;
+		D3D_DRIVER_TYPE					m_driverType = D3D_DRIVER_TYPE_NULL;
+		D3D_FEATURE_LEVEL				m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 
-		DXGI_ADAPTER_DESC			m_adapterDesc;
+		DXGI_ADAPTER_DESC				m_adapterDesc;
 
-		ID3D11Device*				m_d3dDevice = nullptr;
-		ID3D11Device1*				m_d3dDevice1 = nullptr;
-		ID3D11DeviceContext*		m_immediateContext = nullptr;
-		ID3D11DeviceContext1*		m_immediateContext1 = nullptr;
+		ID3D11Device*					m_d3dDevice = nullptr;
+		ID3D11Device1*					m_d3dDevice1 = nullptr;
+		ID3D11DeviceContext*			m_immediateContext = nullptr;
+		ID3D11DeviceContext1*			m_immediateContext1 = nullptr;
 
-		IDXGISwapChain*				m_swapChain = nullptr;
-		IDXGISwapChain1*			m_swapChain1 = nullptr;
+		IDXGISwapChain*					m_swapChain = nullptr;
+		IDXGISwapChain1*				m_swapChain1 = nullptr;
 
-		ID3D11DepthStencilView*		m_DepthStencilView;
+		ID3D11DepthStencilView*			m_DepthStencilView;
 		
 		// 2D Rendering
-		ID3D11DeviceContext*		m_2DdeferredContext = nullptr;
-		ID3D11CommandList*			m_2DcommandList = nullptr;
-		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
-		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
-		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
-		DirectX::XMMATRIX			m_2DorthographicMatrix;
-		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
+		std::unique_ptr<Subsystem2D>	m_overlaySystem;
 
 
 		// 3D Rendering
-		ID3D11RenderTargetView*		m_backBufferRTV = nullptr;
-		DirectX::XMMATRIX           m_3DworldMatrix;
-		DirectX::XMMATRIX           m_3DviewMatrix;
-		DirectX::XMMATRIX           m_3DprojectionMatrix;
-		ID3D11DepthStencilState*	m_depthStencilState = nullptr;
+		ID3D11RenderTargetView*			m_backBufferRTV = nullptr;
+		DirectX::XMMATRIX				m_3DworldMatrix;
+		DirectX::XMMATRIX				m_3DviewMatrix;
+		DirectX::XMMATRIX				m_3DprojectionMatrix;
+		ID3D11DepthStencilState*		m_depthStencilState = nullptr;
 
-		bool						m_d3dInitialized;
+		bool							m_d3dInitialized;
 
-		bool						m_inRegistration;
-		bool						m_uploadBatchOpen;
+		bool							m_inRegistration;
+		bool							m_uploadBatchOpen;
 
-		D3D_FEATURE_LEVEL			m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
+		D3D_FEATURE_LEVEL				m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
 
 		// Timing
-		LARGE_INTEGER				m_clockFrequency;
-		bool						m_clockFrequencyObtained;
-		LARGE_INTEGER				m_clockFrameStart;
-		LARGE_INTEGER				m_clockFrameEndCurrent;
-		LARGE_INTEGER				m_clockFrameEndPrevious;
-		bool						m_clockRunning;
-		double						m_frameTime;
-		double						m_frameTimeEMA;
-		double						m_frameRateEMA;
+		LARGE_INTEGER					m_clockFrequency;
+		bool							m_clockFrequencyObtained;
+		LARGE_INTEGER					m_clockFrameStart;
+		LARGE_INTEGER					m_clockFrameEndCurrent;
+		LARGE_INTEGER					m_clockFrameEndPrevious;
+		bool							m_clockRunning;
+		double							m_frameTime;
+		double							m_frameTimeEMA;
+		double							m_frameRateEMA;
 
-		// Calculation.
-
-
-		LARGE_INTEGER end;
-
-
-		void						FillFeatureLevelArray	(void);
+		void							FillFeatureLevelArray	(void);
 		
-		bool						VID_CreateWindow();
-		void						VID_DestroyWindow();
+		bool							VID_CreateWindow();
+		void							VID_DestroyWindow();
 
-		bool						D3D_InitDevice();
-		bool						D3D_Init2DOverlay();
-		void						D3D_Shutdown();
+		bool							D3D_InitDevice();
+
+		void							D3D_Shutdown();
 
 	public:
 									System					();
