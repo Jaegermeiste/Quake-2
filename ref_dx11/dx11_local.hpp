@@ -90,8 +90,11 @@ typedef struct image_s
 
 #define EMA_ALPHA	0.9
 
+#define SAFE_RELEASE(comObject)	if (comObject) { comObject->Release(); comObject = nullptr; }
+
 #include "dx11_log.hpp"
 #include "dx11_cvar.hpp"
+#include "dx11_shader.hpp"
 #include "dx11_2D.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"

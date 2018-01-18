@@ -54,6 +54,12 @@ dx11::Cvars::Cvars()
 	zNear3D				= std::make_shared<Cvar>("dx11_zNear3D",			4,								CVAR_ARCHIVE);
 	zFar2D				= std::make_shared<Cvar>("dx11_zFar2D",				99999,							CVAR_ARCHIVE);
 	zFar3D				= std::make_shared<Cvar>("dx11_zFar3D",				4096,							CVAR_ARCHIVE);
+
+#ifndef _DEBUG
+	overlayScale		= std::make_shared<Cvar>("dx11_overlayScale",		1.0,							CVAR_ARCHIVE);
+#else
+	overlayScale		= std::make_shared<Cvar>("dx11_overlayScale",		0.9,							CVAR_ARCHIVE);
+#endif
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)

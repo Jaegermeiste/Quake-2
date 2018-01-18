@@ -43,9 +43,12 @@ dx11::Subsystem2D::Subsystem2D()
 	m_2DindexBuffer = nullptr;
 	m_2DvertexCount = 0;
 	m_2DindexCount = 0;
-	m_2DoverlayScale = 1.0;
-	m_previousPosX = -1;
-	m_previousPosY = -1;
+
+	m_2DvertexShader = nullptr;
+	m_2DpixelShader = nullptr;
+	m_2Dlayout = nullptr;
+	m_2DmatrixBuffer = nullptr;
+	m_2DsampleState = nullptr;
 }
 
 /*
@@ -68,6 +71,13 @@ bool dx11::Subsystem2D::Initialize()
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 
+	// Set modified for first run
+	ref->cvars->overlayScale->SetModified(true);
+
+	// Set width and height
+	m_renderTargetWidth = ref->sys->m_windowWidth;
+	m_renderTargetHeight = ref->sys->m_windowHeight;
+
 	// Create context
 	hr = ref->sys->m_d3dDevice->CreateDeferredContext(0, &m_2DdeferredContext);
 	if (FAILED(hr))
@@ -77,8 +87,8 @@ bool dx11::Subsystem2D::Initialize()
 	}
 
 	// Setup the render target texture description.
-	textureDesc.Width = ref->sys->m_windowWidth;
-	textureDesc.Height = ref->sys->m_windowHeight;
+	textureDesc.Width = m_renderTargetWidth;
+	textureDesc.Height = m_renderTargetHeight;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -127,7 +137,7 @@ bool dx11::Subsystem2D::Initialize()
 	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 
 	// Create an orthographic projection matrix for 2D rendering.
-	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(ref->sys->m_windowWidth), static_cast<float>(ref->sys->m_windowHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
+	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_renderTargetWidth), static_cast<float>(m_renderTargetHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
 
 	// Clear the second depth stencil state before setting the parameters.
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
@@ -275,6 +285,111 @@ void dx11::Subsystem2D::Clear()
 	}
 }
 
+bool dx11::Subsystem2D::UpdateBuffers()
+{
+	float						left			= 0.0, 
+								right			= 0.0, 
+								top				= 0.0,
+								bottom			= 0.0;
+	Vertex2D*					vertices		= nullptr;
+	Vertex2D*					verticesPtr		= nullptr;
+	D3D11_MAPPED_SUBRESOURCE	mappedResource;
+	HRESULT						hr;
+
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+
+	// Don't update the vertex buffer if the scale hasn't changed (positions are the same)
+	if (!ref->cvars->overlayScale->Modified())
+	{
+		return true;
+	}
+
+	// Calculate the screen coordinates of the left side of the overlay.
+	left = static_cast<float>((ref->sys->m_windowWidth / 2) * -1.0) + static_cast<float>((m_renderTargetWidth * ref->cvars->overlayScale->Float()) / 2.0);
+
+	// Calculate the screen coordinates of the right side of the overlay.
+	right = left + static_cast<float>(m_renderTargetWidth * ref->cvars->overlayScale->Float());
+
+	// Calculate the screen coordinates of the top of the overlay.
+	top = static_cast<float>(ref->sys->m_windowHeight / 2) - static_cast<float>((m_renderTargetHeight * ref->cvars->overlayScale->Float()) / 2.0);
+
+	// Calculate the screen coordinates of the bottom of the overlay.
+	bottom = top - static_cast<float>(m_renderTargetHeight * ref->cvars->overlayScale->Float());
+
+	// Create the vertex array.
+	vertices = new Vertex2D[m_2DvertexCount];
+	if (!vertices)
+	{
+		LOG(error) << "Failed to allocate memory for vertex buffer.";
+		return false;
+	}
+
+	// Load the vertex array with data.
+	// First triangle.
+	vertices[0].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[0].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+
+	vertices[1].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[1].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+	vertices[2].position = DirectX::XMFLOAT3(left, bottom, 0.0f);  // Bottom left.
+	vertices[2].texCoord = DirectX::XMFLOAT2(0.0f, 1.0f);
+
+	// Second triangle.
+	vertices[3].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[3].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+
+	vertices[4].position = DirectX::XMFLOAT3(right, top, 0.0f);  // Top right.
+	vertices[4].texCoord = DirectX::XMFLOAT2(1.0f, 0.0f);
+
+	vertices[5].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[5].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+	// Lock the vertex buffer so it can be written to.
+	hr = m_2DdeferredContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to lock vertex buffer.";
+		return false;
+	}
+
+	// Get a pointer to the data in the vertex buffer.
+	verticesPtr = (Vertex2D*)mappedResource.pData;
+
+	// Copy the data into the vertex buffer.
+	memcpy(verticesPtr, (void*)vertices, (sizeof(Vertex2D) * m_2DvertexCount));
+
+	// Unlock the vertex buffer.
+	m_2DdeferredContext->Unmap(m_2DvertexBuffer, 0);
+
+	// Release the vertex array as it is no longer needed.
+	if (vertices)
+	{
+		delete[] vertices;
+		vertices = nullptr;
+	}
+
+	return true;
+}
+
+void dx11::Subsystem2D::RenderBuffers()
+{
+	if (m_2DdeferredContext)
+	{
+		unsigned int stride = sizeof(Vertex2D);
+		unsigned int offset = 0;
+
+		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		m_2DdeferredContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
+
+		// Set the index buffer to active in the input assembler so it can be rendered.
+		m_2DdeferredContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+		m_2DdeferredContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+}
+
 void dx11::Subsystem2D::Render()
 {
 	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Render");
@@ -292,6 +407,36 @@ void dx11::Subsystem2D::Shutdown()
 	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Shutdown");
 
 	LOG(info) << "Shutting down.";
+
+	if (m_2DsampleState)
+	{
+		m_2DsampleState->Release();
+		m_2DsampleState = nullptr;
+	}
+
+	if (m_2DmatrixBuffer)
+	{
+		m_2DmatrixBuffer->Release();
+		m_2DmatrixBuffer = nullptr;
+	}
+
+	if (m_2Dlayout)
+	{
+		m_2Dlayout->Release();
+		m_2Dlayout = nullptr;
+	}
+
+	if (m_2DpixelShader)
+	{
+		m_2DpixelShader->Release();
+		m_2DpixelShader = nullptr;
+	}
+
+	if (m_2DvertexShader)
+	{
+		m_2DvertexShader->Release();
+		m_2DvertexShader = nullptr;
+	}
 
 	if (m_2DindexBuffer)
 	{

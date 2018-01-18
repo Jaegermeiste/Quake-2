@@ -33,6 +33,9 @@ namespace dx11
 {
 	class Subsystem2D {
 	private:
+		UINT						m_renderTargetWidth = 0;
+		UINT						m_renderTargetHeight = 0;
+
 		ID3D11DeviceContext*		m_2DdeferredContext = nullptr;
 		ID3D11CommandList*			m_2DcommandList = nullptr;
 		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
@@ -51,11 +54,18 @@ namespace dx11
 		ID3D11Buffer*				m_2DindexBuffer = nullptr;
 		unsigned int				m_2DvertexCount = 0,
 									m_2DindexCount = 0;
-		float						m_2DoverlayScale = 1.0;
-		int							m_previousPosX = -1,
-									m_previousPosY = -1;
+
+		ID3D11VertexShader*			m_2DvertexShader = nullptr;
+		ID3D11PixelShader*			m_2DpixelShader = nullptr;
+		ID3D11InputLayout*			m_2Dlayout = nullptr;
+		ID3D11Buffer*				m_2DmatrixBuffer = nullptr;
+		ID3D11SamplerState*			m_2DsampleState = nullptr;
 
 		bool						InitializeBuffers();
+
+		bool						UpdateBuffers();
+
+		void						RenderBuffers();
 
 	public:
 		Subsystem2D();
