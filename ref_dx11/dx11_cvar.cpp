@@ -84,6 +84,17 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
 }
 
+dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flags)
+{
+	BOOST_LOG_NAMED_SCOPE("Cvar");
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
+
+	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
+
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+}
+
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 {
 	BOOST_LOG_NAMED_SCOPE("Cvar");
