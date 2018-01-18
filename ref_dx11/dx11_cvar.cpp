@@ -302,17 +302,17 @@ void dx11::Cvars::Cvar::Set(std::string value)
 	ref->client->Cvar_Set(m_clientMemPtr->name, const_cast<char*>(value.c_str()));
 }
 
-inline void dx11::Cvars::Cvar::Set(float value)
+void dx11::Cvars::Cvar::Set(float value)
 {
 	Set(std::to_string(value));
 }
 
-inline void dx11::Cvars::Cvar::Set(double value)
+void dx11::Cvars::Cvar::Set(double value)
 {
 	Set(std::to_string(value));
 }
 
-inline void dx11::Cvars::Cvar::SetModified(bool value)
+void dx11::Cvars::Cvar::SetModified(bool value)
 {
 	BOOST_LOG_NAMED_SCOPE("Cvar::SetModified");
 
@@ -336,17 +336,17 @@ inline void dx11::Cvars::Cvar::SetModified(bool value)
 	}
 }
 
-inline void dx11::Cvars::Cvar::Set(bool value)
+void dx11::Cvars::Cvar::Set(bool value)
 {
 	Set(std::to_string(value));
 }
 
-inline void dx11::Cvars::Cvar::Set(signed int value)
+void dx11::Cvars::Cvar::Set(signed int value)
 {
 	Set(std::to_string(value));
 }
 
-inline void dx11::Cvars::Cvar::Set(unsigned int value)
+void dx11::Cvars::Cvar::Set(unsigned int value)
 {
 	Set(std::to_string(value));
 }

@@ -31,6 +31,14 @@ ref_dx11
 
 namespace dx11
 {
+	typedef std::string shaderTarget;
+
+#define SHADER_TARGET_VERTEX	"vs"
+#define SHADER_TARGET_PIXEL		"ps"
+
+#define SHADER_ENTRY_POINT_VERTEX	"VertexShader"
+#define SHADER_ENTRY_POINT_PIXEL	"PixelShader"
+
 	class Shader 
 	{
 	private:
@@ -49,6 +57,8 @@ namespace dx11
 
 		void						OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string shaderFilename);
 
+		bool						CompileShader(ID3D11Device* device, std::string fileName, shaderTarget target, D3D11_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements);
+
 	public:
 									Shader();
 
@@ -56,7 +66,7 @@ namespace dx11
 
 		bool						SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture);
 
-		void						Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture);
+		bool						Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture);
 
 		void						Shutdown();
 	};

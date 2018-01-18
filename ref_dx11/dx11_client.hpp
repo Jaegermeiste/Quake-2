@@ -45,6 +45,7 @@ namespace dx11
 		// Friends
 		friend dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags);
 		friend dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags);
+		friend dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flags);
 		friend dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags);
 		friend void dx11::Cvars::Cvar::Set(std::string value);
 

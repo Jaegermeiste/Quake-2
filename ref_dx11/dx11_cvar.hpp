@@ -64,12 +64,12 @@ namespace dx11
 					bool			Modified();
 
 					void			Set(std::string string);
-			inline	void			Set(bool value);
-			inline	void			Set(signed int value);
-			inline	void			Set(unsigned int value);
-			inline	void			Set(float value);
-			inline	void			Set(double value);
-			inline	void			SetModified(bool value);
+					void			Set(bool value);
+					void			Set(signed int value);
+					void			Set(unsigned int value);
+					void			Set(float value);
+					void			Set(double value);
+					void			SetModified(bool value);
 		};
 
 		Cvars();

@@ -24,9 +24,9 @@ ref_dx11
 */
 
 /*
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! - Contents courtesy http://rastertek.com/dx11s2tut05.html
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Contents courtesy http://rastertek.com/dx11s2tut05.html !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 */
 
 #include "dx11_local.hpp"
@@ -43,104 +43,126 @@ dx11::Shader::Shader()
 	m_sampleState = nullptr;
 }
 
-bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName)
+bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, shaderTarget target, D3D11_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
 {
-	BOOST_LOG_NAMED_SCOPE("Initialize");
+	BOOST_LOG_NAMED_SCOPE("Shader::CompileShader");
 
-	HRESULT hr;
+	ID3DBlob* shaderBuffer = nullptr;
 	ID3DBlob* errorMessage = nullptr;
-	ID3DBlob* vertexShaderBuffer = nullptr;
-	ID3DBlob* pixelShaderBuffer = nullptr;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
-	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_SAMPLER_DESC samplerDesc;
+	std::string entryPoint = "";
+	HRESULT hr;
 
 	// We need this to get a compliant path string
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToWide;
 
+	// Figure out the entry point
+	if (target == SHADER_TARGET_VERTEX)
+	{
+		entryPoint = SHADER_ENTRY_POINT_VERTEX;
+	}
+	else if (target == SHADER_TARGET_PIXEL)
+	{
+		entryPoint = SHADER_ENTRY_POINT_PIXEL;
+	}
+
 	// Build appropriate targets for feature level
-	std::string vsTarget = "vs_";
-	std::string psTarget = "ps_";
 	switch (device->GetFeatureLevel())
 	{
 	case D3D_FEATURE_LEVEL_12_1:
 	case D3D_FEATURE_LEVEL_12_0:
-		vsTarget += "6_0";
-		psTarget += "6_0";
+		target += "_6_0";
 		break;
 	case D3D_FEATURE_LEVEL_11_1:
 	case D3D_FEATURE_LEVEL_11_0:
-		vsTarget += "5_0";
-		psTarget += "5_0";
+		target += "_5_0";
 		break;
 	case D3D_FEATURE_LEVEL_10_1:
-		vsTarget += "4_1";
-		psTarget += "4_1";
+		target += "_4_1";
 		break;
 	case D3D_FEATURE_LEVEL_10_0:
-		vsTarget += "4_0";
-		psTarget += "4_0";
+		target += "_4_0";
 		break;
 	case D3D_FEATURE_LEVEL_9_3:
 	case D3D_FEATURE_LEVEL_9_2:
 	case D3D_FEATURE_LEVEL_9_1:
 	default:
-		vsTarget += "3_0";
-		psTarget += "3_0";
+		target += "_3_0";
 	}
+	
+	// Compile the shader code.
+	LOG(info) << "Compiling Shader File " << fileName << " with target " << target << " and entry point " << entryPoint;
 
-	// Compile the vertex shader code.
-	hr = D3DCompileFromFile(convertToWide.from_bytes(vsFileName).c_str(), NULL, NULL, "VertexShader", vsTarget.c_str(), D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY, 0, &vertexShaderBuffer, &errorMessage);
+	hr = D3DCompileFromFile(convertToWide.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY, 0, &shaderBuffer, &errorMessage);
 	if (FAILED(hr))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
 		if (errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, vsFileName);
+			OutputShaderErrorMessage(errorMessage, fileName);
 		}
 		// If there was nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
-			LOG(error) << "Missing Vertex Shader File " << vsFileName;
+			LOG(error) << "Missing Shader File " << fileName;
 		}
 
-		return false;
-	}
-
-	// Compile the pixel shader code.
-	hr = D3DCompileFromFile(convertToWide.from_bytes(psFileName).c_str(), NULL, NULL, "PixelShader", psTarget.c_str(), D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY, 0, &pixelShaderBuffer, &errorMessage);
-	if (FAILED(hr))
-	{
-		// If the shader failed to compile it should have writen something to the error message.
-		if (errorMessage)
+		if (shaderBuffer)
 		{
-			OutputShaderErrorMessage(errorMessage, psFileName);
+			shaderBuffer->Release();
+			shaderBuffer = nullptr;
 		}
-		// If there was nothing in the error message then it simply could not find the file itself.
-		else
+
+		return false;
+	}
+
+	if (!shaderBuffer)
+	{
+		LOG(error) << "Failed to obtain shader buffer";
+		return false;
+	}
+
+	if (entryPoint == SHADER_ENTRY_POINT_VERTEX)
+	{
+		// Create the vertex shader from the buffer.
+		hr = device->CreateVertexShader(shaderBuffer->GetBufferPointer(),shaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
+		if (FAILED(hr))
 		{
-			LOG(error) << "Missing Pixel Shader File " << psFileName;
+			LOG(error) << "Failed to create Vertex Shader";
+			return false;
 		}
 
-		return false;
+		// Create the vertex input layout.
+		hr = device->CreateInputLayout(inputElementDesc, numElements, shaderBuffer->GetBufferPointer(), shaderBuffer->GetBufferSize(), &m_layout);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create Vertex Input Layout";
+			return false;
+		}
+	} 
+	else if (entryPoint == SHADER_ENTRY_POINT_PIXEL)
+	{
+		// Create the vertex shader from the buffer.
+		hr = device->CreatePixelShader(shaderBuffer->GetBufferPointer(), shaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create Pixel Shader";
+			return false;
+		}
 	}
 
-	// Create the vertex shader from the buffer.
-	hr = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Failed to create Vertex Shader";
-		return false;
-	}
+	return true;
+}
 
-	// Create the pixel shader from the buffer.
-	hr = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Failed to create Pixel Shader";
-		return false;
-	}
+bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName)
+{
+	BOOST_LOG_NAMED_SCOPE("Shader::Initialize");
+
+	HRESULT hr;
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 2);
+	UINT numElements = 0;
+	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Create the vertex input layout description.
 	// This setup needs to match the Vertex stucture
@@ -163,20 +185,19 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	// Create the vertex input layout.
-	hr = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &m_layout);
-	if (FAILED(hr))
+	// Build Vertex Shader
+	if (!CompileShader(device, vsFileName, SHADER_TARGET_VERTEX, polygonLayout, numElements))
 	{
-		LOG(error) << "Failed to create Vertex Input Layout";
+		LOG(error) << "Failed to obtain Vertex Shader";
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
-
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	// Build Pixel Shader
+	if (!CompileShader(device, psFileName, SHADER_TARGET_PIXEL, nullptr, 0))
+	{
+		LOG(error) << "Failed to obtain Pixel Shader";
+		return false;
+	}
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;

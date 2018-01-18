@@ -45,6 +45,7 @@ ref_dx11
 #include <exception>
 
 // Boost Includes
+#define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE	1
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
@@ -70,6 +71,9 @@ ref_dx11
 #include <shellapi.h>
 #include <SafeInt.h>
 #include <ppl.h>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "D3DCompiler.lib")
 
 /*
 #ifdef _DEBUG

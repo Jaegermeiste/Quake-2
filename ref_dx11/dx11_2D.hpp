@@ -31,7 +31,7 @@ ref_dx11
 
 namespace dx11
 {
-	class Subsystem2D {
+	__declspec(align(16)) class Subsystem2D {
 	private:
 		UINT						m_renderTargetWidth = 0;
 		UINT						m_renderTargetHeight = 0;
@@ -76,6 +76,17 @@ namespace dx11
 		void						Render();
 
 		void						Shutdown();
+
+		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
+		void* operator new(size_t i)
+		{
+			return _mm_malloc(i, 16);
+		}
+
+		void operator delete(void* p)
+		{
+			_mm_free(p);
+		}
 	};
 }
 
