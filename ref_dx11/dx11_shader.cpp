@@ -64,6 +64,31 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	{
 		entryPoint = SHADER_ENTRY_POINT_PIXEL;
 	}
+	else if (target == SHADER_TARGET_COMPUTE)
+	{
+		entryPoint = SHADER_ENTRY_POINT_COMPUTE;
+	}
+	else if (target == SHADER_TARGET_DOMAIN)
+	{
+		entryPoint = SHADER_ENTRY_POINT_DOMAIN;
+	}
+	else if (target == SHADER_TARGET_GEOMETRY)
+	{
+		entryPoint = SHADER_ENTRY_POINT_GEOMETRY;
+	}
+	else if (target == SHADER_TARGET_HULL)
+	{
+		entryPoint = SHADER_ENTRY_POINT_HULL;
+	}
+	else if (target == SHADER_TARGET_LIBRARY)
+	{
+		entryPoint = SHADER_ENTRY_POINT_LIBRARY;
+	}
+	else
+	{
+		LOG(error) << "Invalid shader target " << target << " provided.";
+		return false;
+	}
 
 	// Build appropriate targets for feature level
 	switch (device->GetFeatureLevel())
@@ -77,15 +102,30 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 		target += "_5_0";
 		break;
 	case D3D_FEATURE_LEVEL_10_1:
+		if ((target == SHADER_TARGET_DOMAIN) || (target == SHADER_TARGET_HULL))
+		{
+			LOG(info) << "Shader File " << fileName << " with profile " << target << "_4_1 is not supported in D3D_FEATURE_LEVEL_10_1";
+			return false;
+		}
 		target += "_4_1";
 		break;
 	case D3D_FEATURE_LEVEL_10_0:
+		if ((target == SHADER_TARGET_DOMAIN) || (target == SHADER_TARGET_HULL))
+		{
+			LOG(info) << "Shader File " << fileName << " with profile " << target << "_4_0 is not supported in D3D_FEATURE_LEVEL_10_0";
+			return false;
+		}
 		target += "_4_0";
 		break;
 	case D3D_FEATURE_LEVEL_9_3:
 	case D3D_FEATURE_LEVEL_9_2:
 	case D3D_FEATURE_LEVEL_9_1:
 	default:
+		if ((target != SHADER_TARGET_VERTEX) && (target != SHADER_TARGET_PIXEL))
+		{
+			LOG(info) << "Shader File " << fileName << " with profile " << target << "_3_0 is not supported in D3D_FEATURE_LEVEL_9_x";
+			return false;
+		}
 		target += "_3_0";
 	}
 	

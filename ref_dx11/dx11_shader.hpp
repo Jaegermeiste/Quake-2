@@ -35,9 +35,19 @@ namespace dx11
 
 #define SHADER_TARGET_VERTEX	"vs"
 #define SHADER_TARGET_PIXEL		"ps"
+#define SHADER_TARGET_COMPUTE	"cs"
+#define SHADER_TARGET_DOMAIN	"ds"
+#define SHADER_TARGET_GEOMETRY	"gs"
+#define SHADER_TARGET_HULL		"hs"
+#define SHADER_TARGET_LIBRARY	"lib"
 
 #define SHADER_ENTRY_POINT_VERTEX	"VertexShader"
 #define SHADER_ENTRY_POINT_PIXEL	"PixelShader"
+#define SHADER_ENTRY_POINT_COMPUTE	"ComputeShader"
+#define SHADER_ENTRY_POINT_DOMAIN	"DomainShader"
+#define SHADER_ENTRY_POINT_GEOMETRY	"GeometryShader"
+#define SHADER_ENTRY_POINT_HULL		"HullShader"
+#define SHADER_ENTRY_POINT_LIBRARY	"LibraryShader"
 
 	class Shader 
 	{

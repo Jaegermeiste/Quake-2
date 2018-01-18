@@ -55,11 +55,7 @@ namespace dx11
 		unsigned int				m_2DvertexCount = 0,
 									m_2DindexCount = 0;
 
-		ID3D11VertexShader*			m_2DvertexShader = nullptr;
-		ID3D11PixelShader*			m_2DpixelShader = nullptr;
-		ID3D11InputLayout*			m_2Dlayout = nullptr;
-		ID3D11Buffer*				m_2DmatrixBuffer = nullptr;
-		ID3D11SamplerState*			m_2DsampleState = nullptr;
+		Shader						m_2Dshader;
 
 		bool						InitializeBuffers();
 

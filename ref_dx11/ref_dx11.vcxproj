@@ -161,8 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="simpleTexture.ps" />
-    <None Include="simpleTexture.vs" />
+    <None Include="simplePixel.hlsl" />
+    <None Include="simpleVertex.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

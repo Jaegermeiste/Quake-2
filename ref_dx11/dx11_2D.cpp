@@ -43,12 +43,6 @@ dx11::Subsystem2D::Subsystem2D()
 	m_2DindexBuffer = nullptr;
 	m_2DvertexCount = 0;
 	m_2DindexCount = 0;
-
-	m_2DvertexShader = nullptr;
-	m_2DpixelShader = nullptr;
-	m_2Dlayout = nullptr;
-	m_2DmatrixBuffer = nullptr;
-	m_2DsampleState = nullptr;
 }
 
 /*
@@ -168,9 +162,21 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
+	if (!InitializeBuffers())
+	{
+		LOG(error) << "Failed to properly initialize buffers.";
+		return false;
+	}
+
+	if (!m_2Dshader.Initialize(ref->sys->m_d3dDevice, "simpleVertex.vs", "simplePixel.ps"))
+	{
+		LOG(error) << "Failed to properly create shaders.";
+		return false;
+	}
+
 	LOG(info) << "Successfully initialized 2D subsystem.";
 
-	return InitializeBuffers();
+	return true;
 }
 
 bool dx11::Subsystem2D::InitializeBuffers()
@@ -294,9 +300,8 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	Vertex2D*					vertices		= nullptr;
 	Vertex2D*					verticesPtr		= nullptr;
 	D3D11_MAPPED_SUBRESOURCE	mappedResource;
-	HRESULT						hr;
-
 	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	HRESULT						hr				= E_UNEXPECTED;
 
 	// Don't update the vertex buffer if the scale hasn't changed (positions are the same)
 	if (!ref->cvars->overlayScale->Modified())
@@ -315,6 +320,8 @@ bool dx11::Subsystem2D::UpdateBuffers()
 
 	// Calculate the screen coordinates of the bottom of the overlay.
 	bottom = top - static_cast<float>(m_renderTargetHeight * ref->cvars->overlayScale->Float());
+
+	LOG(info) << "Calculated overlay coordinates: left=" << left << " right=" << right << " top=" << top << " bottom=" << bottom;
 
 	// Create the vertex array.
 	vertices = new Vertex2D[m_2DvertexCount];
@@ -408,77 +415,19 @@ void dx11::Subsystem2D::Shutdown()
 
 	LOG(info) << "Shutting down.";
 
-	if (m_2DsampleState)
-	{
-		m_2DsampleState->Release();
-		m_2DsampleState = nullptr;
-	}
+	SAFE_RELEASE(m_2DindexBuffer);
 
-	if (m_2DmatrixBuffer)
-	{
-		m_2DmatrixBuffer->Release();
-		m_2DmatrixBuffer = nullptr;
-	}
+	SAFE_RELEASE(m_2DvertexBuffer);
 
-	if (m_2Dlayout)
-	{
-		m_2Dlayout->Release();
-		m_2Dlayout = nullptr;
-	}
+	SAFE_RELEASE(m_depthDisabledStencilState);
 
-	if (m_2DpixelShader)
-	{
-		m_2DpixelShader->Release();
-		m_2DpixelShader = nullptr;
-	}
+	SAFE_RELEASE(m_2DdeferredContext);
 
-	if (m_2DvertexShader)
-	{
-		m_2DvertexShader->Release();
-		m_2DvertexShader = nullptr;
-	}
+	SAFE_RELEASE(m_2DshaderResourceView);
 
-	if (m_2DindexBuffer)
-	{
-		m_2DindexBuffer->Release();
-		m_2DindexBuffer = nullptr;
-	}
+	SAFE_RELEASE(m_2DoverlayRTV);
 
-	if (m_2DvertexBuffer)
-	{
-		m_2DvertexBuffer->Release();
-		m_2DvertexBuffer = nullptr;
-	}
-
-	if (m_depthDisabledStencilState)
-	{
-		m_depthDisabledStencilState->Release();
-		m_depthDisabledStencilState = nullptr;
-	}
-
-	if (m_2DdeferredContext)
-	{
-		m_2DdeferredContext->Release();
-		m_2DdeferredContext = nullptr;
-	}
-
-	if (m_2DshaderResourceView)
-	{
-		m_2DshaderResourceView->Release();
-		m_2DshaderResourceView = nullptr;
-	}
-
-	if (m_2DoverlayRTV)
-	{
-		m_2DoverlayRTV->Release();
-		m_2DoverlayRTV = nullptr;
-	}
-
-	if (m_2DrenderTargetTexture)
-	{
-		m_2DrenderTargetTexture->Release();
-		m_2DrenderTargetTexture = nullptr;
-	}
+	SAFE_RELEASE(m_2DrenderTargetTexture);
 
 	LOG(info) << "Shutdown complete.";
 }
