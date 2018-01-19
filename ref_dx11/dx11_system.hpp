@@ -71,7 +71,7 @@ namespace dx11
 		IDXGISwapChain*					m_swapChain = nullptr;
 		IDXGISwapChain1*				m_swapChain1 = nullptr;
 
-		ID3D11DepthStencilView*			m_DepthStencilView;
+		ID3D11DepthStencilView*			m_depthStencilView;
 		
 		// 2D Rendering
 		std::unique_ptr<Subsystem2D>	m_overlaySystem;

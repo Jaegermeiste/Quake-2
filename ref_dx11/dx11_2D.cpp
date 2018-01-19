@@ -72,12 +72,12 @@ bool dx11::Subsystem2D::Initialize()
 	m_renderTargetHeight = ref->sys->m_windowHeight;
 
 	// Create context
-	hr = ref->sys->m_d3dDevice->CreateDeferredContext(0, &m_2DdeferredContext);
+	/*hr = ref->sys->m_d3dDevice->CreateDeferredContext(0, &m_2DdeferredContext);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create 2D deferred context.";
 		return false;
-	}
+	}*/
 
 	// Setup the render target texture description.
 	textureDesc.Width = m_renderTargetWidth;
@@ -125,9 +125,6 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(error) << "Unable to create ShaderResourceView.";
 		return false;
 	}
-
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 
 	// Create an orthographic projection matrix for 2D rendering.
 	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_renderTargetWidth), static_cast<float>(m_renderTargetHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
@@ -281,12 +278,16 @@ void dx11::Subsystem2D::Clear()
 	LOG_FUNC();
 
 	// Clear 2D deferred
-	if (m_2DdeferredContext)
+	if (ref->sys->m_immediateContext)
 	{
 		LOG(trace) << "Clearing overlay RenderTargetView.";
 
 		// Clear the GUI Overlay buffer to transparent
+#ifndef _DEBUG
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
+#else
+		ref->sys->m_immediateContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Fuchsia);
+#endif
 	}
 }
 
@@ -354,7 +355,7 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	vertices[5].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
 
 	// Lock the vertex buffer so it can be written to.
-	hr = m_2DdeferredContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	hr = ref->sys->m_immediateContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Failed to lock vertex buffer.";
@@ -368,7 +369,7 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	memcpy(verticesPtr, (void*)vertices, (sizeof(Vertex2D) * m_2DvertexCount));
 
 	// Unlock the vertex buffer.
-	m_2DdeferredContext->Unmap(m_2DvertexBuffer, 0);
+	ref->sys->m_immediateContext->Unmap(m_2DvertexBuffer, 0);
 
 	// Release the vertex array as it is no longer needed.
 	if (vertices)
@@ -377,6 +378,9 @@ bool dx11::Subsystem2D::UpdateBuffers()
 		vertices = nullptr;
 	}
 
+	// Clear the modified status, we dealt with it
+	ref->cvars->overlayScale->SetModified(false);
+
 	return true;
 }
 
@@ -384,19 +388,19 @@ void dx11::Subsystem2D::RenderBuffers()
 {
 	LOG_FUNC();
 
-	if (m_2DdeferredContext)
+	if (ref->sys->m_immediateContext)
 	{
 		unsigned int stride = sizeof(Vertex2D);
 		unsigned int offset = 0;
 
 		// Set the vertex buffer to active in the input assembler so it can be rendered.
-		m_2DdeferredContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
+		ref->sys->m_immediateContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
 
 		// Set the index buffer to active in the input assembler so it can be rendered.
-		m_2DdeferredContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		ref->sys->m_immediateContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-		m_2DdeferredContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		ref->sys->m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
 
@@ -404,12 +408,24 @@ void dx11::Subsystem2D::Render()
 {
 	LOG_FUNC();
 
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	ref->sys->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+
 	ref->sys->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
 	if (m_2DcommandList)
 	{
 		ref->sys->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
 	}
+
+	// Render 2D overlay to back buffer
+	UpdateBuffers();
+	RenderBuffers();
+
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	ref->sys->m_immediateContext->OMSetRenderTargets(1, &ref->sys->m_backBufferRTV, nullptr);
+	
+	m_2Dshader.Render(ref->sys->m_immediateContext, m_2DindexCount, ref->sys->m_3DworldMatrix, ref->sys->m_3DviewMatrix, m_2DorthographicMatrix, m_2DshaderResourceView);
 }
 
 void dx11::Subsystem2D::Shutdown()

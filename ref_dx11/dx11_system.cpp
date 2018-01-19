@@ -206,10 +206,10 @@ void dx11::System::BeginFrame(void)
 			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
 		}
 
-		if (m_DepthStencilView)
+		if (m_depthStencilView)
 		{
 			// Clear the depth buffer
-			m_immediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+			m_immediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		}
 	}
 
@@ -250,6 +250,9 @@ void dx11::System::EndFrame(void)
 		// Draw 2D
 		m_overlaySystem->Render();
 	}
+
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, m_depthStencilView);
 
 	if (m_swapChain)
 	{
@@ -759,7 +762,7 @@ void dx11::System::D3D_Shutdown()
 
 	SAFE_RELEASE(m_depthStencilState);
 
-	SAFE_RELEASE(m_DepthStencilView);
+	SAFE_RELEASE(m_depthStencilView);
 
 	SAFE_RELEASE(m_swapChain1);
 
