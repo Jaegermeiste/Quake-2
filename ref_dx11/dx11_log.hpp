@@ -32,7 +32,10 @@ ref_dx11
 #define LOG_FILE_NAME	"%y%m%d_%H%M_ref_dx11.log"
 #define LOG_PATH		"logs/ref_dx11"
 
-#define LOG(level) BOOST_LOG_TRIVIAL(level)
+#define LOG(level)	BOOST_LOG_TRIVIAL(level)
+#define LOG_FUNC()	__pragma(warning(disable:4365))		/*Signed/unsigned mismatch*/	\
+					BOOST_LOG_FUNC()													\
+					__pragma(warning(default:4365))		/*Signed/unsigned mismatch*/
 
 enum severity_level
 {

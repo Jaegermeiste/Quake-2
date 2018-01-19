@@ -34,7 +34,8 @@ ref_dx11
 
 dx11::Shader::Shader()
 {
-	BOOST_LOG_NAMED_SCOPE("Shader");
+	//BOOST_LOG_NAMED_SCOPE("Shader");
+	LOG_FUNC();
 
 	m_vertexShader = nullptr;
 	m_pixelShader = nullptr;
@@ -45,12 +46,13 @@ dx11::Shader::Shader()
 
 bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, shaderTarget target, D3D11_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
 {
-	BOOST_LOG_NAMED_SCOPE("Shader::CompileShader");
+	//BOOST_LOG_NAMED_SCOPE("Shader::CompileShader");
+	LOG_FUNC();
 
 	ID3DBlob* shaderBuffer = nullptr;
 	ID3DBlob* errorMessage = nullptr;
 	std::string entryPoint = "";
-	HRESULT hr;
+	HRESULT hr = E_UNEXPECTED;
 
 	// We need this to get a compliant path string
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToWide;
@@ -195,14 +197,17 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 
 bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName)
 {
-	BOOST_LOG_NAMED_SCOPE("Shader::Initialize");
+	//BOOST_LOG_NAMED_SCOPE("Shader::Initialize");
+	LOG_FUNC();
 
-	HRESULT hr;
+	HRESULT hr = E_UNEXPECTED;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 2);
 	UINT numElements = 0;
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	ZeroMemory(&matrixBufferDesc, sizeof(D3D11_BUFFER_DESC));
 	D3D11_SAMPLER_DESC samplerDesc;
+	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
 
 	// Create the vertex input layout description.
 	// This setup needs to match the Vertex stucture
@@ -251,6 +256,7 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 	hr = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
 	if (FAILED(hr))
 	{
+		LOG(error) << "Failed to create matrix buffer";
 		return false;
 	}
 
@@ -273,6 +279,7 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 	hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
 	if (FAILED(hr))
 	{
+		LOG(error) << "Failed to create sampler state";
 		return false;
 	}
 
@@ -282,7 +289,8 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 
 void dx11::Shader::Shutdown()
 {
-	BOOST_LOG_NAMED_SCOPE("Shader::Shutdown");
+	//BOOST_LOG_NAMED_SCOPE("Shader::Shutdown");
+	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
 
@@ -328,12 +336,14 @@ void dx11::Shader::OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string 
 
 bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
-	HRESULT hr;
+	//BOOST_LOG_NAMED_SCOPE("Shader::SetShaderParameters");
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 	MatrixBufferType* dataPtr = nullptr;
 	unsigned int bufferNumber = 0;
-
-	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -373,10 +383,14 @@ bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 }
 
 
-bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
+	//BOOST_LOG_NAMED_SCOPE("Shader::Render");
+	LOG_FUNC();
+
 	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))
 	{
+		LOG(error) << "Failed to set shader parameters";
 		return false;
 	}
 

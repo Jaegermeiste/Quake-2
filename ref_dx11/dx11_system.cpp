@@ -88,7 +88,8 @@ void dx11::System::FillFeatureLevelArray(void)
 
 dx11::System::System()
 {
-	BOOST_LOG_NAMED_SCOPE("System");
+	//BOOST_LOG_NAMED_SCOPE("System");
+	LOG_FUNC();
 
 	LOG(info) << "Initializing";
 
@@ -125,14 +126,11 @@ dx11::System::System()
 	m_d3dInitialized = false;
 }
 
-dx11::System::~System()
-{
-	//Shutdown();
-}
-
 void dx11::System::BeginRegistration()
 {
-	BOOST_LOG_NAMED_SCOPE("System::BeginRegistration");
+	//BOOST_LOG_NAMED_SCOPE("System::BeginRegistration");
+	LOG_FUNC();
+
 	if (!m_inRegistration)
 	{
 		BeginUpload();
@@ -143,7 +141,9 @@ void dx11::System::BeginRegistration()
 
 void dx11::System::EndRegistration()
 {
-	BOOST_LOG_NAMED_SCOPE("System::EndRegistration");
+	//BOOST_LOG_NAMED_SCOPE("System::EndRegistration");
+	LOG_FUNC();
+
 	if (m_inRegistration)
 	{
 		m_inRegistration = false;
@@ -154,7 +154,9 @@ void dx11::System::EndRegistration()
 
 void dx11::System::BeginUpload()
 {
-	BOOST_LOG_NAMED_SCOPE("System::BeginUpload");
+	//BOOST_LOG_NAMED_SCOPE("System::BeginUpload");
+	LOG_FUNC();
+
 	/*if (resourceUpload == nullptr)
 	{
 		resourceUpload = new DirectX::ResourceUploadBatch(ref->sys->d3dDevice);
@@ -170,7 +172,9 @@ void dx11::System::BeginUpload()
 
 void dx11::System::EndUpload()
 {
-	BOOST_LOG_NAMED_SCOPE("System::EndUpload");
+	//BOOST_LOG_NAMED_SCOPE("System::EndUpload");
+	LOG_FUNC();
+
 	// Only flush the upload if the batch is open AND we are not in registration mode
 	if (m_uploadBatchOpen && (!m_inRegistration))
 	{
@@ -186,8 +190,9 @@ void dx11::System::EndUpload()
 
 void dx11::System::BeginFrame(void)
 {
-	BOOST_LOG_NAMED_SCOPE("System::BeginFrame");
-
+	//BOOST_LOG_NAMED_SCOPE("System::BeginFrame");
+	LOG_FUNC();
+	
 	// Timing
 	if ((m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
 	{
@@ -228,10 +233,16 @@ void dx11::System::BeginFrame(void)
 
 void dx11::System::RenderFrame(refdef_t * fd)
 {
-	BOOST_LOG_NAMED_SCOPE("System::RenderFrame");
+	//BOOST_LOG_NAMED_SCOPE("System::RenderFrame");
+	LOG_FUNC();
+
 	// Draw 3D
 	//m_immediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
+	if ((fd == NULL) || (fd == nullptr))
+	{
+		LOG(warning) << "NULL refdef provided";
+	}
 
 	// Draw 2D
 	//LOG(trace) << "Drawing 2D"
@@ -239,7 +250,14 @@ void dx11::System::RenderFrame(refdef_t * fd)
 
 void dx11::System::EndFrame(void)
 {
-	BOOST_LOG_NAMED_SCOPE("System::EndFrame");
+	//BOOST_LOG_NAMED_SCOPE("System::EndFrame");
+	LOG_FUNC();
+	
+	if (m_overlaySystem)
+	{
+		// Draw 2D
+		m_overlaySystem->Render();
+	}
 
 	if (m_swapChain)
 	{
@@ -265,6 +283,8 @@ void dx11::System::EndFrame(void)
 
 void dx11::System::D3D_Strings_f()
 {
+	LOG_FUNC();
+
 	if ((m_adapterDesc.VendorId == 0x1414) && (m_adapterDesc.DeviceId == 0x8c))
 	{
 		// Microsoft Basic Render Driver
@@ -314,18 +334,19 @@ extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f (void)
 */
 bool dx11::System::VID_CreateWindow()
 {
-	BOOST_LOG_NAMED_SCOPE("System::VID_CreateWindow");
+	//BOOST_LOG_NAMED_SCOPE("System::VID_CreateWindow");
+	LOG_FUNC();
 
 	RECT				r			= {};
 	ZeroMemory(&r, sizeof(RECT));
-	int					stylebits	= 0;
+	DWORD				stylebits	= 0;
 	int					x			= 0,
 						y			= 0,
 						w			= 0,
 						h			= 0;
 	int					exstyle		= 0;
-	const unsigned int	width		= ref->cvars->r_customWidth->UInt();
-	const unsigned int	height		= ref->cvars->r_customHeight->UInt();
+	const LONG			width		= ref->cvars->r_customWidth->Int();
+	const LONG			height		= ref->cvars->r_customHeight->Int();
 	const bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
 
 	ref->client->Con_Printf(PRINT_ALL, "Creating window");
@@ -378,8 +399,8 @@ bool dx11::System::VID_CreateWindow()
 	}
 	else
 	{
-		x = ref->cvars->vid_xPos->UInt();
-		y = ref->cvars->vid_yPos->UInt();
+		x = ref->cvars->vid_xPos->Int();
+		y = ref->cvars->vid_yPos->Int();
 	}
 
 	m_hWnd = CreateWindowEx(
@@ -412,8 +433,9 @@ bool dx11::System::VID_CreateWindow()
 
 void dx11::System::VID_DestroyWindow()
 {
-	BOOST_LOG_NAMED_SCOPE("System::VID_DestroyWindow");
-
+	//BOOST_LOG_NAMED_SCOPE("System::VID_DestroyWindow");
+	LOG_FUNC();
+	
 	if (m_hWnd != nullptr)
 	{
 		ref->client->Con_Printf(PRINT_ALL, "...destroying window\n");
@@ -429,7 +451,13 @@ void dx11::System::VID_DestroyWindow()
 
 bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 {
-	BOOST_LOG_NAMED_SCOPE("System::Initialize");
+	//BOOST_LOG_NAMED_SCOPE("System::Initialize");
+	LOG_FUNC();
+
+	if (ref->client != nullptr)
+	{
+		ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION "\n");
+	}
 
 	LOG(info) << "Starting up.";
 
@@ -440,16 +468,19 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 	if (!VID_CreateWindow())
 	{
+		LOG(error) << "Failed to create window";
 		return false;
 	}
 
 	if (!D3D_InitDevice())
 	{
+		LOG(error) << "Failed to create D3D device";
 		return false;
 	}
 
 	if ((!m_overlaySystem) || (!m_overlaySystem->Initialize()))
 	{
+		LOG(error) << "Failed to create 2D overlay system (GUI)";
 		return false;
 	}
 
@@ -458,7 +489,8 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 void dx11::System::Shutdown()
 {
-	BOOST_LOG_NAMED_SCOPE("System::Shutdown");
+	//BOOST_LOG_NAMED_SCOPE("System::Shutdown");
+	LOG_FUNC();
 
 	if (m_overlaySystem)
 	{
@@ -478,7 +510,8 @@ void dx11::System::Shutdown()
 
 void dx11::System::AppActivate(bool active)
 {
-	BOOST_LOG_NAMED_SCOPE("System::AppActivate");
+	//BOOST_LOG_NAMED_SCOPE("System::AppActivate");
+	LOG_FUNC();
 
 	if (active)
 	{
@@ -500,14 +533,16 @@ void dx11::System::AppActivate(bool active)
 
 bool dx11::System::D3D_InitDevice()
 {
-	BOOST_LOG_NAMED_SCOPE("System::D3D_InitDevice");
-	HRESULT hr = S_OK;
+	//BOOST_LOG_NAMED_SCOPE("System::D3D_InitDevice");
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
 	RECT rc = {};
 	UINT createDeviceFlags = 0;
 
 	GetClientRect(m_hWnd, &rc);
-	m_windowWidth = rc.right - rc.left;
-	m_windowHeight = rc.bottom - rc.top;
+	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
+	m_windowHeight = msl::utilities::SafeInt<unsigned int>(rc.bottom - rc.top);
 
 	LOG(info) << "Creating D3D Device.";
 
@@ -708,7 +743,8 @@ bool dx11::System::D3D_InitDevice()
 
 void dx11::System::D3D_Shutdown()
 {
-	BOOST_LOG_NAMED_SCOPE("System::D3D_Shutdown");
+	//BOOST_LOG_NAMED_SCOPE("System::D3D_Shutdown");
+	LOG_FUNC();
 
 	LOG(info) << "Shutting down D3D.";
 

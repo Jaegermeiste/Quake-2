@@ -54,7 +54,8 @@ void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 
 void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Cmd_AddCommand");
+	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_AddCommand");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -66,7 +67,8 @@ void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 
 void dx11::Client::Cmd_RemoveCommand(std::string name)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Cmd_RemoveCommand");
+	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_RemoveCommand");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -78,7 +80,8 @@ void dx11::Client::Cmd_RemoveCommand(std::string name)
 
 unsigned int dx11::Client::Cmd_Argc (void)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argc");
+	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argc");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -88,7 +91,8 @@ unsigned int dx11::Client::Cmd_Argc (void)
 
 std::string dx11::Client::Cmd_Argv(unsigned int i)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argv");
+	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argv");
+	LOG_FUNC();
 
 	int clientIndex = msl::utilities::SafeInt<int>(i);
 
@@ -100,7 +104,8 @@ std::string dx11::Client::Cmd_Argv(unsigned int i)
 
 void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Cmd_ExecuteText");
+	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_ExecuteText");
+	LOG_FUNC();
 
 	int clientWhen = msl::utilities::SafeInt<int>(exec_when);
 
@@ -125,7 +130,8 @@ void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 
 void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Con_Printf");
+	//BOOST_LOG_NAMED_SCOPE("Client::Con_Printf");
+	LOG_FUNC();
 
 	std::string printLevelStr = "PRINT_ALL";
 
@@ -146,7 +152,8 @@ void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 
 int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::FS_LoadFile");
+	//BOOST_LOG_NAMED_SCOPE("Client::FS_LoadFile");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -158,7 +165,8 @@ int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 
 void dx11::Client::FS_FreeFile(void *buf)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::FS_FreeFile");
+	//BOOST_LOG_NAMED_SCOPE("Client::FS_FreeFile");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -170,7 +178,8 @@ void dx11::Client::FS_FreeFile(void *buf)
 
 inline std::string dx11::Client::FS_Gamedir(void)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::FS_Gamedir");
+	//BOOST_LOG_NAMED_SCOPE("Client::FS_Gamedir");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -184,7 +193,8 @@ inline std::string dx11::Client::FS_Gamedir(void)
 
 inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Vid_GetModeInfo");
+	//BOOST_LOG_NAMED_SCOPE("Client::Vid_GetModeInfo");
+	LOG_FUNC();
 
 	int clientWidth = 0,
 		clientHeight = 0;
@@ -207,7 +217,8 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 
 void dx11::Client::Vid_MenuInit(void)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Vid_MenuInit");
+	//BOOST_LOG_NAMED_SCOPE("Client::Vid_MenuInit");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -217,7 +228,8 @@ void dx11::Client::Vid_MenuInit(void)
 
 void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Vid_NewWindow");
+	//BOOST_LOG_NAMED_SCOPE("Client::Vid_NewWindow");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
@@ -227,7 +239,8 @@ void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 
 void dx11::Client::SetRefImport(refimport_t rimp)
 { 
-	BOOST_LOG_NAMED_SCOPE("Client::SetRefImport");
+	//BOOST_LOG_NAMED_SCOPE("Client::SetRefImport");
+	LOG_FUNC();
 
 	m_refImport = rimp;
 
@@ -239,7 +252,8 @@ void dx11::Client::SetRefImport(refimport_t rimp)
 
 dx11::Client::Client(refimport_t rimp)
 {
-	BOOST_LOG_NAMED_SCOPE("Client");
+	//BOOST_LOG_NAMED_SCOPE("Client");
+	LOG_FUNC();
 
 	SetRefImport(rimp);
 }

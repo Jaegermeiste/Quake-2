@@ -263,6 +263,7 @@ float Q_fabs(float f)
 
 #if defined _M_IX86 && !defined C_ONLY
 #pragma warning (disable:4035)
+#pragma warning (disable:4100)
 __declspec(naked) long Q_ftol(float f)
 {
 	static int tmp;
@@ -272,6 +273,7 @@ __declspec(naked) long Q_ftol(float f)
 	__asm ret
 }
 #pragma warning (default:4035)
+#pragma warning (default:4100)
 #endif
 
 /*
@@ -301,10 +303,6 @@ float	anglemod(float a)
 	a = (360.0 / 65536) * ((int)(a*(65536 / 360.0)) & 65535);
 	return a;
 }
-
-int		i;
-vec3_t	corners[2];
-
 
 // this is the slow, general version
 int BoxOnPlaneSide2(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
@@ -414,6 +412,7 @@ int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 }
 #else
 #pragma warning( disable: 4035 )
+#pragma warning( disable: 4100 )
 
 __declspec(naked) int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
@@ -645,6 +644,7 @@ __declspec(naked) int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s
 	}
 }
 #pragma warning( default: 4035 )
+#pragma warning( default: 4100 )
 #endif
 
 void ClearBounds(vec3_t mins, vec3_t maxs)

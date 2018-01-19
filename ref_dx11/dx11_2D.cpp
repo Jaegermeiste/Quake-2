@@ -27,7 +27,8 @@ ref_dx11
 
 dx11::Subsystem2D::Subsystem2D()
 {
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D");
+	LOG_FUNC();
 
 	LOG(info) << "Initializing";
 
@@ -50,17 +51,17 @@ http://rastertek.com/dx11tut11.html
 */
 bool dx11::Subsystem2D::Initialize()
 {
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Initialize");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Initialize");
+	LOG_FUNC();
 
 	D3D11_TEXTURE2D_DESC textureDesc;
-	HRESULT hr;
+	HRESULT hr = E_UNEXPECTED;
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 
 	// Wipe Structs
 	ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-	ZeroMemory(&hr, sizeof(HRESULT));
 	ZeroMemory(&renderTargetViewDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
@@ -182,9 +183,10 @@ bool dx11::Subsystem2D::Initialize()
 bool dx11::Subsystem2D::InitializeBuffers()
 {
 	// Courtesy http://www.rastertek.com/dx11tut11.html
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D::InitializeBuffers");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::InitializeBuffers");
+	LOG_FUNC();
 
-	HRESULT hr;
+	HRESULT hr = E_UNEXPECTED;
 	m_2DvertexCount = m_2DindexCount = 6;
 	Vertex2D* vertices = new Vertex2D[m_2DvertexCount];
 	unsigned long* indices = new unsigned long[m_2DindexCount];
@@ -204,12 +206,12 @@ bool dx11::Subsystem2D::InitializeBuffers()
 	}
 
 	// Wipe Structs
-	ZeroMemory(&hr, sizeof(HRESULT));
 	ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
 	ZeroMemory(&indexBufferDesc, sizeof(D3D11_BUFFER_DESC));
 	ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
 	ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
 	ZeroMemory(vertices, sizeof(Vertex2D) * m_2DvertexCount);
+	ZeroMemory(indices, sizeof(unsigned long) * m_2DindexCount);
 
 	// Load the index array with data.
 	for (unsigned long i = 0; i < m_2DindexCount; i++)
@@ -279,7 +281,8 @@ bool dx11::Subsystem2D::InitializeBuffers()
 
 void dx11::Subsystem2D::Clear()
 {
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Clear");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Clear");
+	LOG_FUNC();
 
 	// Clear 2D deferred
 	if (m_2DdeferredContext)
@@ -293,6 +296,8 @@ void dx11::Subsystem2D::Clear()
 
 bool dx11::Subsystem2D::UpdateBuffers()
 {
+	LOG_FUNC();
+
 	float						left			= 0.0, 
 								right			= 0.0, 
 								top				= 0.0,
@@ -381,6 +386,8 @@ bool dx11::Subsystem2D::UpdateBuffers()
 
 void dx11::Subsystem2D::RenderBuffers()
 {
+	LOG_FUNC();
+
 	if (m_2DdeferredContext)
 	{
 		unsigned int stride = sizeof(Vertex2D);
@@ -399,7 +406,8 @@ void dx11::Subsystem2D::RenderBuffers()
 
 void dx11::Subsystem2D::Render()
 {
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Render");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Render");
+	LOG_FUNC();
 
 	ref->sys->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
@@ -411,7 +419,8 @@ void dx11::Subsystem2D::Render()
 
 void dx11::Subsystem2D::Shutdown()
 {
-	BOOST_LOG_NAMED_SCOPE("Subsystem2D::Shutdown");
+	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Shutdown");
+	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
 

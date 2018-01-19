@@ -103,7 +103,6 @@ namespace dx11
 
 	public:
 									System					();
-									~System					();
 
 		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);
 		void						Shutdown();

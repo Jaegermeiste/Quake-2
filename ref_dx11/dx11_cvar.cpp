@@ -27,7 +27,8 @@ ref_dx11
 
 dx11::Cvars::Cvars()
 {
-	BOOST_LOG_NAMED_SCOPE("Cvars");
+	//BOOST_LOG_NAMED_SCOPE("Cvars");
+	LOG_FUNC();
 
 	vid_ref				= std::make_shared<Cvar>("vid_ref",					"dx11",							CVAR_ARCHIVE);
 	vid_xPos			= std::make_shared<Cvar>("vid_xpos",				0,								0);
@@ -64,7 +65,9 @@ dx11::Cvars::Cvars()
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar");
+	//BOOST_LOG_NAMED_SCOPE("Cvar");
+	LOG_FUNC();
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
@@ -75,7 +78,9 @@ dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned in
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar");
+	//BOOST_LOG_NAMED_SCOPE("Cvar");
+	LOG_FUNC();
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
@@ -86,7 +91,9 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 
 dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flags)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar");
+	//BOOST_LOG_NAMED_SCOPE("Cvar");
+	LOG_FUNC();
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
@@ -97,7 +104,9 @@ dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flag
 
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar");
+	//BOOST_LOG_NAMED_SCOPE("Cvar");
+	LOG_FUNC();
+
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
@@ -233,7 +242,8 @@ inline std::string dx11::Cvars::Cvar::CvarFlagsToString(unsigned flags)
 
 bool dx11::Cvars::Cvar::InfoValidate(std::string value)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar::InfoValidate");
+	//BOOST_LOG_NAMED_SCOPE("Cvar::InfoValidate");
+	LOG_FUNC();
 
 	std::string::size_type found = value.find("\\");
 
@@ -260,7 +270,8 @@ bool dx11::Cvars::Cvar::InfoValidate(std::string value)
 
 void dx11::Cvars::Cvar::Set(std::string value)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar::Set");
+	//BOOST_LOG_NAMED_SCOPE("Cvar::Set");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
@@ -314,7 +325,8 @@ void dx11::Cvars::Cvar::Set(double value)
 
 void dx11::Cvars::Cvar::SetModified(bool value)
 {
-	BOOST_LOG_NAMED_SCOPE("Cvar::SetModified");
+	//BOOST_LOG_NAMED_SCOPE("Cvar::SetModified");
+	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);

@@ -32,7 +32,9 @@ namespace dx11
 
 dx11::Log::Log()
 {
-	BOOST_LOG_NAMED_SCOPE("Log");
+	//BOOST_LOG_NAMED_SCOPE("Log");
+	LOG_FUNC();
+
 	boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
 	boost::log::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
 

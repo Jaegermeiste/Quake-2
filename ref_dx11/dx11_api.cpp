@@ -138,7 +138,7 @@ inline void	SHIM_Draw_Char(int x, int y, int c)
 {
 	if ((dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
-		dx11::ref->draw->Char(msl::utilities::SafeInt<unsigned int>(x), msl::utilities::SafeInt<unsigned int>(y), c);
+		dx11::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned int>(c));
 	}
 }
 
@@ -220,6 +220,8 @@ inline void	SHIM_R_BeginFrame(float camera_separation)
 {
 	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
 	{
+		camera_separation = 0.0f; // Silence "C4100 'camera_separation': unreferenced formal parameter" since we are deliberately and completely discarding this parameter
+
 		dx11::ref->sys->BeginFrame();
 	}
 }

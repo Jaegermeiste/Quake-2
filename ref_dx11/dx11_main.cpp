@@ -25,31 +25,20 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-/*
-===============
-dx11::Init
-===============
-*/
-bool dx11::Init(HINSTANCE hInstance, WNDPROC wndProc)
-{
-	BOOST_LOG_NAMED_SCOPE("Init");
+// Crickets
 
-	if (dx11::ref->client != nullptr)
-	{
-		ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION "\n");
-	}
 
-	return true;
-}
 
-/*
-===============
-dx11::Shutdown
-===============
-*/
-void dx11::Shutdown(void)
-{
-	BOOST_LOG_NAMED_SCOPE("Shutdown");
-	// Clean up
-	// ref is a smart pointer - it will call the destructor when dereferenced
-}
+
+
+
+
+
+
+
+
+
+
+
+
+// Chirp, chirp

@@ -41,8 +41,9 @@ namespace dx11
 		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
 		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
 		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
-		DirectX::XMMATRIX			m_2DorthographicMatrix;
 		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
+
+		DirectX::XMMATRIX			m_2DorthographicMatrix;
 
 		struct Vertex2D
 		{
@@ -57,6 +58,8 @@ namespace dx11
 
 		Shader						m_2Dshader;
 
+		unsigned int				m_padding[3];		// account for 12 bytes
+
 		bool						InitializeBuffers();
 
 		bool						UpdateBuffers();
@@ -64,7 +67,8 @@ namespace dx11
 		void						RenderBuffers();
 
 	public:
-		Subsystem2D();
+									Subsystem2D();
+
 		bool						Initialize();
 
 		void						Clear();

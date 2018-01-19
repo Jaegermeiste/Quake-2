@@ -58,7 +58,7 @@ void dx11::Image::GetPalette(void)
 		unsigned int b = pal[i * 3 + 2];
 
 		unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		m_8to24table[i] = LittleLong(v);
+		m_8to24table[i] = msl::utilities::SafeInt<unsigned int>(LittleLong(v));
 	}
 
 	m_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
@@ -94,9 +94,9 @@ void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width,
 		return;
 	}
 
-	width = LittleLong(mt->width);
-	height = LittleLong(mt->height);
-	ofs = LittleLong(mt->offsets[0]);
+	width = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->width));
+	height = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->height));
+	ofs = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->offsets[0]));
 
 	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
 
@@ -113,8 +113,8 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	byte	*raw		= nullptr;
 	pcx_t	*pcx		= nullptr;
 	int		len			= 0;
-	int		dataByte	= 0, 
-			runLength	= 0;
+	byte	dataByte	= 0;
+	int		runLength	= 0;
 	byte	*out		= nullptr,
 			*pix		= nullptr;
 
@@ -136,14 +136,14 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	//
 	pcx = reinterpret_cast<pcx_t *>(raw);
 
-	pcx->xmin = LittleShort(pcx->xmin);
-	pcx->ymin = LittleShort(pcx->ymin);
-	pcx->xmax = LittleShort(pcx->xmax);
-	pcx->ymax = LittleShort(pcx->ymax);
-	pcx->hres = LittleShort(pcx->hres);
-	pcx->vres = LittleShort(pcx->vres);
-	pcx->bytes_per_line = LittleShort(pcx->bytes_per_line);
-	pcx->palette_type = LittleShort(pcx->palette_type);
+	pcx->xmin = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->xmin));
+	pcx->ymin = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->ymin));
+	pcx->xmax = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->xmax));
+	pcx->ymax = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->ymax));
+	pcx->hres = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->hres));
+	pcx->vres = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->vres));
+	pcx->bytes_per_line = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->bytes_per_line));
+	pcx->palette_type = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->palette_type));
 
 	raw = &pcx->data;
 
@@ -170,8 +170,8 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 		memcpy(*palette, reinterpret_cast<byte *>(pcx) + len - 768, 768);
 	}
 
-	width = pcx->xmax + 1;
-	height = pcx->ymax + 1;
+	width = msl::utilities::SafeInt<unsigned int>(pcx->xmax + 1);
+	height = msl::utilities::SafeInt<unsigned int>(pcx->ymax + 1);
 
 	for (unsigned short y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
 	{
@@ -318,7 +318,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 			ScratchImage image;
 			TexMetadata info;
 			DX::ThrowIfFailed(
-				LoadFromTGAMemory(buffer, bufferSize, &info, image)
+				LoadFromTGAMemory(buffer, static_cast<size_t>(bufferSize), &info, image)
 			);
 
 			UploadScratchImage(image, 

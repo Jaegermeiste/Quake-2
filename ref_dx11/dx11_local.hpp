@@ -33,6 +33,11 @@ ref_dx11
 #include "../client/ref.h"
 #include "../win32/winquake.h"
 
+#pragma warning(default:4100)	// Unreferenced formal parameter
+#pragma warning(default:4242)	// Possible loss of data
+#pragma warning(default:4365)	// Signed/unsigned mismatch
+#pragma warning(default:4820)	// Padding
+
 #define	REF_VERSION	"DX11 0.01"
 
 // up / down
