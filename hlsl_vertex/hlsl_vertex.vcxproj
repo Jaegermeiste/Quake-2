@@ -20,13 +20,13 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{59CD4B0D-F33C-4C09-A0DC-ECDAF62AC887}</ProjectGuid>
-    <RootNamespace>ref_dx12</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{E0E6F104-8887-49C4-A237-8BD639BE829C}</ProjectGuid>
+    <RootNamespace>hlslvertex</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -75,14 +75,21 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <FxCompile>
+      <EntryPointName>VS_Entry</EntryPointName>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>5.1</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -92,6 +99,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -105,6 +113,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -112,51 +121,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\client\ref.h" />
-    <ClInclude Include="..\game\q_shared.h" />
-    <ClInclude Include="..\qcommon\qcommon.h" />
-    <ClInclude Include="..\qcommon\qfiles.h" />
-    <ClInclude Include="..\win32\winquake.h" />
-    <ClInclude Include="d3dx12.h" />
-    <ClInclude Include="dx12_client.hpp" />
-    <ClInclude Include="dx12_cvar.hpp" />
-    <ClInclude Include="dx12_draw.hpp" />
-    <ClInclude Include="dx12_image.hpp" />
-    <ClInclude Include="dx12_local.hpp" />
-    <ClInclude Include="dx12_model.hpp" />
-    <ClInclude Include="dx12_ref.hpp" />
-    <ClInclude Include="dx12_system.hpp" />
-    <ClInclude Include="stdafx.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\game\q_shared.c" />
-    <ClCompile Include="..\win32\q_shwin.c" />
-    <ClCompile Include="dx12_api.cpp" />
-    <ClCompile Include="dx12_client.cpp" />
-    <ClCompile Include="dx12_cvar.cpp" />
-    <ClCompile Include="dx12_draw.cpp" />
-    <ClCompile Include="dx12_image.cpp" />
-    <ClCompile Include="dx12_main.cpp" />
-    <ClCompile Include="dx12_ref.cpp" />
-    <ClCompile Include="dx12_system.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <FxCompile Include="..\baseq2\simpleVertex.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets" Condition="Exists('..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets')" />
-    <Import Project="..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets" Condition="Exists('..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" />
-    <Import Project="..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets" Condition="Exists('..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets')" />
-    <Import Project="..\packages\directxtex_desktop_2015.2017.12.13.1\build\native\directxtex_desktop_2015.targets" Condition="Exists('..\packages\directxtex_desktop_2015.2017.12.13.1\build\native\directxtex_desktop_2015.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets'))" />
-    <Error Condition="!Exists('..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets'))" />
-    <Error Condition="!Exists('..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets'))" />
-    <Error Condition="!Exists('..\packages\directxtex_desktop_2015.2017.12.13.1\build\native\directxtex_desktop_2015.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_desktop_2015.2017.12.13.1\build\native\directxtex_desktop_2015.targets'))" />
-  </Target>
 </Project>

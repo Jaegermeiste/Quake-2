@@ -88,7 +88,6 @@ void dx11::System::FillFeatureLevelArray(void)
 
 dx11::System::System()
 {
-	//BOOST_LOG_NAMED_SCOPE("System");
 	LOG_FUNC();
 
 	LOG(info) << "Initializing";
@@ -128,7 +127,6 @@ dx11::System::System()
 
 void dx11::System::BeginRegistration()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::BeginRegistration");
 	LOG_FUNC();
 
 	if (!m_inRegistration)
@@ -141,7 +139,6 @@ void dx11::System::BeginRegistration()
 
 void dx11::System::EndRegistration()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::EndRegistration");
 	LOG_FUNC();
 
 	if (m_inRegistration)
@@ -154,7 +151,6 @@ void dx11::System::EndRegistration()
 
 void dx11::System::BeginUpload()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::BeginUpload");
 	LOG_FUNC();
 
 	/*if (resourceUpload == nullptr)
@@ -172,7 +168,6 @@ void dx11::System::BeginUpload()
 
 void dx11::System::EndUpload()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::EndUpload");
 	LOG_FUNC();
 
 	// Only flush the upload if the batch is open AND we are not in registration mode
@@ -190,7 +185,6 @@ void dx11::System::EndUpload()
 
 void dx11::System::BeginFrame(void)
 {
-	//BOOST_LOG_NAMED_SCOPE("System::BeginFrame");
 	LOG_FUNC();
 	
 	// Timing
@@ -233,7 +227,6 @@ void dx11::System::BeginFrame(void)
 
 void dx11::System::RenderFrame(refdef_t * fd)
 {
-	//BOOST_LOG_NAMED_SCOPE("System::RenderFrame");
 	LOG_FUNC();
 
 	// Draw 3D
@@ -250,7 +243,6 @@ void dx11::System::RenderFrame(refdef_t * fd)
 
 void dx11::System::EndFrame(void)
 {
-	//BOOST_LOG_NAMED_SCOPE("System::EndFrame");
 	LOG_FUNC();
 	
 	if (m_overlaySystem)
@@ -334,17 +326,17 @@ extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f (void)
 */
 bool dx11::System::VID_CreateWindow()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::VID_CreateWindow");
 	LOG_FUNC();
 
 	RECT				r			= {};
 	ZeroMemory(&r, sizeof(RECT));
-	DWORD				stylebits	= 0;
+	DWORD				exstyle		= 0,
+						stylebits	= 0;
 	int					x			= 0,
 						y			= 0,
 						w			= 0,
 						h			= 0;
-	int					exstyle		= 0;
+	
 	const LONG			width		= ref->cvars->r_customWidth->Int();
 	const LONG			height		= ref->cvars->r_customHeight->Int();
 	const bool			fullscreen	= ref->cvars->vid_fullscreen->Bool();
@@ -426,14 +418,13 @@ bool dx11::System::VID_CreateWindow()
 	SetFocus(m_hWnd);
 
 	// let the sound and input subsystems know about the new window
-	dx11::ref->client->Vid_NewWindow(width, height);
+	dx11::ref->client->Vid_NewWindow(msl::utilities::SafeInt<unsigned int>(width), msl::utilities::SafeInt<unsigned int>(height));
 
 	return true;
 }
 
 void dx11::System::VID_DestroyWindow()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::VID_DestroyWindow");
 	LOG_FUNC();
 	
 	if (m_hWnd != nullptr)
@@ -451,13 +442,7 @@ void dx11::System::VID_DestroyWindow()
 
 bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 {
-	//BOOST_LOG_NAMED_SCOPE("System::Initialize");
 	LOG_FUNC();
-
-	if (ref->client != nullptr)
-	{
-		ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION "\n");
-	}
 
 	LOG(info) << "Starting up.";
 
@@ -489,7 +474,6 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 
 void dx11::System::Shutdown()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::Shutdown");
 	LOG_FUNC();
 
 	if (m_overlaySystem)
@@ -510,7 +494,6 @@ void dx11::System::Shutdown()
 
 void dx11::System::AppActivate(bool active)
 {
-	//BOOST_LOG_NAMED_SCOPE("System::AppActivate");
 	LOG_FUNC();
 
 	if (active)
@@ -533,7 +516,6 @@ void dx11::System::AppActivate(bool active)
 
 bool dx11::System::D3D_InitDevice()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::D3D_InitDevice");
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
@@ -590,7 +572,29 @@ bool dx11::System::D3D_InitDevice()
 		return false;
 	}
 
+#ifdef _DEBUG
+	// Obtain global debug device
+	if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&d3dDebug))))
+	{
+		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
+		{
+			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 
+			D3D11_MESSAGE_ID hide[] =
+			{
+				D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
+			};
+
+			D3D11_INFO_QUEUE_FILTER filter;
+			ZeroMemory(&filter, sizeof(D3D11_INFO_QUEUE_FILTER));
+			filter.DenyList.NumIDs = _countof(hide);
+			filter.DenyList.pIDList = hide;
+			d3dInfoQueue->AddStorageFilterEntries(&filter);
+		}
+	}
+#endif
+	
 	// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
 	IDXGIFactory5* dxgiFactory = nullptr;
 	{
@@ -739,19 +743,11 @@ bool dx11::System::D3D_InitDevice()
 	return m_d3dInitialized;
 }
 
-
-
 void dx11::System::D3D_Shutdown()
 {
-	//BOOST_LOG_NAMED_SCOPE("System::D3D_Shutdown");
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down D3D.";
-
-	if (m_immediateContext)
-	{
-		m_immediateContext->ClearState();
-	}
 
 	if (m_swapChain)
 	{
@@ -759,52 +755,53 @@ void dx11::System::D3D_Shutdown()
 		m_swapChain->SetFullscreenState(FALSE, nullptr);   
 	}
 	
-	if (m_backBufferRTV) 
-	{
-		m_backBufferRTV->Release();
-		m_backBufferRTV = nullptr;
-	}
+	SAFE_RELEASE(m_backBufferRTV);
 
-	if (m_swapChain1)
-	{ 
-		m_swapChain1->Release();
-		m_swapChain1 = nullptr;
-	}
+	SAFE_RELEASE(m_depthStencilState);
 
-	if (m_swapChain) 
-	{ 
-		m_swapChain->Release();
-		m_swapChain = nullptr;
-	}
+	SAFE_RELEASE(m_DepthStencilView);
+
+	SAFE_RELEASE(m_swapChain1);
+
+	SAFE_RELEASE(m_swapChain);
 
 	if (m_overlaySystem)
 	{
 		m_overlaySystem->Shutdown();
 	}
 
-	if (m_immediateContext1)
-	{ 
-		m_immediateContext1->Release();
-		m_immediateContext1 = nullptr;
-	}
-
 	if (m_immediateContext)
 	{
-		m_immediateContext->Release();
-		m_immediateContext = nullptr;
-	}
+		// https://blogs.msdn.microsoft.com/chuckw/2012/11/30/direct3d-sdk-debug-layer-tricks/
+		// It can also help to call ClearState and then Flush on the immediate context just before doing the report to ensure nothing is being kept alive by being bound to the render pipeline or because of lazy destruction.
+		m_immediateContext->ClearState();
+		m_immediateContext->Flush();
 
-	if (m_d3dDevice1)
-	{
-		m_d3dDevice1->Release();
-		m_d3dDevice1 = nullptr;
-	}
+		if (m_immediateContext1)
+		{
+			m_immediateContext1->ClearState();
+			m_immediateContext1->Flush();
 
-	if (m_d3dDevice)
-	{
-		m_d3dDevice->Release();
-		m_d3dDevice = nullptr;
+			SAFE_RELEASE(m_immediateContext1);
+		}
+
+		SAFE_RELEASE(m_immediateContext);
 	}
+	
+#ifdef _DEBUG
+	if (d3dDebug)
+	{
+		d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+
+		SAFE_RELEASE(d3dInfoQueue);
+
+		SAFE_RELEASE(d3dDebug);
+	}
+#endif
+
+	SAFE_RELEASE(m_d3dDevice1);
+
+	SAFE_RELEASE(m_d3dDevice);
 
 	m_d3dInitialized = false;
 }

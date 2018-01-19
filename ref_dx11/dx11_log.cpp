@@ -32,7 +32,6 @@ namespace dx11
 
 dx11::Log::Log()
 {
-	//BOOST_LOG_NAMED_SCOPE("Log");
 	LOG_FUNC();
 
 	boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
@@ -45,7 +44,7 @@ dx11::Log::Log()
 		boost::log::keywords::file_name = LOG_FILE_NAME,                                        /*< file name pattern >*/
 		boost::log::keywords::target = LOG_PATH,
 		boost::log::keywords::auto_flush = true,
-		boost::log::keywords::format = "[%TimeStamp%]: <%Severity%> %Scope% %Message%"
+		boost::log::keywords::format = "[%TimeStamp%] <%Severity%> %Scope% - %Message%"
 	);
 
 	boost::log::add_console_log();

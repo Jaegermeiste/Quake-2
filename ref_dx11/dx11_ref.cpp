@@ -32,7 +32,6 @@ namespace dx11
 
 void	dx11::Ref::Init(refimport_t rimp)
 {
-	//BOOST_LOG_NAMED_SCOPE("Ref::Init");
 	LOG_FUNC();
 	
 	client	= std::make_unique<Client>(rimp);

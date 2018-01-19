@@ -38,6 +38,11 @@ ref_dx11
 #pragma warning(default:4365)	// Signed/unsigned mismatch
 #pragma warning(default:4820)	// Padding
 
+extern	unsigned short	BigUShort(unsigned short l);
+extern	unsigned short	LittleUShort(unsigned short l);
+extern	unsigned int	BigULong(unsigned int l);
+extern	unsigned int	LittleULong(unsigned int l);
+
 #define	REF_VERSION	"DX11 0.01"
 
 // up / down
@@ -91,11 +96,17 @@ typedef struct image_s
 	qboolean			has_alpha;
 
 	qboolean			paletted;
+
+	byte				padding[1];
 } image_t;
 
 #define EMA_ALPHA	0.9
 
 #define SAFE_RELEASE(comObject)	if (comObject) { comObject->Release(); comObject = nullptr; }
+
+extern CRITICAL_SECTION CriticalSection;
+extern ID3D11Debug* d3dDebug;
+extern ID3D11InfoQueue *d3dInfoQueue;
 
 #include "dx11_log.hpp"
 #include "dx11_cvar.hpp"
@@ -103,7 +114,6 @@ typedef struct image_s
 #include "dx11_2D.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"
-
 #include "dx11_image.hpp"
 #include "dx11_model.hpp"
 #include "dx11_draw.hpp"
@@ -113,8 +123,11 @@ typedef struct image_s
 namespace dx11
 {
 	// Functions
-	bool	Init		(HINSTANCE hInstance, WNDPROC wndProc);
-	void	Shutdown	(void);
+	bool			Initialize	();
+	void			Shutdown	();
+
+	std::string		GetCurrentWorkingDirectory();
+	bool			SetCurrentWorkingDirectory(std::string directory);
 }
 
 #endif // !__DX11_LOCAL_HPP__

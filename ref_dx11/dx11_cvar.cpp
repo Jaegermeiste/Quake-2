@@ -27,7 +27,6 @@ ref_dx11
 
 dx11::Cvars::Cvars()
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvars");
 	LOG_FUNC();
 
 	vid_ref				= std::make_shared<Cvar>("vid_ref",					"dx11",							CVAR_ARCHIVE);
@@ -65,7 +64,6 @@ dx11::Cvars::Cvars()
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -73,12 +71,11 @@ dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned in
 
 	LOG(info) << "<name> " << name << " <string> " << defaultString << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), msl::utilities::SafeInt<int>(flags)));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -86,12 +83,11 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flags)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -99,12 +95,11 @@ dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flag
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -112,7 +107,7 @@ dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), flags));
+	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
 }
 
 float dx11::Cvars::Cvar::Float()
@@ -242,7 +237,6 @@ inline std::string dx11::Cvars::Cvar::CvarFlagsToString(unsigned flags)
 
 bool dx11::Cvars::Cvar::InfoValidate(std::string value)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar::InfoValidate");
 	LOG_FUNC();
 
 	std::string::size_type found = value.find("\\");
@@ -270,7 +264,6 @@ bool dx11::Cvars::Cvar::InfoValidate(std::string value)
 
 void dx11::Cvars::Cvar::Set(std::string value)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar::Set");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -325,11 +318,7 @@ void dx11::Cvars::Cvar::Set(double value)
 
 void dx11::Cvars::Cvar::SetModified(bool value)
 {
-	//BOOST_LOG_NAMED_SCOPE("Cvar::SetModified");
 	LOG_FUNC();
-
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
 	if (value == Modified())
 	{
@@ -337,6 +326,9 @@ void dx11::Cvars::Cvar::SetModified(bool value)
 	}
 	else
 	{
+		// Wait for exclusive access
+		std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
+
 		if (value == true)
 		{
 			m_clientMemPtr->modified = true;

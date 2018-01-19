@@ -27,7 +27,6 @@ ref_dx11
 
 dx11::Subsystem2D::Subsystem2D()
 {
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D");
 	LOG_FUNC();
 
 	LOG(info) << "Initializing";
@@ -51,7 +50,6 @@ http://rastertek.com/dx11tut11.html
 */
 bool dx11::Subsystem2D::Initialize()
 {
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Initialize");
 	LOG_FUNC();
 
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -169,7 +167,7 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	if (!m_2Dshader.Initialize(ref->sys->m_d3dDevice, "simpleVertex.vs", "simplePixel.ps"))
+	if (!m_2Dshader.Initialize(ref->sys->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;
@@ -183,7 +181,6 @@ bool dx11::Subsystem2D::Initialize()
 bool dx11::Subsystem2D::InitializeBuffers()
 {
 	// Courtesy http://www.rastertek.com/dx11tut11.html
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::InitializeBuffers");
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
@@ -281,7 +278,6 @@ bool dx11::Subsystem2D::InitializeBuffers()
 
 void dx11::Subsystem2D::Clear()
 {
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Clear");
 	LOG_FUNC();
 
 	// Clear 2D deferred
@@ -406,7 +402,6 @@ void dx11::Subsystem2D::RenderBuffers()
 
 void dx11::Subsystem2D::Render()
 {
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Render");
 	LOG_FUNC();
 
 	ref->sys->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
@@ -419,10 +414,11 @@ void dx11::Subsystem2D::Render()
 
 void dx11::Subsystem2D::Shutdown()
 {
-	//BOOST_LOG_NAMED_SCOPE("Subsystem2D::Shutdown");
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
+
+	m_2Dshader.Shutdown();
 
 	SAFE_RELEASE(m_2DindexBuffer);
 

@@ -27,7 +27,7 @@ ref_dx11
 
 void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 {
-	BOOST_LOG_NAMED_SCOPE("Client::Sys_Error");
+	LOG_FUNC();
 
 	std::string errLevelStr = "ERR_FATAL";
 
@@ -54,7 +54,6 @@ void dx11::Client::Sys_Error(unsigned short err_level, std::string str)
 
 void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_AddCommand");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -67,7 +66,6 @@ void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 
 void dx11::Client::Cmd_RemoveCommand(std::string name)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_RemoveCommand");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -80,7 +78,6 @@ void dx11::Client::Cmd_RemoveCommand(std::string name)
 
 unsigned int dx11::Client::Cmd_Argc (void)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argc");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -91,7 +88,6 @@ unsigned int dx11::Client::Cmd_Argc (void)
 
 std::string dx11::Client::Cmd_Argv(unsigned int i)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_Argv");
 	LOG_FUNC();
 
 	int clientIndex = msl::utilities::SafeInt<int>(i);
@@ -104,7 +100,6 @@ std::string dx11::Client::Cmd_Argv(unsigned int i)
 
 void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Cmd_ExecuteText");
 	LOG_FUNC();
 
 	int clientWhen = msl::utilities::SafeInt<int>(exec_when);
@@ -130,7 +125,6 @@ void dx11::Client::Cmd_ExecuteText		(unsigned int exec_when, std::string text)
 
 void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Con_Printf");
 	LOG_FUNC();
 
 	std::string printLevelStr = "PRINT_ALL";
@@ -152,7 +146,6 @@ void dx11::Client::Con_Printf(unsigned short print_level, std::string str)
 
 int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::FS_LoadFile");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -165,7 +158,6 @@ int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 
 void dx11::Client::FS_FreeFile(void *buf)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::FS_FreeFile");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -176,9 +168,8 @@ void dx11::Client::FS_FreeFile(void *buf)
 	m_refImport.FS_FreeFile(buf);
 }
 
-inline std::string dx11::Client::FS_Gamedir(void)
+std::string dx11::Client::FS_Gamedir(void)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::FS_Gamedir");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -187,13 +178,46 @@ inline std::string dx11::Client::FS_Gamedir(void)
 	return std::string(m_refImport.FS_Gamedir());
 }
 
+std::string dx11::Client::FS_GamedirAbsolute(void)
+{
+	LOG_FUNC();
+
+	TCHAR  absoluteGamedirBuffer[4096] = TEXT("");
+	ZeroMemory(&absoluteGamedirBuffer, sizeof(TCHAR) * 4096);
+
+	std::string gameDir = FS_Gamedir();
+
+	// Request ownership of the critical section.
+	LOG(trace) << "Entering critical section";
+	EnterCriticalSection(&CriticalSection);
+	LOG(trace) << "Entered critical section";
+
+	DWORD  retval = GetFullPathName(gameDir.c_str(), MAX_PATH, absoluteGamedirBuffer, NULL);
+
+	// Release ownership of the critical section.
+	LOG(trace) << "Leaving critical section";
+	LeaveCriticalSection(&CriticalSection);
+	LOG(trace) << "Left critical section";
+
+	if (retval == 0)
+	{
+		LOG(error) << "GetFullPathName failed: " << GetLastError();
+		return std::string();
+	}
+	else
+	{
+		LOG(info) << "The full path name is: " << absoluteGamedirBuffer;
+	}
+
+	return absoluteGamedirBuffer;
+}
+
 //cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
 //cvar_t			*(*Cvar_Set)			(char *name, char *value);
 //void(*Cvar_SetValue)		(char *name, float value);
 
-inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
+bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Vid_GetModeInfo");
 	LOG_FUNC();
 
 	int clientWidth = 0,
@@ -217,7 +241,6 @@ inline bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 
 void dx11::Client::Vid_MenuInit(void)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Vid_MenuInit");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -228,7 +251,6 @@ void dx11::Client::Vid_MenuInit(void)
 
 void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client::Vid_NewWindow");
 	LOG_FUNC();
 
 	// Wait for exclusive access
@@ -239,7 +261,6 @@ void dx11::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 
 void dx11::Client::SetRefImport(refimport_t rimp)
 { 
-	//BOOST_LOG_NAMED_SCOPE("Client::SetRefImport");
 	LOG_FUNC();
 
 	m_refImport = rimp;
@@ -252,7 +273,6 @@ void dx11::Client::SetRefImport(refimport_t rimp)
 
 dx11::Client::Client(refimport_t rimp)
 {
-	//BOOST_LOG_NAMED_SCOPE("Client");
 	LOG_FUNC();
 
 	SetRefImport(rimp);

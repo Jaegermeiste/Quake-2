@@ -136,7 +136,7 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 
 inline void	SHIM_Draw_Char(int x, int y, int c)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
+	if ((c > 0) && (dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
 		dx11::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned int>(c));
 	}
@@ -190,7 +190,7 @@ inline void	SHIM_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows,
 
 inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::Initialize()) && (dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
 	{
 		HINSTANCE hInstance = static_cast<HINSTANCE>(hinstance);
 		WNDPROC wndProc = static_cast<WNDPROC>(wndproc);
@@ -209,6 +209,8 @@ inline void SHIM_R_Shutdown()
 	{
 		dx11::ref->sys->Shutdown();
 	}
+
+	dx11::Shutdown();
 }
 
 inline void SHIM_R_SetPalette(const unsigned char *palette)
@@ -257,7 +259,7 @@ GetRefAPI
 */
 extern "C" __declspec(dllexport) refexport_t GetRefAPI(refimport_t rimp)
 {
-	BOOST_LOG_NAMED_SCOPE("GetRefAPI");
+	LOG_FUNC();
 
 	refexport_t	re;
 

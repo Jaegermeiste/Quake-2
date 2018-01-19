@@ -69,6 +69,7 @@ namespace dx11
 		void			FS_FreeFile				(void *buf);
 
 		std::string		FS_Gamedir				(void);
+		std::string		FS_GamedirAbsolute		(void);		// Added to faciliate shader compiling
 
 		bool			Vid_GetModeInfo			(unsigned int &width, unsigned int &height, int mode);
 		void			Vid_MenuInit			(void);

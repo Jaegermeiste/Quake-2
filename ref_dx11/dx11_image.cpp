@@ -58,7 +58,7 @@ void dx11::Image::GetPalette(void)
 		unsigned int b = pal[i * 3 + 2];
 
 		unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		m_8to24table[i] = msl::utilities::SafeInt<unsigned int>(LittleLong(v));
+		m_8to24table[i] = LittleULong(v);
 	}
 
 	m_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
@@ -94,9 +94,9 @@ void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width,
 		return;
 	}
 
-	width = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->width));
-	height = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->height));
-	ofs = msl::utilities::SafeInt<unsigned int>(LittleLong(mt->offsets[0]));
+	width = LittleULong(mt->width);
+	height = LittleULong(mt->height);
+	ofs = LittleULong(mt->offsets[0]);
 
 	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
 
@@ -136,14 +136,14 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	//
 	pcx = reinterpret_cast<pcx_t *>(raw);
 
-	pcx->xmin = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->xmin));
-	pcx->ymin = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->ymin));
-	pcx->xmax = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->xmax));
-	pcx->ymax = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->ymax));
-	pcx->hres = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->hres));
-	pcx->vres = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->vres));
-	pcx->bytes_per_line = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->bytes_per_line));
-	pcx->palette_type = msl::utilities::SafeInt<unsigned short>(LittleShort(pcx->palette_type));
+	pcx->xmin = LittleUShort(pcx->xmin);
+	pcx->ymin = LittleUShort(pcx->ymin);
+	pcx->xmax = LittleUShort(pcx->xmax);
+	pcx->ymax = LittleUShort(pcx->ymax);
+	pcx->hres = LittleUShort(pcx->hres);
+	pcx->vres = LittleUShort(pcx->vres);
+	pcx->bytes_per_line = LittleUShort(pcx->bytes_per_line);
+	pcx->palette_type = LittleUShort(pcx->palette_type);
 
 	raw = &pcx->data;
 
@@ -158,7 +158,7 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 		return;
 	}
 
-	out = new byte[(pcx->ymax + 1) * (pcx->xmax + 1)]();
+	out = new byte[(pcx->ymax + 1u) * (pcx->xmax + 1u)]();
 
 	*pic = out;
 

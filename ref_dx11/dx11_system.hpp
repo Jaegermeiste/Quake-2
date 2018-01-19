@@ -53,6 +53,16 @@ namespace dx11
 
 		DXGI_ADAPTER_DESC				m_adapterDesc;
 
+		D3D_FEATURE_LEVEL				m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
+
+		byte							m_padding[4];
+
+		// Timing
+		LARGE_INTEGER					m_clockFrequency;
+		LARGE_INTEGER					m_clockFrameStart;
+		LARGE_INTEGER					m_clockFrameEndCurrent;
+		LARGE_INTEGER					m_clockFrameEndPrevious;
+
 		ID3D11Device*					m_d3dDevice = nullptr;
 		ID3D11Device1*					m_d3dDevice1 = nullptr;
 		ID3D11DeviceContext*			m_immediateContext = nullptr;
@@ -69,28 +79,25 @@ namespace dx11
 
 		// 3D Rendering
 		ID3D11RenderTargetView*			m_backBufferRTV = nullptr;
+		ID3D11DepthStencilState*		m_depthStencilState = nullptr;
 		DirectX::XMMATRIX				m_3DworldMatrix;
 		DirectX::XMMATRIX				m_3DviewMatrix;
 		DirectX::XMMATRIX				m_3DprojectionMatrix;
-		ID3D11DepthStencilState*		m_depthStencilState = nullptr;
 
 		bool							m_d3dInitialized;
 
 		bool							m_inRegistration;
 		bool							m_uploadBatchOpen;
 
-		D3D_FEATURE_LEVEL				m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
-
-		// Timing
-		LARGE_INTEGER					m_clockFrequency;
-		bool							m_clockFrequencyObtained;
-		LARGE_INTEGER					m_clockFrameStart;
-		LARGE_INTEGER					m_clockFrameEndCurrent;
-		LARGE_INTEGER					m_clockFrameEndPrevious;
 		bool							m_clockRunning;
+		bool							m_clockFrequencyObtained;
+
+		byte							m_padding2[3];
+
 		double							m_frameTime;
 		double							m_frameTimeEMA;
 		double							m_frameRateEMA;
+
 
 		void							FillFeatureLevelArray	(void);
 		

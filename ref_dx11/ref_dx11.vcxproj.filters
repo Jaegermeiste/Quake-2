@@ -128,11 +128,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="simplePixel.hlsl">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="simpleVertex.hlsl">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

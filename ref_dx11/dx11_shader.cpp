@@ -34,7 +34,6 @@ ref_dx11
 
 dx11::Shader::Shader()
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader");
 	LOG_FUNC();
 
 	m_vertexShader = nullptr;
@@ -46,14 +45,17 @@ dx11::Shader::Shader()
 
 bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, shaderTarget target, D3D11_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader::CompileShader");
 	LOG_FUNC();
 
-	ID3DBlob* shaderBuffer = nullptr;
-	ID3DBlob* errorMessage = nullptr;
+	ID3DBlob*	shaderBuffer = nullptr;
+	ID3DBlob*	errorMessage = nullptr;
 	std::string entryPoint = "";
-	HRESULT hr = E_UNEXPECTED;
-
+	HRESULT		hr = E_UNEXPECTED;
+	std::string gameDir = ref->client->FS_Gamedir();
+	std::string absoluteGameDir = ref->client->FS_GamedirAbsolute();
+	std::string currentWorkingDirectory = GetCurrentWorkingDirectory();
+	UINT		shaderFlags = 0;
+	
 	// We need this to get a compliant path string
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToWide;
 
@@ -97,8 +99,6 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	{
 	case D3D_FEATURE_LEVEL_12_1:
 	case D3D_FEATURE_LEVEL_12_0:
-		target += "_6_0";
-		break;
 	case D3D_FEATURE_LEVEL_11_1:
 	case D3D_FEATURE_LEVEL_11_0:
 		target += "_5_0";
@@ -120,21 +120,35 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 		target += "_4_0";
 		break;
 	case D3D_FEATURE_LEVEL_9_3:
+		if ((target == SHADER_TARGET_DOMAIN) || (target == SHADER_TARGET_HULL))
+		{
+			LOG(info) << "Shader File " << fileName << " with profile " << target << "_4_0_level_9_3 is not supported in D3D_FEATURE_LEVEL_9_3";
+			return false;
+		}
+		target += "_4_0_level_9_3";
+		break;
 	case D3D_FEATURE_LEVEL_9_2:
 	case D3D_FEATURE_LEVEL_9_1:
 	default:
 		if ((target != SHADER_TARGET_VERTEX) && (target != SHADER_TARGET_PIXEL))
 		{
-			LOG(info) << "Shader File " << fileName << " with profile " << target << "_3_0 is not supported in D3D_FEATURE_LEVEL_9_x";
+			LOG(info) << "Shader File " << fileName << " with profile " << target << "_4_0_level_9_1 is not supported in D3D_FEATURE_LEVEL_9_1 or _9_2";
 			return false;
 		}
-		target += "_3_0";
+		target += "_4_0_level_9_1";
+		shaderFlags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY;
+	}
+
+	if (absoluteGameDir != currentWorkingDirectory)
+	{
+		LOG(info) << "Current working directory " << currentWorkingDirectory << " is not the gamedir " << absoluteGameDir << ", prepending relative directory to fileName " << fileName;
+		fileName = gameDir + "/" + fileName;
 	}
 	
 	// Compile the shader code.
 	LOG(info) << "Compiling Shader File " << fileName << " with target " << target << " and entry point " << entryPoint;
 
-	hr = D3DCompileFromFile(convertToWide.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY, 0, &shaderBuffer, &errorMessage);
+	hr = D3DCompileFromFile(convertToWide.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), shaderFlags, 0, &shaderBuffer, &errorMessage);
 	if (FAILED(hr))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -142,10 +156,25 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 		{
 			OutputShaderErrorMessage(errorMessage, fileName);
 		}
-		// If there was nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
-			LOG(error) << "Missing Shader File " << fileName;
+			LPVOID lpMsgBuf;
+
+			FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM,
+				NULL,
+				(DWORD)hr,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR)&lpMsgBuf,
+				0,
+				NULL);
+
+			// Remove terminating newlines
+			static_cast<char*>(lpMsgBuf)[strcspn(static_cast<char*>(lpMsgBuf), "\n")] = 0;
+
+			LOG(error) << "Windows Error: " << static_cast<const char*>(lpMsgBuf);
+
+			LocalFree(lpMsgBuf);
 		}
 
 		if (shaderBuffer)
@@ -197,7 +226,6 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 
 bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName)
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader::Initialize");
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
@@ -289,7 +317,6 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 
 void dx11::Shader::Shutdown()
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader::Shutdown");
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
@@ -336,7 +363,6 @@ void dx11::Shader::OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string 
 
 bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader::SetShaderParameters");
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
@@ -385,7 +411,6 @@ bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 
 bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
-	//BOOST_LOG_NAMED_SCOPE("Shader::Render");
 	LOG_FUNC();
 
 	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))
