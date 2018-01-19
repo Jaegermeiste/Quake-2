@@ -23,52 +23,20 @@ ref_dx11
 2017 Bleeding Eye Studios
 */
 
-#ifndef __DX11_2D_HPP__
-#define __DX11_2D_HPP__
+#ifndef __DX11_3D_HPP__
+#define __DX11_3D_HPP__
 #pragma once
 
 #include "dx11_local.hpp"
 
 namespace dx11
 {
-	__declspec(align(16)) class Subsystem2D {
+	__declspec(align(16)) class Subsystem3D {
 		friend class System;
 	private:
-		UINT						m_renderTargetWidth = 0;
-		UINT						m_renderTargetHeight = 0;
-
-		ID3D11DeviceContext*		m_2DdeferredContext = nullptr;
-		ID3D11CommandList*			m_2DcommandList = nullptr;
-		ID3D11Texture2D*			m_2DrenderTargetTexture = nullptr;
-		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
-		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
-		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
-
-		DirectX::XMMATRIX			m_2DorthographicMatrix;
-
-		struct Vertex2D
-		{
-			DirectX::XMFLOAT3 position;
-			DirectX::XMFLOAT2 texCoord;
-		};
-
-		ID3D11Buffer*				m_2DvertexBuffer = nullptr;
-		ID3D11Buffer*				m_2DindexBuffer = nullptr;
-		unsigned int				m_2DvertexCount = 0,
-									m_2DindexCount = 0;
-
-		Shader						m_2Dshader;
-
-		unsigned int				m_padding[3];		// account for 12 bytes
-
-		bool						InitializeBuffers();
-
-		bool						UpdateBuffers();
-
-		void						RenderBuffers();
-		
+		byte						m_padding[16];
 	public:
-									Subsystem2D();
+									Subsystem3D();
 
 		bool						Initialize();
 
@@ -91,4 +59,4 @@ namespace dx11
 	};
 }
 
-#endif // !__DX11_2D_HPP__
+#endif // !__DX11_3D_HPP__

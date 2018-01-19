@@ -131,6 +131,7 @@
     <ClInclude Include="..\qcommon\qfiles.h" />
     <ClInclude Include="..\win32\winquake.h" />
     <ClInclude Include="dx11_2D.hpp" />
+    <ClInclude Include="dx11_3D.hpp" />
     <ClInclude Include="dx11_client.hpp" />
     <ClInclude Include="dx11_cvar.hpp" />
     <ClInclude Include="dx11_draw.hpp" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11_2D.cpp" />
+    <ClCompile Include="dx11_3D.cpp" />
     <ClCompile Include="dx11_api.cpp" />
     <ClCompile Include="dx11_client.cpp" />
     <ClCompile Include="dx11_cvar.cpp" />

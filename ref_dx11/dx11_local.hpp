@@ -112,6 +112,7 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 #include "dx11_cvar.hpp"
 #include "dx11_shader.hpp"
 #include "dx11_2D.hpp"
+#include "dx11_3D.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"
 #include "dx11_image.hpp"

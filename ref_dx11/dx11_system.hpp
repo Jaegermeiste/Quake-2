@@ -39,6 +39,7 @@ namespace dx11
 	__declspec(align(16)) class System 
 	{
 		friend class Subsystem2D;
+		friend class Subsystem3D;
 	private:
 		HINSTANCE						m_hInstance;
 		WNDPROC							m_wndProc;
@@ -75,14 +76,21 @@ namespace dx11
 		
 		// 2D Rendering
 		std::unique_ptr<Subsystem2D>	m_overlaySystem;
-
+		std::unique_ptr<Subsystem3D>	m_backend;
 
 		// 3D Rendering
 		ID3D11RenderTargetView*			m_backBufferRTV = nullptr;
 		ID3D11DepthStencilState*		m_depthStencilState = nullptr;
+
+		byte							m_padding2[12];
+
 		DirectX::XMMATRIX				m_3DworldMatrix;
 		DirectX::XMMATRIX				m_3DviewMatrix;
 		DirectX::XMMATRIX				m_3DprojectionMatrix;
+
+		double							m_frameTime;
+		double							m_frameTimeEMA;
+		double							m_frameRateEMA;
 
 		bool							m_d3dInitialized;
 
@@ -92,12 +100,7 @@ namespace dx11
 		bool							m_clockRunning;
 		bool							m_clockFrequencyObtained;
 
-		byte							m_padding2[3];
-
-		double							m_frameTime;
-		double							m_frameTimeEMA;
-		double							m_frameRateEMA;
-
+		byte							m_padding3[3];
 
 		void							FillFeatureLevelArray	(void);
 		

@@ -230,7 +230,7 @@ bool dx11::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, in
 
 	LOG(info) << "<width> " << width << " <height> " << height << " <mode> " << mode << " {return value} " << retVal;
 
-	if (retVal = true)
+	if (retVal == true)
 	{
 		width = msl::utilities::SafeInt<int>(clientWidth);
 		height = msl::utilities::SafeInt<int>(clientHeight);
