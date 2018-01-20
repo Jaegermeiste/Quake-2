@@ -209,15 +209,19 @@ void dx11::ImageManager::LoadPCX(std::string fileName, byte **pic, byte **palett
 	ref->client->FS_FreeFile(pcx);
 }
 
-dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw)
+dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw)
 {
 	LOG_FUNC();
 
 	dx11::Texture* texture = nullptr;
+	HRESULT hr = E_UNEXPECTED;
 
 	if ((*raw) != nullptr)
 	{
 		texture = new dx11::Texture;
+
+		ZeroMemory(&texture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		ZeroMemory(&texture->m_data, sizeof(D3D11_SUBRESOURCE_DATA));
 
 		texture->m_name = name;
 		texture->m_textureDesc.Width = width;
@@ -232,14 +236,14 @@ dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsi
 		}
 		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
 		texture->m_textureDesc.SampleDesc.Count = 1;
-		texture->m_textureDesc.SampleDesc.Quality = D3D11_STANDARD_MULTISAMPLE_PATTERN;
+		texture->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D11_STANDARD_MULTISAMPLE_PATTERN);
 		texture->m_textureDesc.Usage = D3D11_USAGE_DEFAULT;
 		texture->m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		texture->m_textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		texture->m_textureDesc.MiscFlags = 0;
 		texture->m_data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
 		texture->m_data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
-		texture->m_data.pSysMem = new unsigned int[texture->m_size]();
+		unsigned int* rgba32 = new unsigned int[width * height]();
 
 		if (bpp == BPP_8)
 		{
@@ -248,36 +252,43 @@ dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsi
 			// De-palletize the texture data
 
 			//for (unsigned int i = 0; i < (m_width * m_height); i++)
-			Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &d8to24table](unsigned int i)
 			{
 				if (*raw[i] == 255)
 				{
 					// Transparent
-					texture->m_data[i] = 0;
+					rgba32[i] = 0;
 				}
 				else
 				{
 					// Paletted
-					texture->m_data[i] = d8to24table[*raw[i]];
+					rgba32[i] = d8to24table[*raw[i]];
 				}
 			});
 		}
-		else
+		else if (bpp == BPP_24)
 		{
-			// 24 or 32 bpp
-			Concurrency::parallel_for(0u, (width * height), [&raw, &texture](unsigned int i)
+			// 24 bpp
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32](unsigned int i)
 			{
-				if (*raw[i] == 255)
-				{
-					// Transparent
-					texture->m_data[i] = 0;
-				}
-				else
-				{
-					// Paletted
-					texture->m_data[i] = d8to24table[*raw[i]];
-				}
+				unsigned int index = i * 3;
+				rgba32[i] = (*raw[index] << 24u | *raw[index + 1] << 16u | *raw[index + 2] << 8u | 255u);
 			});
+		}
+		else if (bpp == BPP_32)
+		{
+			std::memcpy(&rgba32, *raw, width * height * (sizeof(unsigned int) / sizeof(byte)));
+		}
+
+		texture->m_data.pSysMem = rgba32;
+
+		hr = m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &texture->m_data, &texture->m_texture2D);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create texture";
+			delete[] rgba32;
+			rgba32 = nullptr;
+			return nullptr;
 		}
 	}
 

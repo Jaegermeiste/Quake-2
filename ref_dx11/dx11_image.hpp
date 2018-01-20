@@ -55,7 +55,7 @@ namespace dx11
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
 		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 
-		Texture*	CreateTexture2DFromRaw(unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw);
+		Texture*	CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw);
 
 		void UploadScratchImage(DirectX::ScratchImage & image, ID3D11Resource** pResource, bool generateMipMap);
 
