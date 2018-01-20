@@ -39,7 +39,7 @@ namespace dx11
 
 		std::unique_ptr<Cvars>	cvars;
 		std::unique_ptr<Client>	client;
-		std::unique_ptr<Image>	img;
+		std::unique_ptr<ImageManager>	img;
 		std::unique_ptr<Model>	model;
 		std::unique_ptr<Draw>	draw;
 		std::unique_ptr<System>	sys;

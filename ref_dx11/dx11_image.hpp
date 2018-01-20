@@ -29,19 +29,24 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+#define BPP_8	8
+#define BPP_24	24
+#define BPP_32	32
+
 namespace dx11
 {
-	class Image {
-	private:
-		struct Texture2D
-		{
-			unsigned int	m_width;
-			unsigned int	m_height;
-			size_t			m_size;
-			DXGI_FORMAT		m_format;
-			unsigned int	*m_data;
-		};
+	class Texture
+	{
+		friend class ImageManager;
+	public:
+		std::string				m_name;
+		D3D11_TEXTURE2D_DESC	m_textureDesc;
+		D3D11_SUBRESOURCE_DATA	m_data;
+		ID3D11Texture2D*		m_texture2D = nullptr;
+	};
 
+	class ImageManager {
+	private:
 		unsigned int	m_8to24table[256];
 
 		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D11Resource>> m_images;
@@ -50,29 +55,16 @@ namespace dx11
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
 		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 
-		Texture2D*	CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw);
+		Texture*	CreateTexture2DFromRaw(unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw);
 
 		void UploadScratchImage(DirectX::ScratchImage & image, ID3D11Resource** pResource, bool generateMipMap);
 
-		bool		UploadTexture2D(Texture2D *texture);
+		bool		UploadTexture2D(Texture *texture);
 	public:
 		std::shared_ptr<image_t>	Load(std::string name, imagetype_t type);
 	};
 
-	class Pic : Image
-	{
-	private:
-		struct Vertex2D
-		{
-			DirectX::XMFLOAT3 position;
-			DirectX::XMFLOAT2 texCoord;
-		};
-
-		ID3D11Buffer	*m_vertexBuffer = nullptr,
-						*m_indexBuffer = nullptr;
-		unsigned int	m_vertexCount = 0,
-						m_indexCount = 0;
-	};
+	
 }
 
 #endif // !__DX11_IMAGE_HPP__

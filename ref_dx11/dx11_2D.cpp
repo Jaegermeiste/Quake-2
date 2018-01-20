@@ -408,24 +408,27 @@ void dx11::Subsystem2D::Render()
 {
 	LOG_FUNC();
 
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	ref->sys->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
-
+	// Set depth to disabled
 	ref->sys->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
 	if (m_2DcommandList)
 	{
+		// Execute all pending commands to draw to the overlay render target
 		ref->sys->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
 	}
+
+	// Set the back buffer as the current render target
+	ref->sys->m_immediateContext->OMSetRenderTargets(1, &ref->sys->m_backBufferRTV, nullptr);
 
 	// Render 2D overlay to back buffer
 	UpdateBuffers();
 	RenderBuffers();
-
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	ref->sys->m_immediateContext->OMSetRenderTargets(1, &ref->sys->m_backBufferRTV, nullptr);
-	
+		
+	// Draw the overlay to the back buffer
 	m_2Dshader.Render(ref->sys->m_immediateContext, m_2DindexCount, ref->sys->m_3DworldMatrix, ref->sys->m_3DviewMatrix, m_2DorthographicMatrix, m_2DshaderResourceView);
+
+	// Set the overlay RTV as the current render target
+	ref->sys->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 }
 
 void dx11::Subsystem2D::Shutdown()

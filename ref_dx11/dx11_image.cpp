@@ -35,8 +35,10 @@ using Microsoft::WRL::ComPtr;
 GetPalette
 ===============
 */
-void dx11::Image::GetPalette(void)
+void dx11::ImageManager::GetPalette(void)
 {
+	LOG_FUNC();
+
 	byte			*pic	= nullptr,
 					*pal	= nullptr;
 	unsigned int	width	= 0, 
@@ -78,11 +80,13 @@ void dx11::Image::GetPalette(void)
 
 /*
 ================
-GL_LoadWal
+LoadWal
 ================
 */
-void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
+void dx11::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
 {
+	LOG_FUNC();
+
 	miptex_t		*mt = nullptr;
 	unsigned int	ofs	= 0;
 
@@ -108,8 +112,10 @@ void dx11::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width,
 LoadPCX
 ==============
 */
-void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height)
+void dx11::ImageManager::LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height)
 {
+	LOG_FUNC();
+
 	byte	*raw		= nullptr;
 	pcx_t	*pcx		= nullptr;
 	int		len			= 0;
@@ -127,7 +133,7 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	len = ref->client->FS_LoadFile(fileName, (void **)&raw);
 	if ((len < 0) || (!raw))
 	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad pcx file " + fileName + "\n");
+		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad PCX file " + fileName);
 		return;
 	}
 
@@ -154,7 +160,7 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 		|| pcx->xmax >= 640
 		|| pcx->ymax >= 480)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file " + fileName + "\n");
+		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file " + fileName);
 		return;
 	}
 
@@ -203,43 +209,85 @@ void dx11::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsi
 	ref->client->FS_FreeFile(pcx);
 }
 
-dx11::Image::Texture2D* dx11::Image::CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw)
+dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw)
 {
-	Texture2D* texture = nullptr;
+	LOG_FUNC();
+
+	dx11::Texture* texture = nullptr;
 
 	if ((*raw) != nullptr)
 	{
-		texture = new Texture2D;
+		texture = new dx11::Texture;
 
-		texture->m_width = width;
-		texture->m_height = height;
-		texture->m_format = DXGI_FORMAT_R8G8B8A8_UINT;
-		texture->m_size = width * height;
-		texture->m_data = new unsigned int[texture->m_size]();
-
-		unsigned int *d8to24table = m_8to24table;	// Hack around the lambda function parameter issue
-
-		//for (unsigned int i = 0; i < (m_width * m_height); i++)
-		Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
+		texture->m_name = name;
+		texture->m_textureDesc.Width = width;
+		texture->m_textureDesc.Height = height;
+		if (generateMipmaps)
 		{
-			if (*raw[i] == 255)
+			texture->m_textureDesc.MipLevels = 0;
+		}
+		else
+		{
+			texture->m_textureDesc.MipLevels = 1;
+		}
+		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
+		texture->m_textureDesc.SampleDesc.Count = 1;
+		texture->m_textureDesc.SampleDesc.Quality = D3D11_STANDARD_MULTISAMPLE_PATTERN;
+		texture->m_textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		texture->m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		texture->m_textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		texture->m_textureDesc.MiscFlags = 0;
+		texture->m_data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
+		texture->m_data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
+		texture->m_data.pSysMem = new unsigned int[texture->m_size]();
+
+		if (bpp == BPP_8)
+		{
+			unsigned int *d8to24table = m_8to24table;	// Hack around the lambda function parameter issue
+
+			// De-palletize the texture data
+
+			//for (unsigned int i = 0; i < (m_width * m_height); i++)
+			Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
 			{
-				// Transparent
-				texture->m_data[i] = 0;
-			}
-			else
+				if (*raw[i] == 255)
+				{
+					// Transparent
+					texture->m_data[i] = 0;
+				}
+				else
+				{
+					// Paletted
+					texture->m_data[i] = d8to24table[*raw[i]];
+				}
+			});
+		}
+		else
+		{
+			// 24 or 32 bpp
+			Concurrency::parallel_for(0u, (width * height), [&raw, &texture](unsigned int i)
 			{
-				// Paletted
-				texture->m_data[i] = d8to24table[*raw[i]];
-			}
-		});
+				if (*raw[i] == 255)
+				{
+					// Transparent
+					texture->m_data[i] = 0;
+				}
+				else
+				{
+					// Paletted
+					texture->m_data[i] = d8to24table[*raw[i]];
+				}
+			});
+		}
 	}
 
 	return texture;
 }
 
-void dx11::Image::UploadScratchImage(ScratchImage &image, ID3D11Resource** pResource, bool generateMipMap)
+void dx11::ImageManager::UploadScratchImage(ScratchImage &image, ID3D11Resource** pResource, bool generateMipMap)
 {
+	LOG_FUNC();
+
 	/*DX::ThrowIfFailed(
 		CreateTexture(ref->sys->d3dDevice, image.GetMetadata(), pResource)
 	);
@@ -262,11 +310,13 @@ void dx11::Image::UploadScratchImage(ScratchImage &image, ID3D11Resource** pReso
 	}*/
 }
 
-std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
+std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t type)
 {
+	LOG_FUNC();
+
 	if (name.length() < 5)
 	{
-		return nullptr;	//	m_refImport.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
+		ref->client->Sys_Error (ERR_DROP, "Bad name (<5): " + name);
 	}
 
 	// Create a new image
@@ -311,7 +361,7 @@ std::shared_ptr<image_t> dx11::Image::Load(std::string name, imagetype_t type)
 			int bufferSize = ref->client->FS_LoadFile(name, (void **)&buffer);
 			if ((bufferSize < 0) || (!buffer))
 			{
-				ref->client->Con_Printf(PRINT_ALL, "Bad TGA file " + name + "\n");
+				ref->client->Con_Printf(PRINT_ALL, "Bad TGA file: " + name + "\n");
 				return nullptr;
 			}
 
