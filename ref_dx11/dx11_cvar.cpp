@@ -29,37 +29,44 @@ dx11::Cvars::Cvars()
 {
 	LOG_FUNC();
 
-	vid_ref				= std::make_shared<Cvar>("vid_ref",					"dx11",							CVAR_ARCHIVE);
-	vid_xPos			= std::make_shared<Cvar>("vid_xpos",				0,								0);
-	vid_yPos			= std::make_shared<Cvar>("vid_ypos",				0,								0);
-	vid_fullscreen		= std::make_shared<Cvar>("vid_fullscreen",			0,								CVAR_ARCHIVE);
-	vid_gamma			= std::make_shared<Cvar>("vid_gamma",				1,								CVAR_ARCHIVE);
+	vid_ref					= std::make_shared<Cvar>("vid_ref",							"dx11",														CVAR_ARCHIVE);
+	vid_xPos				= std::make_shared<Cvar>("vid_xpos",						0,															0);
+	vid_yPos				= std::make_shared<Cvar>("vid_ypos",						0,															0);
+	vid_fullscreen			= std::make_shared<Cvar>("vid_fullscreen",					0,															CVAR_ARCHIVE);
+	vid_gamma				= std::make_shared<Cvar>("vid_gamma",						1,															CVAR_ARCHIVE);
 
-	r_mode				= std::make_shared<Cvar>("r_mode",					-1,								CVAR_ARCHIVE);
+	r_mode					= std::make_shared<Cvar>("r_mode",							-1,															CVAR_ARCHIVE);
 #ifndef _DEBUG
-	r_customWidth		= std::make_shared<Cvar>("r_customwidth",			1920,							CVAR_ARCHIVE);
-	r_customHeight		= std::make_shared<Cvar>("r_customheight",			1080,							CVAR_ARCHIVE);
+	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1920,														CVAR_ARCHIVE);
+	r_customHeight			= std::make_shared<Cvar>("r_customheight",					1080,														CVAR_ARCHIVE);
 #else
-	r_customWidth		= std::make_shared<Cvar>("r_customwidth",			1600,							CVAR_ARCHIVE);
-	r_customHeight		= std::make_shared<Cvar>("r_customheight",			900,							CVAR_ARCHIVE);
+	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1600,														CVAR_ARCHIVE);
+	r_customHeight			= std::make_shared<Cvar>("r_customheight",					900,														CVAR_ARCHIVE);
 #endif
 
-	featureLevel		= std::make_shared<Cvar>("dx11_featureLevel",		"D3D_FEATURE_LEVEL_12_1",		CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
-	bufferCount			= std::make_shared<Cvar>("dx11_bufferCount",		2,								CVAR_ARCHIVE);
-	backBufferFormat	= std::make_shared<Cvar>("dx11_backBufferFormat",	"DXGI_FORMAT_R8G8B8A8_UNORM",	CVAR_ARCHIVE);
-	Vsync				= std::make_shared<Cvar>("dx11_Vsync",				1,								CVAR_ARCHIVE);
-	samplesPerPixel		= std::make_shared<Cvar>("dx11_samplesPerPixel",	2,								CVAR_ARCHIVE);	// 1 disables multisampling
+	featureLevel			= std::make_shared<Cvar>("dx11_featureLevel",				"D3D_FEATURE_LEVEL_12_1",									CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
+	bufferCount				= std::make_shared<Cvar>("dx11_bufferCount",				2,															CVAR_ARCHIVE);
+	backBufferFormat		= std::make_shared<Cvar>("dx11_backBufferFormat",			"DXGI_FORMAT_R8G8B8A8_UNORM",								CVAR_ARCHIVE);
+	Vsync					= std::make_shared<Cvar>("dx11_Vsync",						1,															CVAR_ARCHIVE);
+	samplesPerPixel			= std::make_shared<Cvar>("dx11_samplesPerPixel",			2,															CVAR_ARCHIVE);	// 1 disables multisampling
 
-	zNear2D				= std::make_shared<Cvar>("dx11_zNear2D",			0,								CVAR_ARCHIVE);
-	zNear3D				= std::make_shared<Cvar>("dx11_zNear3D",			4,								CVAR_ARCHIVE);
-	zFar2D				= std::make_shared<Cvar>("dx11_zFar2D",				99999,							CVAR_ARCHIVE);
-	zFar3D				= std::make_shared<Cvar>("dx11_zFar3D",				4096,							CVAR_ARCHIVE);
+	zNear2D					= std::make_shared<Cvar>("dx11_zNear2D",					0,															CVAR_ARCHIVE);
+	zNear3D					= std::make_shared<Cvar>("dx11_zNear3D",					4,															CVAR_ARCHIVE);
+	zFar2D					= std::make_shared<Cvar>("dx11_zFar2D",						99999,														CVAR_ARCHIVE);
+	zFar3D					= std::make_shared<Cvar>("dx11_zFar3D",						4096,														CVAR_ARCHIVE);
 
 #ifndef _DEBUG
-	overlayScale		= std::make_shared<Cvar>("dx11_overlayScale",		1.0,							CVAR_ARCHIVE);
+	overlayScale			= std::make_shared<Cvar>("dx11_overlayScale",				1.0,														CVAR_ARCHIVE);
 #else
-	overlayScale		= std::make_shared<Cvar>("dx11_overlayScale",		0.9,							CVAR_ARCHIVE);
+	overlayScale			= std::make_shared<Cvar>("dx11_overlayScale",				0.9,														CVAR_ARCHIVE);
 #endif
+
+	// Courtesy Kirk Barnes @ http://quake2xp.sourceforge.net/
+	xpLitDownloadEnable		= std::make_shared<Cvar>("dx11_xpLitDownloadEnable",		false,														CVAR_ARCHIVE);
+	xpLitDownloadPath		= std::make_shared<Cvar>("dx11_xpLitDownloadPath",			"https://sourceforge.net/p/quake2xp/code/HEAD/tree/",		CVAR_ARCHIVE);
+	xpLitPathBaseQ2			= std::make_shared<Cvar>("dx11_xpLitPathBaseQ2",			"maps/",													CVAR_ARCHIVE);
+	xpLitPathRogue			= std::make_shared<Cvar>("dx11_xpLitPathRogue",				"mapsr/",													CVAR_ARCHIVE);
+	xpLitPathXatrix			= std::make_shared<Cvar>("dx11_xpLitPathXatrix",			"mapsx/",													CVAR_ARCHIVE);
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)

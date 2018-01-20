@@ -154,6 +154,7 @@
     <ClCompile Include="dx11_image.cpp" />
     <ClCompile Include="dx11_log.cpp" />
     <ClCompile Include="dx11_main.cpp" />
+    <ClCompile Include="dx11_map.cpp" />
     <ClCompile Include="dx11_model.cpp" />
     <ClCompile Include="dx11_ref.cpp" />
     <ClCompile Include="dx11_system.cpp" />

@@ -96,6 +96,12 @@ namespace dx11
 		std::shared_ptr<Cvar>  zFar3D;
 
 		std::shared_ptr<Cvar>  overlayScale;
+
+		std::shared_ptr<Cvar>  xpLitDownloadEnable;
+		std::shared_ptr<Cvar>  xpLitDownloadPath;
+		std::shared_ptr<Cvar>  xpLitPathBaseQ2;
+		std::shared_ptr<Cvar>  xpLitPathRogue;
+		std::shared_ptr<Cvar>  xpLitPathXatrix;
 	};
 };
 
