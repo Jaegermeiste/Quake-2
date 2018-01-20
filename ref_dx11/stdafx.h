@@ -71,9 +71,11 @@ ref_dx11
 #include <shellapi.h>
 #include <SafeInt.h>
 #include <ppl.h>
+#include <Urlmon.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3DCompiler.lib")
+#pragma comment(lib, "Urlmon.lib")
 
 /*
 #ifdef _DEBUG

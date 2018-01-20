@@ -26,7 +26,7 @@ ref_dx11
 #include "dx11_local.hpp"
 
 // Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
-#include <Urlmon.h>
+
 
 bool DownloadXPLitForMap(std::string mapName)
 {
