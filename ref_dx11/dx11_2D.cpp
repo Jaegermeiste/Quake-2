@@ -427,6 +427,10 @@ void dx11::Subsystem2D::Render()
 	// Draw the overlay to the back buffer
 	m_2Dshader.Render(ref->sys->m_immediateContext, m_2DindexCount, ref->sys->m_3DworldMatrix, ref->sys->m_3DviewMatrix, m_2DorthographicMatrix, m_2DshaderResourceView);
 
+	// Clear the PS binding
+	ID3D11ShaderResourceView* clearSRV = { NULL };
+	ref->sys->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
+
 	// Set the overlay RTV as the current render target
 	ref->sys->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 }
