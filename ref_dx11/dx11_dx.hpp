@@ -39,6 +39,7 @@ namespace dx11
 		friend class SubsystemText;
 		friend class Subsystem2D;
 		friend class Subsystem3D;
+		friend class Draw;
 	private:
 		UINT							m_windowWidth = 0;
 		UINT							m_windowHeight = 0;
@@ -57,6 +58,7 @@ namespace dx11
 		ID2D1Factory1*					m_d2dFactory = nullptr;
 		ID2D1Device*					m_d2dDevice = nullptr;
 		ID2D1DeviceContext*				m_d2dContext = nullptr;
+		ID2D1CommandList*				m_d2dCommandList = nullptr;
 		ID3D11Device*					m_d3dDevice = nullptr;
 		ID3D11Device1*					m_d3dDevice1 = nullptr;
 		ID3D11DeviceContext*			m_immediateContext = nullptr;
@@ -77,8 +79,7 @@ namespace dx11
 
 		bool							m_clockRunning;
 
-		byte							m_padding[4];
-		
+	
 		double							m_frameTime;
 		double							m_frameTimeEMA;
 		double							m_frameRateEMA;
@@ -89,13 +90,15 @@ namespace dx11
 
 		void							D3D_Shutdown();
 
+		friend void dx11::Draw::Fill(int x, int y, int w, int h, int c);
+
 	public:
 		std::unique_ptr<Subsystem2D>	subsystem2D;
 		std::unique_ptr<Subsystem3D>	subsystem3D;
 		std::unique_ptr<SubsystemText>	subsystemText;
 
 	private:
-		byte							m_padding2[4];
+		byte							m_padding[4];
 
 	public:
 										Dx();

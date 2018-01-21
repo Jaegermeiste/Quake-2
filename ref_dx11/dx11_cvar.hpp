@@ -102,6 +102,8 @@ namespace dx11
 		std::shared_ptr<Cvar>  xpLitPathBaseQ2;
 		std::shared_ptr<Cvar>  xpLitPathRogue;
 		std::shared_ptr<Cvar>  xpLitPathXatrix;
+
+		std::shared_ptr<Cvar>  font;
 	};
 };
 

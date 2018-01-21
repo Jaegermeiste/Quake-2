@@ -24,6 +24,7 @@ ref_dx11
 */
 
 #include "dx11_local.hpp"
+#include <minwinbase.h>
 
 void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name)
 {
@@ -31,28 +32,56 @@ void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name
 
 void dx11::Draw::Pic(int x, int y, std::string name)
 {
+	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, CHAR_SIZE, CHAR_SIZE), ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::StretchPic(int x, int y, int w, int h, std::string name)
 {
+	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }
 
-void dx11::Draw::Char(int x, int y, unsigned int c)
+void dx11::Draw::Char(int x, int y, unsigned char c)
 {
+	if (y <= -8)
+		return;			// totally off screen
+
+	
+	if ((c >= '!') && (c <= '}'))
+	{
+		char		strChar[2];
+		ZeroMemory(&strChar, sizeof(char) * 2);
+		strChar[0] = c;
+
+		// Gray Text
+		ref->sys->dx->subsystemText->RenderText(x, y, CHAR_SIZE, CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorGray);
+	}
+	else if ((c >= 161) && (c <= 253))
+	{
+		char		strChar[2];
+		ZeroMemory(&strChar, sizeof(char) * 2);
+		strChar[0] = (c - 128);
+
+		// Green Text
+		ref->sys->dx->subsystemText->RenderText(x, y, CHAR_SIZE, CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorYellowGreen);
+	}
 }
 
 void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)
 {
+	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::Fill(int x, int y, int w, int h, int c)
 {
+	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h),ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::FadeScreen(void)
 {
+	ref->sys->dx->subsystem2D->FadeScreen();
 }
 
 void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
 {
+	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }

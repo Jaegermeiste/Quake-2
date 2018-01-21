@@ -31,23 +31,86 @@ dx11::SubsystemText::SubsystemText()
 
 	LOG(info) << "Initializing";
 
+	m_writeFactory = nullptr;
+	m_textFormat = nullptr;
 }
 
 bool dx11::SubsystemText::Initialize()
 {
 	LOG_FUNC();
 
+	HRESULT hr = E_UNEXPECTED;
+
+	hr = DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(IDWriteFactory),
+		reinterpret_cast<IUnknown**>(&m_writeFactory)
+	);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to create write factory.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created write factory.";
+	}
+
+	hr = m_writeFactory->CreateTextFormat(
+		ref->sys->convertUTF.from_bytes(ref->cvars->font->String().c_str()).c_str(),
+		nullptr,
+		DWRITE_FONT_WEIGHT_BOLD,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		9,
+		L"en-us",
+		&m_textFormat
+	);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to create text format.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created text format.";
+	}
+
+	// Center the text horizontally and vertically.
+	m_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+
+	m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+
 	return true;
 }
 
-void dx11::SubsystemText::Clear()
+void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush)
 {
 	LOG_FUNC();
-}
 
-void dx11::SubsystemText::Render()
-{
-	LOG_FUNC();
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
+
+	//ref->sys->dx->m_d2dContext->SetTransform(D2D1::Matrix3x2F::Identity());
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+
+	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+	
+	//ref->sys->dx->m_d2dContext->DrawText(
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->DrawText(
+		ref->sys->convertUTF.from_bytes(text.c_str()).c_str(),
+		text.length(),
+		m_textFormat,
+		D2D1::RectF(x, y,x + w, y + h),
+		colorBrush,
+		D2D1_DRAW_TEXT_OPTIONS_NONE,
+		DWRITE_MEASURING_MODE_NATURAL
+	);
+
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
+
 }
 
 void dx11::SubsystemText::Shutdown()
@@ -55,6 +118,10 @@ void dx11::SubsystemText::Shutdown()
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
+
+	SAFE_RELEASE(m_textFormat);
+
+	SAFE_RELEASE(m_writeFactory);
 
 	LOG(info) << "Shutdown complete.";
 }

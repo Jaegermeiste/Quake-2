@@ -67,6 +67,8 @@ dx11::Cvars::Cvars()
 	xpLitPathBaseQ2			= std::make_shared<Cvar>("dx11_xpLitPathBaseQ2",			"maps/",													CVAR_ARCHIVE);
 	xpLitPathRogue			= std::make_shared<Cvar>("dx11_xpLitPathRogue",				"mapsr/",													CVAR_ARCHIVE);
 	xpLitPathXatrix			= std::make_shared<Cvar>("dx11_xpLitPathXatrix",			"mapsx/",													CVAR_ARCHIVE);
+
+	font					= std::make_shared<Cvar>("dx11_font",						"Courier New",												CVAR_ARCHIVE);
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)

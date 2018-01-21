@@ -56,6 +56,8 @@ namespace dx11
 		std::unique_ptr<Dx>			dx;			// Backend
 		std::unique_ptr<Web>		web;		// Networking
 
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertUTF;
+
 									System();
 
 		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);

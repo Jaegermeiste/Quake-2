@@ -33,6 +33,8 @@ namespace dx11
 {
 	__declspec(align(16)) class Subsystem2D {
 		friend class System;
+		friend class SubsystemText;
+		friend class Draw;
 	private:
 		UINT						m_renderTargetWidth = 0;
 		UINT						m_renderTargetHeight = 0;
@@ -63,7 +65,8 @@ namespace dx11
 
 		Shader						m_2Dshader;
 
-		unsigned int				m_padding2[3];		// account for 12 bytes
+		ID2D1SolidColorBrush*		fadeColor = nullptr;
+
 
 		bool						InitializeBuffers();
 
@@ -72,6 +75,13 @@ namespace dx11
 		void						RenderBuffers();
 		
 	public:
+		ID2D1SolidColorBrush*		colorBlack = nullptr;
+		ID2D1SolidColorBrush*		colorGray = nullptr;
+		ID2D1SolidColorBrush*		colorYellowGreen = nullptr;
+		ID2D1SolidColorBrush*		colorWhite = nullptr;
+		ID2D1SolidColorBrush*		colorRed = nullptr;
+		ID2D1SolidColorBrush*		colorBlue = nullptr;
+
 									Subsystem2D();
 
 		bool						Initialize();
@@ -79,6 +89,8 @@ namespace dx11
 		void						Clear();
 
 		void						Render();
+
+		void						FadeScreen();
 
 		void						Shutdown();
 

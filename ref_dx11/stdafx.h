@@ -73,11 +73,13 @@ ref_dx11
 #include <ppl.h>
 #include <Urlmon.h>
 #include <D2d1_1.h>
+#include <Dwrite.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3DCompiler.lib")
 #pragma comment(lib, "Urlmon.lib")
 #pragma comment(lib, "D2d1.lib")
+#pragma comment(lib, "Dwrite.lib")
 
 /*
 #ifdef _DEBUG

@@ -138,7 +138,7 @@ inline void	SHIM_Draw_Char(int x, int y, int c)
 {
 	if ((c > 0) && (dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
-		dx11::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned int>(c));
+		dx11::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned char>(c));
 	}
 }
 

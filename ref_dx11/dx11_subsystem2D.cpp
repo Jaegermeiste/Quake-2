@@ -45,6 +45,11 @@ dx11::Subsystem2D::Subsystem2D()
 	m_2DindexBuffer = nullptr;
 	m_2DvertexCount = 0;
 	m_2DindexCount = 0;
+
+	fadeColor = nullptr;
+	colorBlack = nullptr;
+	colorGray = nullptr;
+	colorYellowGreen = nullptr;
 }
 
 /*
@@ -155,6 +160,8 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(info) << "Successfully created D2D render target.";
 	}
 
+	ref->sys->dx->m_d2dContext->BeginDraw();
+
 	// Setup the description of the render target view.
 	renderTargetViewDesc.Format = textureDesc.Format;
 	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -236,6 +243,39 @@ bool dx11::Subsystem2D::Initialize()
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_d2dRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::Black, 0.8f),
+			&fadeColor
+		);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_d2dRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+			&colorBlack
+		);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_d2dRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::Gray, 1.0f),
+			&colorGray
+		);
+	}
+
+	// Create a solid color brush with its rgb value 0x9ACD32.
+	if (SUCCEEDED(hr))
+	{
+		hr = m_d2dRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF(0x9ACD32, 1.0f)),
+			&colorYellowGreen
+		);
 	}
 
 	LOG(info) << "Successfully initialized 2D subsystem.";
@@ -496,6 +536,15 @@ void dx11::Subsystem2D::Render()
 	// Set the back buffer as the current render target
 	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, nullptr);
 
+	ref->sys->dx->m_d2dContext->EndDraw();
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
+	ref->sys->dx->m_d2dContext->DrawImage(ref->sys->dx->m_d2dCommandList);
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
+
+	ref->sys->dx->m_d2dContext->CreateCommandList(&ref->sys->dx->m_d2dCommandList);
+	ref->sys->dx->m_d2dContext->SetTarget(ref->sys->dx->m_d2dCommandList);
+	ref->sys->dx->m_d2dContext->BeginDraw();
+
 	// Render 2D overlay to back buffer
 	UpdateBuffers();
 	RenderBuffers();
@@ -511,13 +560,37 @@ void dx11::Subsystem2D::Render()
 	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 }
 
+void dx11::Subsystem2D::FadeScreen()
+{
+	ref->sys->dx->m_d2dContext->FillRectangle(
+		D2D1::RectF(
+			0,
+			0,
+			m_renderTargetWidth,
+			m_renderTargetHeight),
+		fadeColor);
+}
+
 void dx11::Subsystem2D::Shutdown()
 {
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
 
+	if (ref->sys->dx->m_d2dContext)
+	{
+		ref->sys->dx->m_d2dContext->EndDraw();
+	}
+
 	m_2Dshader.Shutdown();
+
+	SAFE_RELEASE(colorYellowGreen);
+
+	SAFE_RELEASE(colorGray);
+
+	SAFE_RELEASE(colorBlack);
+
+	SAFE_RELEASE(fadeColor);
 
 	SAFE_RELEASE(m_d2dRenderTarget);
 

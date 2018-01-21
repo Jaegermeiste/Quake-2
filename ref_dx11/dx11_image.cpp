@@ -347,9 +347,6 @@ std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t 
 		// We didn't find it already, make a new one
 		imgPtr = std::make_shared<image_t>();
 
-		// We need this to get a compliant path string
-		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToWide;
-		
 		// Determine the image type
 		std::string extension = std::experimental::filesystem::path(name).extension().string();
 
@@ -394,7 +391,7 @@ std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t 
 			/*DX::ThrowIfFailed(
 				CreateDDSTextureFromFile(ref->sys->d3dDevice,
 										*(ref->sys->resourceUpload), 
-										convertToWide.from_bytes(imgPtr->name).c_str(), 
+										ref->sys->convertUTF.from_bytes(imgPtr->name).c_str(), 
 										images.at(imgPtr).ReleaseAndGetAddressOf(),
 										generateMipMap)
 			);*/
@@ -405,7 +402,7 @@ std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t 
 			// Requesting a .hdr file
 			ScratchImage image;
 			DX::ThrowIfFailed(
-				LoadFromHDRFile(convertToWide.from_bytes(imgPtr->name).c_str(), nullptr, image)
+				LoadFromHDRFile(ref->sys->convertUTF.from_bytes(imgPtr->name).c_str(), nullptr, image)
 			);
 
 			UploadScratchImage(image,
@@ -422,7 +419,7 @@ std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t 
 			/*DX::ThrowIfFailed(
 				CreateWICTextureFromFile(ref->sys->d3dDevice,
 										*(ref->sys->resourceUpload),
-										convertToWide.from_bytes(imgPtr->name).c_str(),
+										ref->sys->convertUTF.from_bytes(imgPtr->name).c_str(),
 										images.at(imgPtr).ReleaseAndGetAddressOf(),
 										generateMipMap)
 			);*/

@@ -29,21 +29,24 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+#define CHAR_SIZE	8
+
 namespace dx11
 {
 	__declspec(align(16)) class SubsystemText {
 		friend class System;
 	private:
-		byte						m_padding[16];
+		IDWriteFactory*				m_writeFactory = nullptr;
+		IDWriteTextFormat*			m_textFormat = nullptr;
+
+		byte						m_padding[8];
 
 	public:
 									SubsystemText();
 
 		bool						Initialize();
 
-		void						Clear();
-
-		void						Render();
+		void						RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush);
 
 		void						Shutdown();
 

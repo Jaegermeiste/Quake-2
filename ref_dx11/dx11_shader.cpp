@@ -55,9 +55,6 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	std::string absoluteGameDir = ref->client->FS_GamedirAbsolute();
 	std::string currentWorkingDirectory = ref->sys->GetCurrentWorkingDirectory();
 	UINT		shaderFlags = 0;
-	
-	// We need this to get a compliant path string
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToWide;
 
 	// Figure out the entry point
 	if (target == SHADER_TARGET_VERTEX)
@@ -148,7 +145,7 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	// Compile the shader code.
 	LOG(info) << "Compiling Shader File " << fileName << " with target " << target << " and entry point " << entryPoint;
 
-	hr = D3DCompileFromFile(convertToWide.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), shaderFlags, 0, &shaderBuffer, &errorMessage);
+	hr = D3DCompileFromFile(ref->sys->convertUTF.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), shaderFlags, 0, &shaderBuffer, &errorMessage);
 	if (FAILED(hr))
 	{
 		// If the shader failed to compile it should have writen something to the error message.

@@ -36,7 +36,7 @@ namespace dx11
 		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
 		void		Pic			(int x, int y, std::string name);
 		void		StretchPic	(int x, int y, int w, int h, std::string name);
-		void		Char		(int x, int y, unsigned int c);
+		void		Char		(int x, int y, unsigned char c);
 		void		TileClear	(int x, int y, int w, int h, std::string name);
 		void		Fill		(int x, int y, int w, int h, int c);
 		void		FadeScreen	(void);

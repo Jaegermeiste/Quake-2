@@ -114,6 +114,7 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 #include "dx11_cvar.hpp"
 #include "dx11_shader.hpp"
 #include "dx11_web.hpp"
+#include "dx11_draw.hpp"
 #include "dx11_subsystem2D.hpp"
 #include "dx11_subsystem3D.hpp"
 #include "dx11_subsystemText.hpp"
@@ -122,7 +123,6 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 #include "dx11_client.hpp"
 #include "dx11_image.hpp"
 #include "dx11_model.hpp"
-#include "dx11_draw.hpp"
 #include "dx11_ref.hpp"
 
 namespace dx11

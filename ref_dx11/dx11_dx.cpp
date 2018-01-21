@@ -100,6 +100,7 @@ dx11::Dx::Dx()
 	m_d2dFactory = nullptr;
 	m_d2dDevice = nullptr;
 	m_d2dContext = nullptr;
+	m_d2dCommandList = nullptr;
 	m_d3dDevice = nullptr;
 	m_d3dDevice1 = nullptr;
 	m_immediateContext = nullptr;
@@ -108,8 +109,9 @@ dx11::Dx::Dx()
 	m_swapChain1 = nullptr;
 	m_backBufferRTV = nullptr;
 
-	subsystem2D = std::make_unique<Subsystem2D>();
 	subsystem3D = std::make_unique<Subsystem3D>();
+	subsystem2D = std::make_unique<Subsystem2D>();
+	subsystemText = std::make_unique<SubsystemText>();
 
 	m_d3dInitialized = false;
 }
@@ -273,6 +275,12 @@ bool dx11::Dx::Initialize(HWND hWnd)
 		return false;
 	}
 
+	if ((!subsystemText) || (!subsystemText->Initialize()))
+	{
+		LOG(error) << "Failed to create text subsystem.";
+		return false;
+	}
+
 	if ((!subsystem3D) || (!subsystem3D->Initialize()))
 	{
 		LOG(error) << "Failed to create 3D subsystem";
@@ -433,41 +441,52 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 			if (SUCCEEDED(hr))
 			{
-				LOG(info) << "Successfully obtained D2D1 Factory1.";
+				LOG(info) << "Successfully created D2D1 Factory1.";
 
 				// Create a D2D Device
 				hr = m_d2dFactory->CreateDevice(dxgiDevice, &m_d2dDevice);
 
 				if (SUCCEEDED(hr))
 				{
-					LOG(info) << "Successfully obtained D2D device.";
+					LOG(info) << "Successfully created D2D device.";
 
 					hr = m_d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_d2dContext);
 
 					if (SUCCEEDED(hr))
 					{
-						LOG(info) << "Successfully obtained D2D Context.";
+						LOG(info) << "Successfully created D2D Context.";
+
+						hr = m_d2dContext->CreateCommandList(&m_d2dCommandList);
+
+						if (SUCCEEDED(hr))
+						{
+							LOG(info) << "Successfully created D2D Command List.";
+						}
+						else
+						{
+							LOG(error) << "Failed to create D2D Command List.";
+						}
 					}
 					else
 					{
-						LOG(error) << "Unable to obtain D2D Context.";
+						LOG(error) << "Unable to create D2D Context.";
 					}
 				}
 				else if (FAILED(hr))
 				{
-					LOG(error) << "Unable to obtain D2D device.";
+					LOG(error) << "Unable to create D2D device.";
 				}
 			}
 			else if (FAILED(hr))
 			{
-				LOG(error) << "Unable to obtain D2D1 Factory1.";
+				LOG(error) << "Unable to create D2D1 Factory1.";
 			}
 
 			dxgiDevice->Release();
 		}
 		else if (FAILED(hr))
 		{
-			LOG(error) << "Unable to obtain DGXIFactory.";
+			LOG(error) << "Unable to create DGXIFactory.";
 			return false;
 		}
 	}
@@ -590,6 +609,9 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
 
+	m_d2dContext->SetTarget(m_d2dCommandList);
+
+
 	// Setup the viewport
 	D3D11_VIEWPORT viewport;
 	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
@@ -630,6 +652,11 @@ void dx11::Dx::D3D_Shutdown()
 	SAFE_RELEASE(m_swapChain1);
 
 	SAFE_RELEASE(m_swapChain);
+
+	if (subsystemText)
+	{
+		subsystemText->Shutdown();
+	}
 
 	if (subsystem2D)
 	{
