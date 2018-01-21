@@ -43,6 +43,10 @@ namespace dx11
 		ID3D11RenderTargetView*		m_2DoverlayRTV = nullptr;
 		ID3D11ShaderResourceView*	m_2DshaderResourceView = nullptr;
 		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
+		IDXGISurface*				m_dxgiSurface = nullptr;
+		ID2D1RenderTarget*			m_d2dRenderTarget = nullptr;
+
+		byte						m_padding[8];
 
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
 
@@ -59,7 +63,7 @@ namespace dx11
 
 		Shader						m_2Dshader;
 
-		unsigned int				m_padding[3];		// account for 12 bytes
+		unsigned int				m_padding2[3];		// account for 12 bytes
 
 		bool						InitializeBuffers();
 

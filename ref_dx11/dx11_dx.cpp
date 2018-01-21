@@ -97,6 +97,9 @@ dx11::Dx::Dx()
 	m_driverType = D3D_DRIVER_TYPE_NULL;
 	m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 
+	m_d2dFactory = nullptr;
+	m_d2dDevice = nullptr;
+	m_d2dContext = nullptr;
 	m_d3dDevice = nullptr;
 	m_d3dDevice1 = nullptr;
 	m_immediateContext = nullptr;
@@ -258,7 +261,7 @@ bool dx11::Dx::Initialize(HWND hWnd)
 
 	Shutdown();
 
-	if (!D3D_InitDevice(hWnd))
+	if (!InitDevice(hWnd))
 	{
 		LOG(error) << "Failed to create D3D device";
 		return false;
@@ -300,19 +303,19 @@ void dx11::Dx::Shutdown()
 }
 
 
-bool dx11::Dx::D3D_InitDevice(HWND hWnd)
+bool dx11::Dx::InitDevice(HWND hWnd)
 {
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
 	RECT rc = {};
-	UINT createDeviceFlags = 0;
+	UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; // This flag adds support for surfaces with a different color channel ordering than the API default for compatibility with Direct2D.
 
 	GetClientRect(hWnd, &rc);
 	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
 	m_windowHeight = msl::utilities::SafeInt<unsigned int>(rc.bottom - rc.top);
 
-	LOG(info) << "Creating D3D Device.";
+	LOG(info) << "Creating DirectX devices.";
 
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -348,6 +351,7 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 
 		if (SUCCEEDED(hr))
 		{
+			LOG(info) << "Created D3D11 device.";
 			break;
 		}
 	}
@@ -362,8 +366,12 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 	// Obtain global debug device
 	if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&d3dDebug))))
 	{
+		LOG(info) << "DEBUG: Successfully created D3D Debug device.";
+
 		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
 		{
+			LOG(info) << "DEBUG: Successfully created D3D Debug Info Queue.";
+
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 
@@ -390,12 +398,15 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 
 		if (SUCCEEDED(hr))
 		{
+			LOG(info) << "Successfully created DXGI device.";
+
 			IDXGIAdapter* adapter = nullptr;
 
 			hr = dxgiDevice->GetAdapter(&adapter);
 
 			if (SUCCEEDED(hr))
 			{
+				LOG(info) << "Successfully obtained DXGI adapter.";
 
 				ZeroMemory(&m_adapterDesc, sizeof(DXGI_ADAPTER_DESC));
 				hr = adapter->GetDesc(&m_adapterDesc);
@@ -409,29 +420,73 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 				}
 
 				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
+				if (SUCCEEDED(hr))
+				{
+					LOG(info) << "Successfully obtained DXGI Factory1.";
+				}
+
 				adapter->Release();
 			}
+
+			// Create a Direct2D factory.
+			hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, &m_d2dFactory);
+
+			if (SUCCEEDED(hr))
+			{
+				LOG(info) << "Successfully obtained D2D1 Factory1.";
+
+				// Create a D2D Device
+				hr = m_d2dFactory->CreateDevice(dxgiDevice, &m_d2dDevice);
+
+				if (SUCCEEDED(hr))
+				{
+					LOG(info) << "Successfully obtained D2D device.";
+
+					hr = m_d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_d2dContext);
+
+					if (SUCCEEDED(hr))
+					{
+						LOG(info) << "Successfully obtained D2D Context.";
+					}
+					else
+					{
+						LOG(error) << "Unable to obtain D2D Context.";
+					}
+				}
+				else if (FAILED(hr))
+				{
+					LOG(error) << "Unable to obtain D2D device.";
+				}
+			}
+			else if (FAILED(hr))
+			{
+				LOG(error) << "Unable to obtain D2D1 Factory1.";
+			}
+
 			dxgiDevice->Release();
 		}
+		else if (FAILED(hr))
+		{
+			LOG(error) << "Unable to obtain DGXIFactory.";
+			return false;
+		}
 	}
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to obtain DGXIFactory.";
-		return false;
-	}
-
+	
 	// Create swap chain
 	IDXGIFactory2* dxgiFactory2 = nullptr;
 	hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
 
 	if (dxgiFactory2)
 	{
+		LOG(info) << "Successfully obtained DXGI Factory2. System is DirectX 11.1 or greater.";
+
 		// DirectX 11.1 or later
 		hr = m_d3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&m_d3dDevice1));
 
 		if (SUCCEEDED(hr))
 		{
+			LOG(info) << "Successfully obtained D3D Device1. Obtaining immediate DeviceContext1.";
+
 			(void)m_immediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
 		}
 
@@ -439,7 +494,7 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
 		swapChainDesc.Width = m_windowWidth;
 		swapChainDesc.Height = m_windowHeight;
-		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;			// BGRA for D2D support (also 5% faster, supposedly)
 		swapChainDesc.SampleDesc.Count = 1;
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -451,6 +506,8 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 
 		if (SUCCEEDED(hr))
 		{
+			LOG(info) << "Successfully created SwapChain1. Obtaining SwapChain.";
+
 			hr = m_swapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&m_swapChain));
 		}
 
@@ -459,13 +516,15 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 	}
 	else
 	{
+		LOG(warning) << "Failed to obtain DXGI Factory2. System is DirectX 11 or less.";
+
 		// DirectX 11.0 systems
 		DXGI_SWAP_CHAIN_DESC swapChainDesc;
 		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 		swapChainDesc.BufferCount = 1;
 		swapChainDesc.BufferDesc.Width = m_windowWidth;
 		swapChainDesc.BufferDesc.Height = m_windowHeight;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;			// BGRA for D2D support (also 5% faster, supposedly)
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -476,9 +535,18 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		hr = dxgiFactory->CreateSwapChain(m_d3dDevice, &swapChainDesc, &m_swapChain);
+
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Successfully created SwapChain.";
+		}
+		else
+		{
+			LOG(error) << "Unable to create SwapChain.";
+		}
 	}
 
-	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
+	// Block the ALT+ENTER shortcut
 	dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
 
 	dxgiFactory->Release();
@@ -499,6 +567,10 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 		LOG(error) << "Unable to get BackBuffer.";
 		return false;
 	}
+	else
+	{
+		LOG(info) << "Successfully created BackBuffer.";
+	}
 
 	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_backBufferRTV);
 
@@ -509,6 +581,12 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 		LOG(error) << "Unable to create BackBuffer RenderTargetView.";
 		return false;
 	}
+	else
+	{
+		LOG(info) << "Successfully created BackBuffer RenderTargetView.";
+	}
+
+	LOG(info) << "Setting immediate context render target to BackBuffer RenderTargetView.";
 
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
 
@@ -521,6 +599,8 @@ bool dx11::Dx::D3D_InitDevice(HWND hWnd)
 	viewport.MaxDepth = 1.0f;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
+
+	LOG(info) << "Setting viewport.";
 
 	m_immediateContext->RSSetViewports(1, &viewport);
 
@@ -560,6 +640,12 @@ void dx11::Dx::D3D_Shutdown()
 	{
 		subsystem3D->Shutdown();
 	}
+
+	SAFE_RELEASE(m_d2dContext);
+
+	SAFE_RELEASE(m_d2dDevice);
+
+	SAFE_RELEASE(m_d2dFactory);
 
 	if (m_immediateContext)
 	{

@@ -36,6 +36,7 @@ namespace dx11
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 	__declspec(align(16)) class Dx
 	{
+		friend class SubsystemText;
 		friend class Subsystem2D;
 		friend class Subsystem3D;
 	private:
@@ -53,6 +54,9 @@ namespace dx11
 		LARGE_INTEGER					m_clockFrameEndCurrent;
 		LARGE_INTEGER					m_clockFrameEndPrevious;
 
+		ID2D1Factory1*					m_d2dFactory = nullptr;
+		ID2D1Device*					m_d2dDevice = nullptr;
+		ID2D1DeviceContext*				m_d2dContext = nullptr;
 		ID3D11Device*					m_d3dDevice = nullptr;
 		ID3D11Device1*					m_d3dDevice1 = nullptr;
 		ID3D11DeviceContext*			m_immediateContext = nullptr;
@@ -72,6 +76,8 @@ namespace dx11
 		bool							m_uploadBatchOpen;
 
 		bool							m_clockRunning;
+
+		byte							m_padding[4];
 		
 		double							m_frameTime;
 		double							m_frameTimeEMA;
@@ -79,7 +85,7 @@ namespace dx11
 
 		void							FillFeatureLevelArray(void);
 
-		bool							D3D_InitDevice(HWND hWnd);
+		bool							InitDevice(HWND hWnd);
 
 		void							D3D_Shutdown();
 
@@ -89,7 +95,7 @@ namespace dx11
 		std::unique_ptr<SubsystemText>	subsystemText;
 
 	private:
-		byte							padding[4];
+		byte							m_padding2[4];
 
 	public:
 										Dx();

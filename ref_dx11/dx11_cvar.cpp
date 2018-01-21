@@ -198,7 +198,7 @@ bool dx11::Cvars::Cvar::Modified()
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> lock(m_ptrAccessMutex);
 
-	if (m_clientMemPtr->modified == true)
+	if (m_clientMemPtr->modified)
 	{
 		return true;
 	}

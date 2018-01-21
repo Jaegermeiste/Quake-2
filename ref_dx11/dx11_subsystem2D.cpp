@@ -38,6 +38,8 @@ dx11::Subsystem2D::Subsystem2D()
 	m_2DshaderResourceView = nullptr;
 	ZeroMemory(&m_2DorthographicMatrix, sizeof(DirectX::XMMATRIX));
 	m_depthDisabledStencilState = nullptr;
+	m_dxgiSurface = nullptr;
+	m_d2dRenderTarget = nullptr;
 
 	m_2DvertexBuffer = nullptr;
 	m_2DindexBuffer = nullptr;
@@ -84,12 +86,38 @@ bool dx11::Subsystem2D::Initialize()
 	textureDesc.Height = m_renderTargetHeight;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = 0;
+
+	// Find a format that D2D is happy with
+	if (ref->sys->dx->m_d2dContext->IsDxgiFormatSupported(DXGI_FORMAT_R32G32B32A32_FLOAT))
+	{
+		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		LOG(info) << "Overlay texture format: DXGI_FORMAT_R32G32B32A32_FLOAT";
+	}
+	else if (ref->sys->dx->m_d2dContext->IsDxgiFormatSupported(DXGI_FORMAT_R16G16B16A16_FLOAT))
+	{
+		textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		LOG(info) << "Overlay texture format: DXGI_FORMAT_R16G16B16A16_FLOAT";
+	}
+	else if (ref->sys->dx->m_d2dContext->IsDxgiFormatSupported(DXGI_FORMAT_R16G16B16A16_UNORM))
+	{
+		textureDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+		LOG(info) << "Overlay texture format: DXGI_FORMAT_R16G16B16A16_UNORM";
+	}
+	else if (ref->sys->dx->m_d2dContext->IsDxgiFormatSupported(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB))
+	{
+		textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		LOG(info) << "Overlay texture format: DXGI_FORMAT_B8G8R8A8_UNORM_SRGB";
+	}
+	else
+	{
+		textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		LOG(info) << "Overlay texture format: DXGI_FORMAT_B8G8R8A8_UNORM";
+	}
 
 	// Create the render target texture.
 	hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
@@ -97,6 +125,34 @@ bool dx11::Subsystem2D::Initialize()
 	{
 		LOG(error) << "Unable to create Texture2D.";
 		return false;
+	}
+
+	hr = m_2DrenderTargetTexture->QueryInterface(&m_dxgiSurface);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create DXGISurface.";
+		return false;
+	}
+
+	// Create a D2D render target which can draw into our offscreen D3D
+	// surface. Given that we use a constant size for the texture, we
+	// fix the DPI at 96.
+	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_HARDWARE,
+			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+			0, 0);
+
+	hr = ref->sys->dx->m_d2dFactory->CreateDxgiSurfaceRenderTarget(m_dxgiSurface, &props, &m_d2dRenderTarget);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create D2D render target.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created D2D render target.";
 	}
 
 	// Setup the description of the render target view.
@@ -108,8 +164,12 @@ bool dx11::Subsystem2D::Initialize()
 	hr = ref->sys->dx->m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
 	if (FAILED(hr))
 	{
-		LOG(error) << "Unable to create RenderTargetView.";
+		LOG(error) << "Unable to create overlay RenderTargetView.";
 		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created overlay RenderTargetView.";
 	}
 
 	// Setup the description of the shader resource view.
@@ -124,6 +184,10 @@ bool dx11::Subsystem2D::Initialize()
 	{
 		LOG(error) << "Unable to create ShaderResourceView.";
 		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created ShaderResourceView.";
 	}
 
 	// Create an orthographic projection matrix for 2D rendering.
@@ -157,6 +221,10 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(error) << "Unable to create DepthStencilState.";
 		return false;
 	}
+	else
+	{
+		LOG(info) << "Successfully created DepthStencilState.";
+	}
 
 	if (!InitializeBuffers())
 	{
@@ -172,7 +240,7 @@ bool dx11::Subsystem2D::Initialize()
 
 	LOG(info) << "Successfully initialized 2D subsystem.";
 
-	return true;
+	return UpdateBuffers();
 }
 
 bool dx11::Subsystem2D::InitializeBuffers()
@@ -233,6 +301,10 @@ bool dx11::Subsystem2D::InitializeBuffers()
 		LOG(error) << "Failed to create vertex buffer.";
 		return false;
 	}
+	else
+	{
+		LOG(info) << "Successfully created vertex buffer.";
+	}
 
 	// Set up the description of the static index buffer.
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -253,6 +325,10 @@ bool dx11::Subsystem2D::InitializeBuffers()
 	{
 		LOG(error) << "Failed to create index buffer.";
 		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created index buffer.";
 	}
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
@@ -442,6 +518,10 @@ void dx11::Subsystem2D::Shutdown()
 	LOG(info) << "Shutting down.";
 
 	m_2Dshader.Shutdown();
+
+	SAFE_RELEASE(m_d2dRenderTarget);
+
+	SAFE_RELEASE(m_dxgiSurface);
 
 	SAFE_RELEASE(m_2DindexBuffer);
 
