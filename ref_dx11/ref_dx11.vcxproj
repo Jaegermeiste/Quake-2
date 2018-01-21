@@ -130,11 +130,12 @@
     <ClInclude Include="..\qcommon\qcommon.h" />
     <ClInclude Include="..\qcommon\qfiles.h" />
     <ClInclude Include="..\win32\winquake.h" />
-    <ClInclude Include="dx11_2D.hpp" />
-    <ClInclude Include="dx11_3D.hpp" />
+    <ClInclude Include="dx11_subsystem2D.hpp" />
+    <ClInclude Include="dx11_subsystem3D.hpp" />
     <ClInclude Include="dx11_client.hpp" />
     <ClInclude Include="dx11_cvar.hpp" />
     <ClInclude Include="dx11_draw.hpp" />
+    <ClInclude Include="dx11_dx.hpp" />
     <ClInclude Include="dx11_image.hpp" />
     <ClInclude Include="dx11_local.hpp" />
     <ClInclude Include="dx11_log.hpp" />
@@ -142,15 +143,18 @@
     <ClInclude Include="dx11_ref.hpp" />
     <ClInclude Include="dx11_system.hpp" />
     <ClInclude Include="dx11_shader.hpp" />
+    <ClInclude Include="dx11_subsystemText.hpp" />
+    <ClInclude Include="dx11_web.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dx11_2D.cpp" />
-    <ClCompile Include="dx11_3D.cpp" />
+    <ClCompile Include="dx11_subsystem2D.cpp" />
+    <ClCompile Include="dx11_subsystem3D.cpp" />
     <ClCompile Include="dx11_api.cpp" />
     <ClCompile Include="dx11_client.cpp" />
     <ClCompile Include="dx11_cvar.cpp" />
     <ClCompile Include="dx11_draw.cpp" />
+    <ClCompile Include="dx11_dx.cpp" />
     <ClCompile Include="dx11_image.cpp" />
     <ClCompile Include="dx11_log.cpp" />
     <ClCompile Include="dx11_main.cpp" />
@@ -159,6 +163,8 @@
     <ClCompile Include="dx11_ref.cpp" />
     <ClCompile Include="dx11_system.cpp" />
     <ClCompile Include="dx11_shader.cpp" />
+    <ClCompile Include="dx11_subsystemText.cpp" />
+    <ClCompile Include="dx11_web.cpp" />
     <ClCompile Include="q_shared.cpp" />
     <ClCompile Include="q_shwin.cpp" />
   </ItemGroup>

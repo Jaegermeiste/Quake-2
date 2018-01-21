@@ -75,13 +75,22 @@
     <ClInclude Include="dx11_log.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dx11_2D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dx11_shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dx11_3D.hpp">
+    <ClInclude Include="dx11_dx.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_subsystem2D.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_subsystem3D.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_subsystemText.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_web.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,16 +131,25 @@
     <ClCompile Include="dx11_log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx11_2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dx11_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx11_3D.cpp">
+    <ClCompile Include="dx11_map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx11_map.cpp">
+    <ClCompile Include="dx11_dx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11_subsystem2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11_subsystem3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11_subsystemText.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11_web.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

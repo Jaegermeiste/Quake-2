@@ -53,7 +53,7 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	HRESULT		hr = E_UNEXPECTED;
 	std::string gameDir = ref->client->FS_Gamedir();
 	std::string absoluteGameDir = ref->client->FS_GamedirAbsolute();
-	std::string currentWorkingDirectory = GetCurrentWorkingDirectory();
+	std::string currentWorkingDirectory = ref->sys->GetCurrentWorkingDirectory();
 	UINT		shaderFlags = 0;
 	
 	// We need this to get a compliant path string

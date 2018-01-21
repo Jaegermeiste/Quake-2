@@ -25,57 +25,36 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-// Global variable (per MS documentation)
-CRITICAL_SECTION CriticalSection;
-
-#ifdef _DEBUG
-ID3D11Debug* d3dDebug = nullptr;
-ID3D11InfoQueue *d3dInfoQueue = nullptr;
-#endif
-
-/*
-===============
-dx11::Initialize
-===============
-*/
-bool dx11::Initialize()
+dx11::SubsystemText::SubsystemText()
 {
 	LOG_FUNC();
 
-	if (dx11::ref->client != nullptr)
-	{
-		dx11::ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION);
-	}
+	LOG(info) << "Initializing";
 
-	// Initialize the critical section one time only.
-	if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
-	{
-		return false;
-	}
+}
 
+bool dx11::SubsystemText::Initialize()
+{
+	LOG_FUNC();
 
 	return true;
 }
 
-/*
-===============
-dx11::Shutdown
-===============
-*/
-void dx11::Shutdown()
+void dx11::SubsystemText::Clear()
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::Render()
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::Shutdown()
 {
 	LOG_FUNC();
 
-	// Release resources used by the critical section object.
-	DeleteCriticalSection(&CriticalSection);
+	LOG(info) << "Shutting down.";
 
-#ifdef _DEBUG
-	if (d3dDebug)
-	{
-		d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
-
-		SAFE_RELEASE(d3dDebug);
-	}
-#endif
-
+	LOG(info) << "Shutdown complete.";
 }

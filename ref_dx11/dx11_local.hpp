@@ -105,20 +105,24 @@ typedef struct image_s
 #define SAFE_RELEASE(comObject)	if (comObject) { comObject->Release(); comObject = nullptr; }
 
 extern CRITICAL_SECTION CriticalSection;
+#ifdef _DEBUG
 extern ID3D11Debug* d3dDebug;
 extern ID3D11InfoQueue *d3dInfoQueue;
+#endif
 
 #include "dx11_log.hpp"
 #include "dx11_cvar.hpp"
 #include "dx11_shader.hpp"
-#include "dx11_2D.hpp"
-#include "dx11_3D.hpp"
+#include "dx11_web.hpp"
+#include "dx11_subsystem2D.hpp"
+#include "dx11_subsystem3D.hpp"
+#include "dx11_subsystemText.hpp"
+#include "dx11_dx.hpp"
 #include "dx11_system.hpp"
 #include "dx11_client.hpp"
 #include "dx11_image.hpp"
 #include "dx11_model.hpp"
 #include "dx11_draw.hpp"
-
 #include "dx11_ref.hpp"
 
 namespace dx11
@@ -126,9 +130,6 @@ namespace dx11
 	// Functions
 	bool			Initialize	();
 	void			Shutdown	();
-
-	std::string		GetCurrentWorkingDirectory();
-	bool			SetCurrentWorkingDirectory(std::string directory);
 }
 
 #endif // !__DX11_LOCAL_HPP__

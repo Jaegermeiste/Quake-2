@@ -25,57 +25,50 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-// Global variable (per MS documentation)
-CRITICAL_SECTION CriticalSection;
-
-#ifdef _DEBUG
-ID3D11Debug* d3dDebug = nullptr;
-ID3D11InfoQueue *d3dInfoQueue = nullptr;
-#endif
-
-/*
-===============
-dx11::Initialize
-===============
-*/
-bool dx11::Initialize()
+dx11::Web::Web()
 {
 	LOG_FUNC();
 
-	if (dx11::ref->client != nullptr)
-	{
-		dx11::ref->client->Con_Printf(PRINT_ALL, "ref_dx11 version: " REF_VERSION);
-	}
+	LOG(info) << "Initializing";
 
-	// Initialize the critical section one time only.
-	if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
-	{
-		return false;
-	}
+}
 
+bool dx11::Web::Initialize()
+{
+	LOG_FUNC();
 
 	return true;
 }
 
-/*
-===============
-dx11::Shutdown
-===============
-*/
-void dx11::Shutdown()
+bool dx11::Web::DownloadFile(std::string downloadURL, std::string destinationPath)
 {
 	LOG_FUNC();
 
-	// Release resources used by the critical section object.
-	DeleteCriticalSection(&CriticalSection);
+	HRESULT hr = E_UNEXPECTED;
 
-#ifdef _DEBUG
-	if (d3dDebug)
-	{
-		d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+	hr = URLDownloadToFile(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
 
-		SAFE_RELEASE(d3dDebug);
+	if (hr == E_OUTOFMEMORY) {
+		LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";
+		return false;
 	}
-#endif
+	else if (hr == INET_E_DOWNLOAD_FAILURE) {
+		LOG(error) << "Download Failed: URL is invalid";
+		return false;
+	}
+	else if (FAILED(hr)) {
+		LOG(error) << "Other error: " << hr;
+		return false;
+	}
 
+	return true;
+}
+
+void dx11::Web::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	LOG(info) << "Shutdown complete.";
 }

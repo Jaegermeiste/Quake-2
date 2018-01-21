@@ -96,9 +96,9 @@ inline void	SHIM_R_EndRegistration(void)
 
 inline void	SHIM_R_RenderFrame(refdef_t *fd)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr) && (dx11::ref->sys->dx != nullptr))
 	{
-		dx11::ref->sys->RenderFrame(fd);
+		dx11::ref->sys->dx->RenderFrame(fd);
 	}
 }
 
@@ -220,19 +220,19 @@ inline void SHIM_R_SetPalette(const unsigned char *palette)
 
 inline void	SHIM_R_BeginFrame(float camera_separation)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr) && (dx11::ref->sys->dx != nullptr))
 	{
 		camera_separation = 0.0f; // Silence "C4100 'camera_separation': unreferenced formal parameter" since we are deliberately and completely discarding this parameter
 
-		dx11::ref->sys->BeginFrame();
+		dx11::ref->sys->dx->BeginFrame();
 	}
 }
 
 inline void SHIM_R_EndFrame(void)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr) && (dx11::ref->sys->dx != nullptr))
 	{
-		dx11::ref->sys->EndFrame();
+		dx11::ref->sys->dx->EndFrame();
 	}
 }
 

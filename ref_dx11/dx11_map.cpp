@@ -32,7 +32,6 @@ bool DownloadXPLitForMap(std::string mapName)
 {
 	LOG_FUNC();
 
-	HRESULT hr = E_UNEXPECTED;
 	std::string gameDir = dx11::ref->client->FS_Gamedir();
 	std::string mapsPath = dx11::ref->cvars->xpLitPathBaseQ2->String();
 
@@ -49,24 +48,9 @@ bool DownloadXPLitForMap(std::string mapName)
 
 	LOG(info) << "Downloading xpLit for map " << mapName << " from " << downloadURL;
 
-	std::string destinationPath = dx11::GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
+	std::string destinationPath = dx11::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
 
 	LOG(info) << "Saving xpLit to " << destinationPath;
 
-	hr = URLDownloadToFile(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
-
-	if (hr == E_OUTOFMEMORY) {
-		LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";
-		return false;
-	}
-	else if (hr == INET_E_DOWNLOAD_FAILURE) {
-		LOG(error) << "Download Failed: URL is invalid";
-		return false;
-	}
-	else if (FAILED(hr)) {
-		LOG(error) << "Other error: " << hr;
-		return false;
-	}
-
-	return true;
+	return dx11::ref->sys->web->DownloadFile(downloadURL, destinationPath);
 }

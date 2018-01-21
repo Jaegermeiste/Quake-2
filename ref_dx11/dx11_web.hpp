@@ -23,40 +23,27 @@ ref_dx11
 2017 Bleeding Eye Studios
 */
 
-#ifndef __DX11_3D_HPP__
-#define __DX11_3D_HPP__
+#ifndef __DX11_WEB_HPP__
+#define __DX11_WEB_HPP__
 #pragma once
 
 #include "dx11_local.hpp"
 
 namespace dx11
 {
-	__declspec(align(16)) class Subsystem3D {
+	class Web {
 		friend class System;
 	private:
-		byte						m_padding[16];
+
 	public:
-									Subsystem3D();
+									Web();
 
 		bool						Initialize();
 
-		void						Clear();
-
-		void						Render();
+		bool						DownloadFile(std::string downloadURL, std::string destinationPath);
 
 		void						Shutdown();
-
-		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-		void* operator new(size_t i)
-		{
-			return _mm_malloc(i, 16);
-		}
-
-		void operator delete(void* p)
-		{
-			_mm_free(p);
-		}
 	};
 }
 
-#endif // !__DX11_3D_HPP__
+#endif // !__DX11_WEB_HPP__

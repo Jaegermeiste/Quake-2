@@ -25,67 +25,6 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
-{
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_9_1;
-
-	std::map<std::string, D3D_FEATURE_LEVEL> featureLevelMap;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_1)] = D3D_FEATURE_LEVEL_12_1;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_0)] = D3D_FEATURE_LEVEL_12_0;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_11_1)] = D3D_FEATURE_LEVEL_11_1;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_11_0)] = D3D_FEATURE_LEVEL_11_0;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_10_1)] = D3D_FEATURE_LEVEL_10_1;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_10_0)] = D3D_FEATURE_LEVEL_10_0;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_9_3)] = D3D_FEATURE_LEVEL_9_3;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_9_2)] = D3D_FEATURE_LEVEL_9_2;
-	featureLevelMap[STR(D3D_FEATURE_LEVEL_9_1)] = D3D_FEATURE_LEVEL_9_1;
-
-	auto search = featureLevelMap.find(featureLevelString);
-	if (search != featureLevelMap.end()) 
-	{
-		featureLevel = search->second;
-	}
-
-	return featureLevel;
-}
-
-std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
-{
-	std::string featureLevelString = "";
-
-	std::map<D3D_FEATURE_LEVEL, std::string> featureLevelMap;
-	featureLevelMap[D3D_FEATURE_LEVEL_12_1] = STR(D3D_FEATURE_LEVEL_12_1);
-	featureLevelMap[D3D_FEATURE_LEVEL_12_0] = STR(D3D_FEATURE_LEVEL_12_0);
-	featureLevelMap[D3D_FEATURE_LEVEL_11_1] = STR(D3D_FEATURE_LEVEL_11_1);
-	featureLevelMap[D3D_FEATURE_LEVEL_11_0] = STR(D3D_FEATURE_LEVEL_11_0);
-	featureLevelMap[D3D_FEATURE_LEVEL_10_1] = STR(D3D_FEATURE_LEVEL_10_1);
-	featureLevelMap[D3D_FEATURE_LEVEL_10_0] = STR(D3D_FEATURE_LEVEL_10_0);
-	featureLevelMap[D3D_FEATURE_LEVEL_9_3] = STR(D3D_FEATURE_LEVEL_9_3);
-	featureLevelMap[D3D_FEATURE_LEVEL_9_2] = STR(D3D_FEATURE_LEVEL_9_2);
-	featureLevelMap[D3D_FEATURE_LEVEL_9_1] = STR(D3D_FEATURE_LEVEL_9_1);
-
-	auto search = featureLevelMap.find(featureLevel);
-	if (search != featureLevelMap.end())
-	{
-		featureLevelString = search->second;
-	}
-
-	return featureLevelString;
-}
-
-void dx11::System::FillFeatureLevelArray(void)
-{
-	m_featureLevelArray[0] = D3D_FEATURE_LEVEL_12_1;
-	m_featureLevelArray[1] = D3D_FEATURE_LEVEL_12_0;
-	m_featureLevelArray[2] = D3D_FEATURE_LEVEL_11_1;
-	m_featureLevelArray[3] = D3D_FEATURE_LEVEL_11_0;
-	m_featureLevelArray[4] = D3D_FEATURE_LEVEL_10_1;
-	m_featureLevelArray[5] = D3D_FEATURE_LEVEL_10_0;
-	m_featureLevelArray[6] = D3D_FEATURE_LEVEL_9_3;
-	m_featureLevelArray[7] = D3D_FEATURE_LEVEL_9_2;
-	m_featureLevelArray[8] = D3D_FEATURE_LEVEL_9_1;
-}
-
 dx11::System::System()
 {
 	LOG_FUNC();
@@ -96,7 +35,6 @@ dx11::System::System()
 	m_wndProc = nullptr;
 	ZeroMemory(&m_wndClassEx, sizeof(WNDCLASS));
 	m_hWnd = nullptr;
-	FillFeatureLevelArray();
 
 	// Timing
 	if (QueryPerformanceFrequency(&m_clockFrequency) == TRUE)
@@ -109,20 +47,8 @@ dx11::System::System()
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't obtain clock frequency.");
 	}
 
-	m_driverType = D3D_DRIVER_TYPE_NULL;
-	m_featureLevel = D3D_FEATURE_LEVEL_12_1;
-
-	m_d3dDevice = nullptr;
-	m_d3dDevice1 = nullptr;
-	m_immediateContext = nullptr;
-	m_immediateContext1 = nullptr;
-	m_swapChain = nullptr;
-	m_swapChain1 = nullptr;
-	m_backBufferRTV = nullptr;
-
-	m_overlaySystem = std::make_unique<Subsystem2D>();
-
-	m_d3dInitialized = false;
+	dx = std::make_unique<Dx>();
+	web = std::make_unique<Web>();
 }
 
 void dx11::System::BeginRegistration()
@@ -182,147 +108,6 @@ void dx11::System::EndUpload()
 		m_uploadBatchOpen = false;
 	}
 }
-
-void dx11::System::BeginFrame(void)
-{
-	LOG_FUNC();
-	
-	// Timing
-	if ((m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
-	{
-		m_clockRunning = true;
-	}
-	else
-	{
-		m_clockRunning = false;
-	}
-
-	// Clear immediate context
-	if (m_immediateContext)
-	{
-		if (m_backBufferRTV)
-		{
-			// clear the back buffer to a deep blue
-			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
-		}
-
-		if (m_depthStencilView)
-		{
-			// Clear the depth buffer
-			m_immediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		}
-	}
-
-	if (m_overlaySystem)
-	{
-		m_overlaySystem->Clear();
-	}
-
-	// Clear 3D deferred
-	/*if (m_3DdeferredContext)
-	{
-
-	}*/
-}
-
-void dx11::System::RenderFrame(refdef_t * fd)
-{
-	LOG_FUNC();
-
-	// Draw 3D
-	//m_immediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
-
-	if ((fd == NULL) || (fd == nullptr))
-	{
-		LOG(warning) << "NULL refdef provided";
-	}
-
-	// Draw 2D
-	//LOG(trace) << "Drawing 2D"
-}
-
-void dx11::System::EndFrame(void)
-{
-	LOG_FUNC();
-	
-	if (m_overlaySystem)
-	{
-		// Draw 2D
-		m_overlaySystem->Render();
-	}
-
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, m_depthStencilView);
-
-	if (m_swapChain)
-	{
-		// Switch the back buffer and the front buffer
-		m_swapChain->Present(0, 0);
-	}
-
-	// Timing
-	if ((m_clockRunning) && (QueryPerformanceCounter(&m_clockFrameEndCurrent) == TRUE))
-	{
-		m_frameTime = static_cast<double>(m_clockFrameEndCurrent.QuadPart - m_clockFrameStart.QuadPart) / m_clockFrequency.QuadPart;
-
-		m_frameTimeEMA = EMA_ALPHA * m_frameTimeEMA + (1.0 - EMA_ALPHA) * m_frameTime;
-
-		m_frameRateEMA = EMA_ALPHA * m_frameRateEMA + (1.0 - EMA_ALPHA) * (m_clockFrameEndCurrent.QuadPart - m_clockFrameEndPrevious.QuadPart);
-		m_clockFrameEndPrevious = m_clockFrameEndCurrent;
-
-		//LOG(trace) << "Frame <rate> " << m_frameRateEMA << " fps <time> " << (m_frameTime * 1000) << " ms";
-	}
-
-	m_clockRunning = false;
-}
-
-void dx11::System::D3D_Strings_f()
-{
-	LOG_FUNC();
-
-	if ((m_adapterDesc.VendorId == 0x1414) && (m_adapterDesc.DeviceId == 0x8c))
-	{
-		// Microsoft Basic Render Driver
-		ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
-	}
-
-	ref->client->Con_Printf(PRINT_ALL, "D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
-
-	// We need this to get a compliant string
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToUTF8;
-
-	std::stringstream hexValue;
-
-	ref->client->Con_Printf(PRINT_ALL, "Adapter Description: " + convertToUTF8.to_bytes(m_adapterDesc.Description));
-	hexValue.str(std::string());
-	hexValue.clear();
-	hexValue << std::hex << std::showbase << m_adapterDesc.VendorId;
-	ref->client->Con_Printf(PRINT_ALL, "        Vendor ID: " + hexValue.str());
-	hexValue.str(std::string());
-	hexValue.clear();
-	hexValue << std::hex << std::showbase << m_adapterDesc.DeviceId;
-	ref->client->Con_Printf(PRINT_ALL, "        Device ID: " + hexValue.str());
-	hexValue.str(std::string());
-	hexValue.clear();
-	hexValue << std::hex << std::showbase << m_adapterDesc.SubSysId;
-	ref->client->Con_Printf(PRINT_ALL, "        Subsystem ID: " + hexValue.str());
-	hexValue.str(std::string());
-	hexValue.clear();
-	hexValue << std::hex << std::showbase << m_adapterDesc.Revision;
-	ref->client->Con_Printf(PRINT_ALL, "        Revision: " + hexValue.str());
-	ref->client->Con_Printf(PRINT_ALL, "Dedicated Video Memory: " + std::to_string(m_adapterDesc.DedicatedVideoMemory));
-	ref->client->Con_Printf(PRINT_ALL, "Dedicated System Memory: " + std::to_string(m_adapterDesc.DedicatedSystemMemory));
-	ref->client->Con_Printf(PRINT_ALL, "Shared System Memory: " + std::to_string(m_adapterDesc.SharedSystemMemory));
-}
-
-extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f (void)
-{
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
-	{
-		dx11::ref->sys->D3D_Strings_f();
-	}
-}
-
 
 /*
 ** VID_CreateWindow
@@ -460,16 +245,95 @@ bool dx11::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 		return false;
 	}
 
-	if (!D3D_InitDevice())
+	if ((!dx) || (!dx->Initialize(m_hWnd)))
 	{
-		LOG(error) << "Failed to create D3D device";
+		LOG(error) << "Failed to create DirectX system";
 		return false;
 	}
 
-	if ((!m_overlaySystem) || (!m_overlaySystem->Initialize()))
+	if ((!web) || (!web->Initialize()))
 	{
-		LOG(error) << "Failed to create 2D overlay system (GUI)";
+		LOG(error) << "Failed to create network system";
 		return false;
+	}
+
+	return true;
+}
+
+std::string dx11::System::GetCurrentWorkingDirectory()
+{
+	LOG_FUNC();
+
+	TCHAR currentWorkingDirectory[MAX_PATH + 1];
+	ZeroMemory(&currentWorkingDirectory, (sizeof(TCHAR) * MAX_PATH) + sizeof(TCHAR));
+
+	// Request ownership of the critical section.
+	LOG(trace) << "Entering critical section";
+	EnterCriticalSection(&CriticalSection);
+	LOG(trace) << "Entered critical section";
+
+	// Get current working directory
+	DWORD dwRet = GetCurrentDirectory(MAX_PATH, currentWorkingDirectory);
+
+	if (dwRet == 0)
+	{
+		LOG(error) << "GetCurrentDirectory failed " << GetLastError();
+		return std::string();
+	}
+	if (dwRet > MAX_PATH)
+	{
+		LOG(warning) << "Buffer too small; need " << dwRet << " characters, terminating at MAX_PATH=" << MAX_PATH;
+		currentWorkingDirectory[MAX_PATH] = 0;
+	}
+
+	LOG(info) << "Current working directory is " << currentWorkingDirectory;
+
+	// Release ownership of the critical section.
+	LOG(trace) << "Leaving critical section";
+	LeaveCriticalSection(&CriticalSection);
+	LOG(trace) << "Left critical section";
+
+	return currentWorkingDirectory;
+}
+
+bool dx11::System::SetCurrentWorkingDirectory(std::string directory)
+{
+	LOG_FUNC();
+
+	std::string currentWorkingDirectory = GetCurrentWorkingDirectory();
+
+	if (directory != currentWorkingDirectory)
+	{
+		// Request ownership of the critical section.
+		LOG(trace) << "Entering critical section";
+		EnterCriticalSection(&CriticalSection);
+		LOG(trace) << "Entered critical section";
+
+		LOG(info) << "Changing current working directory to: " << directory;
+
+		BOOL success = SetCurrentDirectory(directory.c_str());
+
+		// Release ownership of the critical section.
+		LOG(trace) << "Leaving critical section";
+		LeaveCriticalSection(&CriticalSection);
+		LOG(trace) << "Left critical section";
+
+		if (!success)
+		{
+			LOG(error) << "SetCurrentDirectory failed " << GetLastError();
+			return false;
+		}
+
+		currentWorkingDirectory = GetCurrentWorkingDirectory();
+
+		if (directory == currentWorkingDirectory)
+		{
+			LOG(info) << "Current working directory is now " << currentWorkingDirectory;
+		}
+		else
+		{
+			LOG(error) << "Current working directory is " << currentWorkingDirectory << ", which is not what was requested: " << directory;
+		}
 	}
 
 	return true;
@@ -479,14 +343,14 @@ void dx11::System::Shutdown()
 {
 	LOG_FUNC();
 
-	if (m_overlaySystem)
+	if (web)
 	{
-		m_overlaySystem->Shutdown();
+		web->Shutdown();
 	}
 
-	if (m_d3dInitialized)
+	if (dx)
 	{
-		D3D_Shutdown();
+		dx->Shutdown();
 	}
 
 	if (m_hWnd != nullptr)
@@ -515,296 +379,4 @@ void dx11::System::AppActivate(bool active)
 			ShowWindow(m_hWnd, SW_MINIMIZE);
 		}
 	}
-}
-
-bool dx11::System::D3D_InitDevice()
-{
-	LOG_FUNC();
-
-	HRESULT hr = E_UNEXPECTED;
-	RECT rc = {};
-	UINT createDeviceFlags = 0;
-
-	GetClientRect(m_hWnd, &rc);
-	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
-	m_windowHeight = msl::utilities::SafeInt<unsigned int>(rc.bottom - rc.top);
-
-	LOG(info) << "Creating D3D Device.";
-
-#ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D_DRIVER_TYPE driverTypes[] =
-	{
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE
-	};
-	UINT numDriverTypes = ARRAYSIZE(driverTypes);
-
-	UINT numFeatureLevels = ARRAYSIZE(m_featureLevelArray);
-
-	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
-	{
-		m_driverType = driverTypes[driverTypeIndex];
-
-		hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, m_featureLevelArray, numFeatureLevels, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
-
-		if (hr == E_INVALIDARG)
-		{
-			LOG(warning) << "DirectX 11.1 runtime will not recognize D3D_FEATURE_LEVEL_12_x, so trying again without them.";
-			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &m_featureLevelArray[2], numFeatureLevels - 2, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
-
-			if (hr == E_INVALIDARG)
-			{
-				LOG(warning) << "DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1+ so trying again without them.";
-				hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &m_featureLevelArray[3], numFeatureLevels - 3, D3D11_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
-			}
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			break;
-		}
-	}
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create D3D device.";
-		return false;
-	}
-
-#ifdef _DEBUG
-	// Obtain global debug device
-	if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&d3dDebug))))
-	{
-		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
-		{
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
-
-			D3D11_MESSAGE_ID hide[] =
-			{
-				D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
-			};
-
-			D3D11_INFO_QUEUE_FILTER filter;
-			ZeroMemory(&filter, sizeof(D3D11_INFO_QUEUE_FILTER));
-			filter.DenyList.NumIDs = _countof(hide);
-			filter.DenyList.pIDList = hide;
-			d3dInfoQueue->AddStorageFilterEntries(&filter);
-		}
-	}
-#endif
-	
-	// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-	IDXGIFactory5* dxgiFactory = nullptr;
-	{
-		IDXGIDevice* dxgiDevice = nullptr;
-
-		hr = m_d3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
-
-		if (SUCCEEDED(hr))
-		{
-			IDXGIAdapter* adapter = nullptr;
-
-			hr = dxgiDevice->GetAdapter(&adapter);
-
-			if (SUCCEEDED(hr))
-			{
-				
-				ZeroMemory(&m_adapterDesc, sizeof(DXGI_ADAPTER_DESC));
-				hr = adapter->GetDesc(&m_adapterDesc);
-
-				if (SUCCEEDED(hr))
-				{
-					D3D_Strings_f();
-
-					// Create command
-					ref->client->Cmd_AddCommand("dx11_strings", SHIM_D3D_Strings_f);
-				}
-
-				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
-				adapter->Release();
-			}
-			dxgiDevice->Release();
-		}
-	}
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to obtain DGXIFactory.";
-		return false;
-	}
-
-	// Create swap chain
-	IDXGIFactory2* dxgiFactory2 = nullptr;
-	hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
-
-	if (dxgiFactory2)
-	{
-		// DirectX 11.1 or later
-		hr = m_d3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&m_d3dDevice1));
-
-		if (SUCCEEDED(hr))
-		{
-			(void)m_immediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
-		}
-
-		DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
-		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
-		swapChainDesc.Width = m_windowWidth;
-		swapChainDesc.Height = m_windowHeight;
-		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 1;
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		swapChainDesc.Stereo = FALSE;
-
-		hr = dxgiFactory2->CreateSwapChainForHwnd(m_d3dDevice, m_hWnd, &swapChainDesc, nullptr, nullptr, &m_swapChain1);
-
-		if (SUCCEEDED(hr))
-		{
-			hr = m_swapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&m_swapChain));
-		}
-
-		dxgiFactory2->Release();
-		dxgiFactory2 = nullptr;
-	}
-	else
-	{
-		// DirectX 11.0 systems
-		DXGI_SWAP_CHAIN_DESC swapChainDesc;
-		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
-		swapChainDesc.BufferCount = 1;
-		swapChainDesc.BufferDesc.Width = m_windowWidth;
-		swapChainDesc.BufferDesc.Height = m_windowHeight;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.OutputWindow = m_hWnd;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		hr = dxgiFactory->CreateSwapChain(m_d3dDevice, &swapChainDesc, &m_swapChain);
-	}
-
-	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
-	dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
-
-	dxgiFactory->Release();
-	dxgiFactory = nullptr;
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to obtain DGXIFactory.";
-		return false;
-	}
-
-	// Create a render target view
-	ID3D11Texture2D* pBackBuffer = nullptr;
-	hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to get BackBuffer.";
-		return false;
-	}
-
-	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_backBufferRTV);
-
-	pBackBuffer->Release();
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create BackBuffer RenderTargetView.";
-		return false;
-	}
-
-	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
-
-	// Setup the viewport
-	D3D11_VIEWPORT viewport;
-	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-	viewport.Width = (FLOAT)m_windowWidth;
-	viewport.Height = (FLOAT)m_windowHeight;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-
-	m_immediateContext->RSSetViewports(1, &viewport);
-
-	m_d3dInitialized = true;
-
-	return m_d3dInitialized;
-}
-
-void dx11::System::D3D_Shutdown()
-{
-	LOG_FUNC();
-
-	LOG(info) << "Shutting down D3D.";
-
-	if (m_swapChain)
-	{
-		LOG(info) << "Switching to windowed mode to allow proper cleanup.";
-		m_swapChain->SetFullscreenState(FALSE, nullptr);   
-	}
-	
-	SAFE_RELEASE(m_backBufferRTV);
-
-	SAFE_RELEASE(m_depthStencilState);
-
-	SAFE_RELEASE(m_depthStencilView);
-
-	SAFE_RELEASE(m_swapChain1);
-
-	SAFE_RELEASE(m_swapChain);
-
-	if (m_overlaySystem)
-	{
-		m_overlaySystem->Shutdown();
-	}
-
-	if (m_immediateContext)
-	{
-		// https://blogs.msdn.microsoft.com/chuckw/2012/11/30/direct3d-sdk-debug-layer-tricks/
-		// It can also help to call ClearState and then Flush on the immediate context just before doing the report to ensure nothing is being kept alive by being bound to the render pipeline or because of lazy destruction.
-		m_immediateContext->ClearState();
-		m_immediateContext->Flush();
-
-		if (m_immediateContext1)
-		{
-			m_immediateContext1->ClearState();
-			m_immediateContext1->Flush();
-
-			SAFE_RELEASE(m_immediateContext1);
-		}
-
-		SAFE_RELEASE(m_immediateContext);
-	}
-	
-#ifdef _DEBUG
-	if (d3dDebug)
-	{
-		d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
-
-		SAFE_RELEASE(d3dInfoQueue);
-
-		SAFE_RELEASE(d3dDebug);
-	}
-#endif
-
-	SAFE_RELEASE(m_d3dDevice1);
-
-	SAFE_RELEASE(m_d3dDevice);
-
-	m_d3dInitialized = false;
 }

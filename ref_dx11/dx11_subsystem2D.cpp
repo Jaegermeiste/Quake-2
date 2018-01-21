@@ -68,8 +68,8 @@ bool dx11::Subsystem2D::Initialize()
 	ref->cvars->overlayScale->SetModified(true);
 
 	// Set width and height
-	m_renderTargetWidth = ref->sys->m_windowWidth;
-	m_renderTargetHeight = ref->sys->m_windowHeight;
+	m_renderTargetWidth = ref->sys->dx->m_windowWidth;
+	m_renderTargetHeight = ref->sys->dx->m_windowHeight;
 
 	// Create context
 	/*hr = ref->sys->m_d3dDevice->CreateDeferredContext(0, &m_2DdeferredContext);
@@ -92,7 +92,7 @@ bool dx11::Subsystem2D::Initialize()
 	textureDesc.MiscFlags = 0;
 
 	// Create the render target texture.
-	hr = ref->sys->m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
+	hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_2DrenderTargetTexture);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create Texture2D.";
@@ -105,7 +105,7 @@ bool dx11::Subsystem2D::Initialize()
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	hr = ref->sys->m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
+	hr = ref->sys->dx->m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create RenderTargetView.";
@@ -119,7 +119,7 @@ bool dx11::Subsystem2D::Initialize()
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
 	// Create the shader resource view.
-	hr = ref->sys->m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
+	hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create ShaderResourceView.";
@@ -150,7 +150,7 @@ bool dx11::Subsystem2D::Initialize()
 	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	// Create the state using the device.
-	hr = ref->sys->m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
+	hr = ref->sys->dx->m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
 
 	if (FAILED(hr))
 	{
@@ -164,7 +164,7 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	if (!m_2Dshader.Initialize(ref->sys->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
+	if (!m_2Dshader.Initialize(ref->sys->dx->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;
@@ -227,7 +227,7 @@ bool dx11::Subsystem2D::InitializeBuffers()
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	hr = ref->sys->m_d3dDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &m_2DvertexBuffer);
+	hr = ref->sys->dx->m_d3dDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &m_2DvertexBuffer);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Failed to create vertex buffer.";
@@ -248,7 +248,7 @@ bool dx11::Subsystem2D::InitializeBuffers()
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	hr = ref->sys->m_d3dDevice->CreateBuffer(&indexBufferDesc, &indexData, &m_2DindexBuffer);
+	hr = ref->sys->dx->m_d3dDevice->CreateBuffer(&indexBufferDesc, &indexData, &m_2DindexBuffer);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Failed to create index buffer.";
@@ -278,7 +278,7 @@ void dx11::Subsystem2D::Clear()
 	LOG_FUNC();
 
 	// Clear 2D deferred
-	if (ref->sys->m_immediateContext)
+	if (ref->sys->dx->m_immediateContext)
 	{
 		LOG(trace) << "Clearing overlay RenderTargetView.";
 
@@ -286,7 +286,7 @@ void dx11::Subsystem2D::Clear()
 #ifndef _DEBUG
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
 #else
-		ref->sys->m_immediateContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Fuchsia);
+		ref->sys->dx->m_immediateContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Fuchsia);
 #endif
 	}
 }
@@ -312,13 +312,13 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	}
 
 	// Calculate the screen coordinates of the left side of the overlay.
-	left = static_cast<float>((ref->sys->m_windowWidth / 2) * -1.0) + static_cast<float>((m_renderTargetWidth * ref->cvars->overlayScale->Float()) / 2.0);
+	left = static_cast<float>((ref->sys->dx->m_windowWidth / 2) * -1.0) - (static_cast<float>((ref->sys->dx->m_windowWidth / 2) * -1.0) + (static_cast<float>(m_renderTargetWidth / 2) * ref->cvars->overlayScale->Float()));
 
 	// Calculate the screen coordinates of the right side of the overlay.
 	right = left + static_cast<float>(m_renderTargetWidth * ref->cvars->overlayScale->Float());
 
 	// Calculate the screen coordinates of the top of the overlay.
-	top = static_cast<float>(ref->sys->m_windowHeight / 2) - static_cast<float>((m_renderTargetHeight * ref->cvars->overlayScale->Float()) / 2.0);
+	top = static_cast<float>(ref->sys->dx->m_windowHeight / 2) - (static_cast<float>(ref->sys->dx->m_windowHeight / 2) - static_cast<float>((m_renderTargetHeight * ref->cvars->overlayScale->Float()) / 2.0));
 
 	// Calculate the screen coordinates of the bottom of the overlay.
 	bottom = top - static_cast<float>(m_renderTargetHeight * ref->cvars->overlayScale->Float());
@@ -355,7 +355,7 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	vertices[5].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
 
 	// Lock the vertex buffer so it can be written to.
-	hr = ref->sys->m_immediateContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	hr = ref->sys->dx->m_immediateContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Failed to lock vertex buffer.";
@@ -369,7 +369,7 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	memcpy(verticesPtr, (void*)vertices, (sizeof(Vertex2D) * m_2DvertexCount));
 
 	// Unlock the vertex buffer.
-	ref->sys->m_immediateContext->Unmap(m_2DvertexBuffer, 0);
+	ref->sys->dx->m_immediateContext->Unmap(m_2DvertexBuffer, 0);
 
 	// Release the vertex array as it is no longer needed.
 	if (vertices)
@@ -388,19 +388,19 @@ void dx11::Subsystem2D::RenderBuffers()
 {
 	LOG_FUNC();
 
-	if (ref->sys->m_immediateContext)
+	if (ref->sys->dx->m_immediateContext)
 	{
 		unsigned int stride = sizeof(Vertex2D);
 		unsigned int offset = 0;
 
 		// Set the vertex buffer to active in the input assembler so it can be rendered.
-		ref->sys->m_immediateContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
+		ref->sys->dx->m_immediateContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
 
 		// Set the index buffer to active in the input assembler so it can be rendered.
-		ref->sys->m_immediateContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		ref->sys->dx->m_immediateContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-		ref->sys->m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		ref->sys->dx->m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
 
@@ -409,30 +409,30 @@ void dx11::Subsystem2D::Render()
 	LOG_FUNC();
 
 	// Set depth to disabled
-	ref->sys->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+	ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
 	if (m_2DcommandList)
 	{
 		// Execute all pending commands to draw to the overlay render target
-		ref->sys->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
+		ref->sys->dx->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
 	}
 
 	// Set the back buffer as the current render target
-	ref->sys->m_immediateContext->OMSetRenderTargets(1, &ref->sys->m_backBufferRTV, nullptr);
+	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, nullptr);
 
 	// Render 2D overlay to back buffer
 	UpdateBuffers();
 	RenderBuffers();
 		
 	// Draw the overlay to the back buffer
-	m_2Dshader.Render(ref->sys->m_immediateContext, m_2DindexCount, ref->sys->m_3DworldMatrix, ref->sys->m_3DviewMatrix, m_2DorthographicMatrix, m_2DshaderResourceView);
+	m_2Dshader.Render(ref->sys->dx->m_immediateContext, m_2DindexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView);
 
 	// Clear the PS binding
 	ID3D11ShaderResourceView* clearSRV = { NULL };
-	ref->sys->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
+	ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 	// Set the overlay RTV as the current render target
-	ref->sys->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 }
 
 void dx11::Subsystem2D::Shutdown()
