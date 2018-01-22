@@ -48,7 +48,8 @@ namespace dx11
 		IDXGISurface*				m_dxgiSurface = nullptr;
 		ID2D1RenderTarget*			m_d2dRenderTarget = nullptr;
 
-		byte						m_padding[8];
+		bool						m_d2dDrawingActive = false;
+		byte						m_padding[4];
 
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
 
@@ -73,6 +74,8 @@ namespace dx11
 		bool						UpdateBuffers();
 
 		void						RenderBuffers();
+
+		void						EndD2DDrawing();
 		
 	public:
 		ID2D1SolidColorBrush*		colorBlack = nullptr;
@@ -85,6 +88,8 @@ namespace dx11
 									Subsystem2D();
 
 		bool						Initialize();
+
+		void						ActivateD2DDrawing();
 
 		void						Clear();
 

@@ -40,6 +40,7 @@ dx11::Subsystem2D::Subsystem2D()
 	m_depthDisabledStencilState = nullptr;
 	m_dxgiSurface = nullptr;
 	m_d2dRenderTarget = nullptr;
+	m_d2dDrawingActive = false;
 
 	m_2DvertexBuffer = nullptr;
 	m_2DindexBuffer = nullptr;
@@ -283,6 +284,39 @@ bool dx11::Subsystem2D::Initialize()
 	return UpdateBuffers();
 }
 
+void dx11::Subsystem2D::ActivateD2DDrawing()
+{
+	LOG_FUNC();
+
+	if ((ref->sys->dx->m_d2dContext) && (!m_d2dDrawingActive))
+	{
+		//LOG(trace) << "Beginning D2D Draw";
+
+		ref->sys->dx->m_d2dContext->BeginDraw();
+		m_d2dDrawingActive = true;
+	}
+}
+
+void dx11::Subsystem2D::EndD2DDrawing()
+{
+	LOG_FUNC();
+
+	if ((ref->sys->dx->m_d2dContext) && (m_d2dDrawingActive))
+	{
+		HRESULT hr = E_UNEXPECTED;
+
+		//LOG(info) << "Ending D2D Draw";
+
+		hr = ref->sys->dx->m_d2dContext->EndDraw();
+		if (hr == D2DERR_RECREATE_TARGET)
+		{
+			hr = S_OK;
+			LOG(error) << "m_d2dContext->EndDraw() returned D2DERR_RECREATE_TARGET";
+		}
+		m_d2dDrawingActive = false;
+	}
+}
+
 bool dx11::Subsystem2D::InitializeBuffers()
 {
 	// Courtesy http://www.rastertek.com/dx11tut11.html
@@ -524,27 +558,30 @@ void dx11::Subsystem2D::Render()
 {
 	LOG_FUNC();
 
+	HRESULT hr = E_UNEXPECTED;
+
 	// Set depth to disabled
 	ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
-	if (m_2DcommandList)
+	/*if (m_2DcommandList)
 	{
 		// Execute all pending commands to draw to the overlay render target
 		ref->sys->dx->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
+	}*/
+
+	EndD2DDrawing();
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
+	ref->sys->dx->m_d2dContext->DrawImage(ref->sys->dx->m_d2dCommandList);
+	hr = ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
+	if (hr == D2DERR_RECREATE_TARGET) 
+	{
+		hr = S_OK;
+		LOG(error) << "m_d2dRenderTarget->EndDraw() returned D2DERR_RECREATE_TARGET";
 	}
 
 	// Set the back buffer as the current render target
 	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, nullptr);
-
-	ref->sys->dx->m_d2dContext->EndDraw();
-	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
-	ref->sys->dx->m_d2dContext->DrawImage(ref->sys->dx->m_d2dCommandList);
-	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
-
-	ref->sys->dx->m_d2dContext->CreateCommandList(&ref->sys->dx->m_d2dCommandList);
-	ref->sys->dx->m_d2dContext->SetTarget(ref->sys->dx->m_d2dCommandList);
-	ref->sys->dx->m_d2dContext->BeginDraw();
-
+	
 	// Render 2D overlay to back buffer
 	UpdateBuffers();
 	RenderBuffers();
@@ -562,6 +599,8 @@ void dx11::Subsystem2D::Render()
 
 void dx11::Subsystem2D::FadeScreen()
 {
+	ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(
 		D2D1::RectF(
 			0,
@@ -577,10 +616,7 @@ void dx11::Subsystem2D::Shutdown()
 
 	LOG(info) << "Shutting down.";
 
-	if (ref->sys->dx->m_d2dContext)
-	{
-		ref->sys->dx->m_d2dContext->EndDraw();
-	}
+	EndD2DDrawing();
 
 	m_2Dshader.Shutdown();
 

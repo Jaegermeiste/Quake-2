@@ -197,7 +197,12 @@ inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 		bool retVal = dx11::ref->sys->Initialize(hInstance, wndProc);
 		if (retVal == true)
 		{
-			return true;
+			retVal = dx11::ref->img->Initialize();
+
+			if (retVal == true)
+			{
+				return true;
+			}
 		}
 	}
 	return false;

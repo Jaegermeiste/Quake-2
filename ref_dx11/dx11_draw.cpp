@@ -32,16 +32,26 @@ void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name
 
 void dx11::Draw::Pic(int x, int y, std::string name)
 {
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, CHAR_SIZE, CHAR_SIZE), ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::StretchPic(int x, int y, int w, int h, std::string name)
 {
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::Char(int x, int y, unsigned char c)
 {
+	LOG_FUNC();
+
 	if (y <= -8)
 		return;			// totally off screen
 
@@ -68,11 +78,19 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 
 void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)
 {
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }
 
 void dx11::Draw::Fill(int x, int y, int w, int h, int c)
 {
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h),ref->sys->dx->subsystem2D->colorBlack);
 }
 
@@ -83,5 +101,9 @@ void dx11::Draw::FadeScreen(void)
 
 void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
 {
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
 	ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 }

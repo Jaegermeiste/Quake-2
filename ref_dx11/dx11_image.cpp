@@ -30,6 +30,24 @@ using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
+bool dx11::ImageManager::Initialize()
+{
+	LOG_FUNC();
+
+	GetPalette();
+
+	return true;
+}
+
+void dx11::ImageManager::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	LOG(info) << "Shutdown complete.";
+}
+
 /*
 ===============
 GetPalette
@@ -45,7 +63,7 @@ void dx11::ImageManager::GetPalette(void)
 					height	= 0;
 
 	// get the palette
-
+	LOG(info) << "Loading pics/colormap.pcx";
 	LoadPCX("pics/colormap.pcx", &pic, &pal, width, height);
 
 	if (!pal)
@@ -209,16 +227,16 @@ void dx11::ImageManager::LoadPCX(std::string fileName, byte **pic, byte **palett
 	ref->client->FS_FreeFile(pcx);
 }
 
-dx11::Texture* dx11::ImageManager::CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw)
+dx11::Texture2D* dx11::ImageManager::CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw)
 {
 	LOG_FUNC();
 
-	dx11::Texture* texture = nullptr;
+	dx11::Texture2D* texture = nullptr;
 	HRESULT hr = E_UNEXPECTED;
 
 	if ((*raw) != nullptr)
 	{
-		texture = new dx11::Texture;
+		texture = new dx11::Texture2D;
 
 		ZeroMemory(&texture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
 		ZeroMemory(&texture->m_data, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -327,7 +345,7 @@ std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t 
 
 	if (name.length() < 5)
 	{
-		ref->client->Sys_Error (ERR_DROP, "Bad name (<5): " + name);
+		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name (<5): " + name);
 	}
 
 	// Create a new image
