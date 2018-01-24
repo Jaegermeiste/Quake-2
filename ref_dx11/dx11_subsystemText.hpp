@@ -47,6 +47,7 @@ namespace dx11
 		bool						Initialize();
 
 		void						RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush);
+		void						RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush);
 
 		void						Shutdown();
 

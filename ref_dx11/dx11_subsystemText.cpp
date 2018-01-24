@@ -87,21 +87,49 @@ bool dx11::SubsystemText::Initialize()
 	return true;
 }
 
+void dx11::SubsystemText::RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush)
+{
+	LOG_FUNC();
+
+	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
+
+	//ref->sys->dx->m_d2dContext->SetTransform(D2D1::Matrix3x2F::Identity());
+	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+
+	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+	//ref->sys->dx->m_d2dContext->DrawText(
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->DrawText(
+		text,
+		wcslen(text),
+		m_textFormat,
+		D2D1::RectF(x, y, x + w, y + h),
+		colorBrush,
+		D2D1_DRAW_TEXT_OPTIONS_NONE,
+		DWRITE_MEASURING_MODE_NATURAL
+	);
+
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
+
+}
+
 void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush)
 {
 	LOG_FUNC();
 
 	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
 	
-	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
 
 	//ref->sys->dx->m_d2dContext->SetTransform(D2D1::Matrix3x2F::Identity());
 	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 
 	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 	
-	ref->sys->dx->m_d2dContext->DrawText(
-	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->DrawText(
+	//ref->sys->dx->m_d2dContext->DrawText(
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->DrawText(
 		ref->sys->convertUTF.from_bytes(text.c_str()).c_str(),
 		text.length(),
 		m_textFormat,
@@ -111,7 +139,7 @@ void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string tex
 		DWRITE_MEASURING_MODE_NATURAL
 	);
 
-	//ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
+	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
 
 }
 

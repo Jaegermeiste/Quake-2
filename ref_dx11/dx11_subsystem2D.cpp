@@ -240,7 +240,13 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	if (!m_2Dshader.Initialize(ref->sys->dx->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
+	if (!m_2DshaderVertexColor.Initialize(ref->sys->dx->m_d3dDevice, "colorVertex.hlsl", "vertexPixel.hlsl"))
+	{
+		LOG(error) << "Failed to properly create shaders.";
+		return false;
+	}
+
+	if (!m_2DshaderTexture.Initialize(ref->sys->dx->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;
@@ -281,7 +287,7 @@ bool dx11::Subsystem2D::Initialize()
 
 	LOG(info) << "Successfully initialized 2D subsystem.";
 
-	return UpdateBuffers();
+	return UpdateRenderTargetBuffers();
 }
 
 void dx11::Subsystem2D::ActivateD2DDrawing()
@@ -441,7 +447,7 @@ void dx11::Subsystem2D::Clear()
 	}
 }
 
-bool dx11::Subsystem2D::UpdateBuffers()
+bool dx11::Subsystem2D::UpdateRenderTargetBuffers()
 {
 	LOG_FUNC();
 
@@ -534,23 +540,118 @@ bool dx11::Subsystem2D::UpdateBuffers()
 	return true;
 }
 
-void dx11::Subsystem2D::RenderBuffers()
+/*
+bool dx11::Subsystem2D::UpdateVertexColorBuffers()
 {
 	LOG_FUNC();
 
-	if (ref->sys->dx->m_immediateContext)
+	float						left = 0.0,
+		right = 0.0,
+		top = 0.0,
+		bottom = 0.0;
+	Vertex2D*					vertices = nullptr;
+	Vertex2D*					verticesPtr = nullptr;
+	D3D11_MAPPED_SUBRESOURCE	mappedResource;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	HRESULT						hr = E_UNEXPECTED;
+
+	// Don't update the vertex buffer if the scale hasn't changed (positions are the same)
+	if (!ref->cvars->overlayScale->Modified())
+	{
+		return true;
+	}
+
+	// Calculate the screen coordinates of the left side of the overlay.
+	left = static_cast<float>((ref->sys->dx->m_windowWidth / 2) * -1.0) - (static_cast<float>((ref->sys->dx->m_windowWidth / 2) * -1.0) + (static_cast<float>(m_renderTargetWidth / 2) * ref->cvars->overlayScale->Float()));
+
+	// Calculate the screen coordinates of the right side of the overlay.
+	right = left + static_cast<float>(m_renderTargetWidth * ref->cvars->overlayScale->Float());
+
+	// Calculate the screen coordinates of the top of the overlay.
+	top = static_cast<float>(ref->sys->dx->m_windowHeight / 2) - (static_cast<float>(ref->sys->dx->m_windowHeight / 2) - static_cast<float>((m_renderTargetHeight * ref->cvars->overlayScale->Float()) / 2.0));
+
+	// Calculate the screen coordinates of the bottom of the overlay.
+	bottom = top - static_cast<float>(m_renderTargetHeight * ref->cvars->overlayScale->Float());
+
+	LOG(info) << "Calculated overlay coordinates: left=" << left << " right=" << right << " top=" << top << " bottom=" << bottom;
+
+	// Create the vertex array.
+	vertices = new Vertex2D[m_2DvertexCount];
+	if (!vertices)
+	{
+		LOG(error) << "Failed to allocate memory for vertex buffer.";
+		return false;
+	}
+
+	// Load the vertex array with data.
+	// First triangle.
+	vertices[0].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[0].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+
+	vertices[1].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[1].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+	vertices[2].position = DirectX::XMFLOAT3(left, bottom, 0.0f);  // Bottom left.
+	vertices[2].texCoord = DirectX::XMFLOAT2(0.0f, 1.0f);
+
+	// Second triangle.
+	vertices[3].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[3].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+
+	vertices[4].position = DirectX::XMFLOAT3(right, top, 0.0f);  // Top right.
+	vertices[4].texCoord = DirectX::XMFLOAT2(1.0f, 0.0f);
+
+	vertices[5].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[5].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+	// Lock the vertex buffer so it can be written to.
+	hr = ref->sys->dx->m_immediateContext->Map(m_2DvertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to lock vertex buffer.";
+		return false;
+	}
+
+	// Get a pointer to the data in the vertex buffer.
+	verticesPtr = (Vertex2D*)mappedResource.pData;
+
+	// Copy the data into the vertex buffer.
+	memcpy(verticesPtr, (void*)vertices, (sizeof(Vertex2D) * m_2DvertexCount));
+
+	// Unlock the vertex buffer.
+	ref->sys->dx->m_immediateContext->Unmap(m_2DvertexBuffer, 0);
+
+	// Release the vertex array as it is no longer needed.
+	if (vertices)
+	{
+		delete[] vertices;
+		vertices = nullptr;
+	}
+
+	// Clear the modified status, we dealt with it
+	ref->cvars->overlayScale->SetModified(false);
+
+	return true;
+}
+*/
+
+void dx11::Subsystem2D::RenderBuffers(ID3D11DeviceContext*	context)
+{
+	LOG_FUNC();
+
+	if (context)
 	{
 		unsigned int stride = sizeof(Vertex2D);
 		unsigned int offset = 0;
 
 		// Set the vertex buffer to active in the input assembler so it can be rendered.
-		ref->sys->dx->m_immediateContext->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
+		context->IASetVertexBuffers(0, 1, &m_2DvertexBuffer, &stride, &offset);
 
 		// Set the index buffer to active in the input assembler so it can be rendered.
-		ref->sys->dx->m_immediateContext->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(m_2DindexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-		ref->sys->dx->m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
 
@@ -583,11 +684,11 @@ void dx11::Subsystem2D::Render()
 	ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, nullptr);
 	
 	// Render 2D overlay to back buffer
-	UpdateBuffers();
-	RenderBuffers();
+	UpdateRenderTargetBuffers();
+	RenderBuffers(ref->sys->dx->m_immediateContext);
 		
 	// Draw the overlay to the back buffer
-	m_2Dshader.Render(ref->sys->dx->m_immediateContext, m_2DindexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView);
+	m_2DshaderTexture.Render(ref->sys->dx->m_immediateContext, m_2DindexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView);
 
 	// Clear the PS binding
 	ID3D11ShaderResourceView* clearSRV = { NULL };
@@ -618,7 +719,7 @@ void dx11::Subsystem2D::Shutdown()
 
 	EndD2DDrawing();
 
-	m_2Dshader.Shutdown();
+	m_2DshaderTexture.Shutdown();
 
 	SAFE_RELEASE(colorYellowGreen);
 

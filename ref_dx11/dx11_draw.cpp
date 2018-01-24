@@ -58,8 +58,8 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 	
 	if ((c >= '!') && (c <= '}'))
 	{
-		char		strChar[2];
-		ZeroMemory(&strChar, sizeof(char) * 2);
+		WCHAR		strChar[2];
+		ZeroMemory(&strChar, sizeof(WCHAR) * 2);
 		strChar[0] = c;
 
 		// Gray Text
@@ -67,8 +67,8 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 	}
 	else if ((c >= 161) && (c <= 253))
 	{
-		char		strChar[2];
-		ZeroMemory(&strChar, sizeof(char) * 2);
+		WCHAR		strChar[2];
+		ZeroMemory(&strChar, sizeof(WCHAR) * 2);
 		strChar[0] = (c - 128);
 
 		// Green Text
