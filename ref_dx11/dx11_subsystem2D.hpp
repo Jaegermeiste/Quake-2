@@ -47,37 +47,21 @@ namespace dx11
 		ID3D11DepthStencilState*	m_depthDisabledStencilState = nullptr;
 		IDXGISurface*				m_dxgiSurface = nullptr;
 		ID2D1RenderTarget*			m_d2dRenderTarget = nullptr;
-		ID3D11Buffer*				m_2DvertexBuffer = nullptr;
-		ID3D11Buffer*				m_2DindexBuffer = nullptr;
 		ID2D1SolidColorBrush*		fadeColor = nullptr;
 
 		bool						m_d2dDrawingActive = false;
-		byte						m_padding[11];
+
+		byte						m_padding[3];
 
 		DirectX::XMMATRIX			m_2DorthographicMatrix;
-
-		struct Vertex2D
-		{
-			DirectX::XMFLOAT3 position;
-			DirectX::XMFLOAT4 color;
-			DirectX::XMFLOAT2 texCoord;
-		};
-
-
-		unsigned int				m_2DvertexCount = 0,
-									m_2DindexCount = 0;
 
 		Shader						m_2DshaderVertexColor;
 		Shader						m_2DshaderTexture;
 
+		byte						m_padding2[8];
 
-
-
-		bool						InitializeBuffers();
-
-		bool						UpdateRenderTargetBuffers();
-
-		void						RenderBuffers(ID3D11DeviceContext*	context);
+		Quad2D						m_renderTargetQuad;
+		Quad2D						m_generalPurposeQuad;
 
 		void						EndD2DDrawing();
 		
@@ -90,7 +74,7 @@ namespace dx11
 		ID2D1SolidColorBrush*		colorBlue = nullptr;
 
 	private:
-		byte						m_padding2[8];
+		byte						m_padding3[8];
 
 	public:
 									Subsystem2D();

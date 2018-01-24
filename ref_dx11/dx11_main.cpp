@@ -57,6 +57,32 @@ bool dx11::Initialize()
 	return true;
 }
 
+void dx11::DumpD3DDebugMessagesToLog()
+{
+#ifdef _DEBUG
+	if (d3dInfoQueue)
+	{
+		UINT64 numDebugMsgs = d3dInfoQueue->GetNumStoredMessages();
+
+		for (UINT64 i = 0; i < numDebugMsgs; i++)
+		{
+			// Get the size of the message
+			SIZE_T messageLength = 0;
+			HRESULT hr = d3dInfoQueue->GetMessage(i, NULL, &messageLength);
+
+			// Allocate space and get the message
+			D3D11_MESSAGE * pMessage = (D3D11_MESSAGE*)malloc(messageLength);
+			hr = d3dInfoQueue->GetMessage(i, pMessage, &messageLength);
+
+			// Log the message
+			LOG(debug) << "Category: " << pMessage->Category << " Severity: " << pMessage->Severity << " Description: " << pMessage->pDescription;
+		}
+
+		d3dInfoQueue->ClearStoredMessages();
+	}
+#endif
+}
+
 /*
 ===============
 dx11::Shutdown

@@ -90,8 +90,8 @@ bool dx11::SubsystemText::Initialize()
 void dx11::SubsystemText::RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush)
 {
 	LOG_FUNC();
-
-	ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+	
+	//ref->sys->dx->subsystem2D->ActivateD2DDrawing();
 
 	ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
 
@@ -112,7 +112,7 @@ void dx11::SubsystemText::RenderText(int x, int y, int w, int h, WCHAR* text, ID
 	);
 
 	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
-
+	
 }
 
 void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush)

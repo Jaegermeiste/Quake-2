@@ -391,7 +391,7 @@ bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	dataPtr = static_cast<MatrixBufferType*>(mappedResource.pData);
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;
@@ -436,6 +436,8 @@ bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 
 	// Draw the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+	DumpD3DDebugMessagesToLog();
 
 	return true;
 }

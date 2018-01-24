@@ -51,7 +51,11 @@ dx11::Log::Log()
 
 	boost::log::core::get()->set_filter
 	(
+#ifdef _DEBUG
+		boost::log::trivial::severity >= debug
+#else
 		boost::log::trivial::severity >= info
+#endif
 	);
 
 	BOOST_LOG_TRIVIAL(info) << "Log Created Successfully.";

@@ -115,6 +115,7 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 #include "dx11_shader.hpp"
 #include "dx11_web.hpp"
 #include "dx11_draw.hpp"
+#include "dx11_quad2D.hpp"
 #include "dx11_subsystem2D.hpp"
 #include "dx11_subsystem3D.hpp"
 #include "dx11_subsystemText.hpp"
@@ -130,6 +131,8 @@ namespace dx11
 	// Functions
 	bool			Initialize	();
 	void			Shutdown	();
+
+	void			DumpD3DDebugMessagesToLog();
 }
 
 #endif // !__DX11_LOCAL_HPP__

@@ -33,9 +33,17 @@ ref_dx11
 
 namespace dx11
 {
+	__declspec(align(16)) struct Vertex2D
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMVECTOR color;
+		DirectX::XMFLOAT2 texCoord;
+	};
+
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 	__declspec(align(16)) class Dx
 	{
+		friend class Quad2D;
 		friend class SubsystemText;
 		friend class Subsystem2D;
 		friend class Subsystem3D;

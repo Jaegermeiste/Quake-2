@@ -155,6 +155,8 @@ void dx11::Dx::BeginFrame(void)
 	{
 		subsystem3D->Clear();
 	}
+
+	DumpD3DDebugMessagesToLog();
 }
 
 void dx11::Dx::RenderFrame(refdef_t * fd)
@@ -183,13 +185,17 @@ void dx11::Dx::EndFrame(void)
 		subsystem2D->Render();
 	}
 
+	// Clear the PS binding
+	ID3D11ShaderResourceView* clearSRV = { NULL };
+	ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
+
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, m_depthStencilView);
 
 	if (m_swapChain)
 	{
 		// Switch the back buffer and the front buffer
-		m_swapChain->Present(0, 0);
+		m_swapChain->Present(ref->cvars->Vsync->UInt(), 0);
 	}
 
 	// Timing
@@ -206,6 +212,8 @@ void dx11::Dx::EndFrame(void)
 	}
 
 	m_clockRunning = false;
+
+	DumpD3DDebugMessagesToLog();
 }
 
 void dx11::Dx::D3D_Strings_f()
@@ -382,6 +390,7 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
 
 			D3D11_MESSAGE_ID hide[] =
 			{
@@ -435,7 +444,7 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 				adapter->Release();
 			}
-
+			/*
 			// Create a Direct2D factory.
 			hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, &m_d2dFactory);
 
@@ -481,7 +490,7 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 			{
 				LOG(error) << "Unable to create D2D1 Factory1.";
 			}
-
+			*/
 			dxgiDevice->Release();
 		}
 		else if (FAILED(hr))
@@ -609,7 +618,7 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
 
-	m_d2dContext->SetTarget(m_d2dCommandList);
+	//m_d2dContext->SetTarget(m_d2dCommandList);
 
 
 	// Setup the viewport
