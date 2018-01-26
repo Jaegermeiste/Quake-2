@@ -225,98 +225,108 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 {
 	LOG_FUNC();
 
-	HRESULT hr = E_UNEXPECTED;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
-	ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 3);
-	UINT numElements = 0;
-	D3D11_BUFFER_DESC matrixBufferDesc;
-	ZeroMemory(&matrixBufferDesc, sizeof(D3D11_BUFFER_DESC));
-	D3D11_SAMPLER_DESC samplerDesc;
-	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
-
-	// Create the vertex input layout description.
-	// This setup needs to match the Vertex stucture
-	polygonLayout[0].SemanticName = "POSITION";
-	polygonLayout[0].SemanticIndex = 0;
-	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[0].InputSlot = 0;
-	polygonLayout[0].AlignedByteOffset = 0;
-	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[0].InstanceDataStepRate = 0;
-
-	polygonLayout[1].SemanticName = "COLOR";
-	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	polygonLayout[1].InputSlot = 0;
-	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[1].InstanceDataStepRate = 0;
-
-	polygonLayout[2].SemanticName = "TEXCOORD";
-	polygonLayout[2].SemanticIndex = 0;
-	polygonLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
-	polygonLayout[2].InputSlot = 0;
-	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[2].InstanceDataStepRate = 0;
-
-	// Get a count of the elements in the layout.
-	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
-
-	// Build Vertex Shader
-	if (!CompileShader(device, vsFileName, SHADER_TARGET_VERTEX, polygonLayout, numElements))
+	if (device)
 	{
-		LOG(error) << "Failed to obtain Vertex Shader";
-		return false;
+
+		HRESULT hr = E_UNEXPECTED;
+		D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+		ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 3);
+		UINT numElements = 0;
+		D3D11_BUFFER_DESC matrixBufferDesc;
+		ZeroMemory(&matrixBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		D3D11_SAMPLER_DESC samplerDesc;
+		ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
+
+		// Create the vertex input layout description.
+		// This setup needs to match the Vertex stucture
+		polygonLayout[0].SemanticName = "POSITION";
+		polygonLayout[0].SemanticIndex = 0;
+		polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		polygonLayout[0].InputSlot = 0;
+		polygonLayout[0].AlignedByteOffset = 0;
+		polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[0].InstanceDataStepRate = 0;
+
+		polygonLayout[1].SemanticName = "COLOR";
+		polygonLayout[1].SemanticIndex = 0;
+		polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		polygonLayout[1].InputSlot = 0;
+		polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[1].InstanceDataStepRate = 0;
+
+		polygonLayout[2].SemanticName = "TEXCOORD";
+		polygonLayout[2].SemanticIndex = 0;
+		polygonLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+		polygonLayout[2].InputSlot = 0;
+		polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[2].InstanceDataStepRate = 0;
+
+		// Get a count of the elements in the layout.
+		numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+		// Build Vertex Shader
+		if (!CompileShader(device, vsFileName, SHADER_TARGET_VERTEX, polygonLayout, numElements))
+		{
+			LOG(error) << "Failed to obtain Vertex Shader";
+			return false;
+		}
+
+		// Build Pixel Shader
+		if (!CompileShader(device, psFileName, SHADER_TARGET_PIXEL, nullptr, 0))
+		{
+			LOG(error) << "Failed to obtain Pixel Shader";
+			return false;
+		}
+
+		// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+		matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+		matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		matrixBufferDesc.MiscFlags = 0;
+		matrixBufferDesc.StructureByteStride = 0;
+
+		// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+		hr = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create matrix buffer";
+			return false;
+		}
+
+		// Create a texture sampler state description.
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.BorderColor[0] = 0;
+		samplerDesc.BorderColor[1] = 0;
+		samplerDesc.BorderColor[2] = 0;
+		samplerDesc.BorderColor[3] = 0;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		// Create the texture sampler state.
+		hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create sampler state";
+			return false;
+		}
+
+		return true;
+	}
+	else
+	{
+		LOG(error) << "Bad device.";
 	}
 
-	// Build Pixel Shader
-	if (!CompileShader(device, psFileName, SHADER_TARGET_PIXEL, nullptr, 0))
-	{
-		LOG(error) << "Failed to obtain Pixel Shader";
-		return false;
-	}
-
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	hr = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Failed to create matrix buffer";
-		return false;
-	}
-
-	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Create the texture sampler state.
-	hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
-	if (FAILED(hr))
-	{
-		LOG(error) << "Failed to create sampler state";
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 
@@ -342,102 +352,126 @@ void dx11::Shader::Shutdown()
 
 void dx11::Shader::OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string shaderFilename)
 {
-	char* compileErrors = nullptr;
-	unsigned long bufferSize = 0;
-	std::string errMsg = "";
-
-	// Get a pointer to the error message text buffer.
-	compileErrors = (char*)(errorMessage->GetBufferPointer());
-
-	// Get the length of the message.
-	bufferSize = errorMessage->GetBufferSize();
-	
-	// Write out the error message.
-	for (unsigned int i = 0; i < bufferSize; i++)
+	if (errorMessage)
 	{
-		errMsg += compileErrors[i];
+		char* compileErrors = nullptr;
+		unsigned long bufferSize = 0;
+		std::string errMsg = "";
+
+		// Get a pointer to the error message text buffer.
+		compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+		// Get the length of the message.
+		bufferSize = errorMessage->GetBufferSize();
+
+		// Write out the error message.
+		for (unsigned int i = 0; i < bufferSize; i++)
+		{
+			errMsg += compileErrors[i];
+		}
+
+		LOG(error) << errMsg;
+
+		// Release the error message.
+		errorMessage->Release();
+		errorMessage = nullptr;
 	}
-
-	LOG(error) << errMsg;
-
-	// Release the error message.
-	errorMessage->Release();
-	errorMessage = nullptr;
 }
 
 
-bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource)
 {
 	LOG_FUNC();
 
-	HRESULT hr = E_UNEXPECTED;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	MatrixBufferType* dataPtr = nullptr;
-	unsigned int bufferNumber = 0;
-
-	// Transpose the matrices to prepare them for the shader.
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	viewMatrix = XMMatrixTranspose(viewMatrix);
-	projectionMatrix = XMMatrixTranspose(projectionMatrix);
-
-	// Lock the constant buffer so it can be written to.
-	hr = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-	if (FAILED(hr))
+	if (deviceContext)
 	{
-		LOG(warning) << "Failed to lock matrix buffer";
-		return false;
+		HRESULT hr = E_UNEXPECTED;
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+		MatrixBufferType* dataPtr = nullptr;
+		unsigned int bufferNumber = 0;
+
+		// Transpose the matrices to prepare them for the shader.
+		worldMatrix = XMMatrixTranspose(worldMatrix);
+		viewMatrix = XMMatrixTranspose(viewMatrix);
+		projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+		// Lock the constant buffer so it can be written to.
+		hr = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+		if (FAILED(hr))
+		{
+			LOG(warning) << "Failed to lock matrix buffer";
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr = static_cast<MatrixBufferType*>(mappedResource.pData);
+
+		// Copy the matrices into the constant buffer.
+		dataPtr->world = worldMatrix;
+		dataPtr->view = viewMatrix;
+		dataPtr->projection = projectionMatrix;
+
+		// Unlock the constant buffer.
+		deviceContext->Unmap(m_matrixBuffer, 0);
+
+		// Set the position of the constant buffer in the vertex shader.
+		bufferNumber = 0;
+
+		// Now set the constant buffer in the vertex shader with the updated values.
+		deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+
+		if (shaderResource)
+		{
+			// Set shader texture resource in the pixel shader.
+			deviceContext->PSSetShaderResources(0, 1, &shaderResource);
+		}
+
+		return true;
+	}
+	else
+	{
+		LOG(error) << "Bad device context.";
 	}
 
-	// Get a pointer to the data in the constant buffer.
-	dataPtr = static_cast<MatrixBufferType*>(mappedResource.pData);
-
-	// Copy the matrices into the constant buffer.
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(m_matrixBuffer, 0);
-
-	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
-
-	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
-
-	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &texture);
-
-	return true;
+	return false;
 }
 
 
-bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource)
 {
 	LOG_FUNC();
 
-	if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))
+	if (deviceContext)
 	{
-		LOG(error) << "Failed to set shader parameters";
-		return false;
+		if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, shaderResource))
+		{
+			LOG(error) << "Failed to set shader parameters";
+			return false;
+		}
+
+		// Set the vertex input layout.
+		deviceContext->IASetInputLayout(m_layout);
+
+		// Set the vertex and pixel shaders that will be used to render this triangle.
+		deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+		deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+		// Set the sampler state in the pixel shader.
+		deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+		// Draw the triangles.
+		deviceContext->DrawIndexed(indexCount, 0, 0);
+
+		DumpD3DDebugMessagesToLog();
+
+		return true;
+	}
+	else
+	{
+		LOG(error) << "Bad device context.";
 	}
 
-	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(m_layout);
-
-	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
-	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
-
-	// Draw the triangles.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
-
-	DumpD3DDebugMessagesToLog();
-
-	return true;
+	return false;
 }

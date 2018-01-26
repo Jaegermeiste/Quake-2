@@ -41,6 +41,7 @@ dx11::Subsystem2D::Subsystem2D()
 	m_dxgiSurface = nullptr;
 	m_d2dRenderTarget = nullptr;
 	m_d2dDrawingActive = false;
+	m_2DunorderedAccessView = nullptr;
 
 	fadeColor = nullptr;
 	colorBlack = nullptr;
@@ -60,12 +61,14 @@ bool dx11::Subsystem2D::Initialize()
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+	D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDesc;
 
 	// Wipe Structs
 	ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
 	ZeroMemory(&renderTargetViewDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	ZeroMemory(&unorderedAccessViewDesc, sizeof(D3D11_UNORDERED_ACCESS_VIEW_DESC));
 
 	// Set modified for first run
 	ref->cvars->overlayScale->SetModified(true);
@@ -194,8 +197,27 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(info) << "Successfully created ShaderResourceView.";
 	}
 
+	/*// Setup the description of the unordered access view.
+	unorderedAccessViewDesc.Format = textureDesc.Format;
+	unorderedAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	unorderedAccessViewDesc.Texture2D.MipSlice = 0;
+
+	// Create the unordered access view.
+	hr = ref->sys->dx->m_d3dDevice->CreateUnorderedAccessView(m_2DrenderTargetTexture, &unorderedAccessViewDesc, &m_2DunorderedAccessView);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create overlay UnorderedAccessView.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created overlay UnorderedAccessView.";
+	}*/
+
 	// Set the overlay RTV as the current render target
 	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+
+	//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMGetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, &m_2DunorderedAccessView);
 
 	// Create an orthographic projection matrix for 2D rendering.
 	m_2DorthographicMatrix = DirectX::XMMatrixOrthographicLH(static_cast<float>(m_renderTargetWidth), static_cast<float>(m_renderTargetHeight), ref->cvars->zNear2D->Float(), ref->cvars->zFar2D->Float());
@@ -369,7 +391,7 @@ void dx11::Subsystem2D::Clear()
 #ifndef _DEBUG
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
 #else
-		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
+		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Fuchsia);
 #endif
 	}
 }

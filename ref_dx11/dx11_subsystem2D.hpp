@@ -58,7 +58,9 @@ namespace dx11
 		Shader						m_2DshaderVertexColor;
 		Shader						m_2DshaderTexture;
 
-		byte						m_padding2[8];
+		ID3D11UnorderedAccessView*	m_2DunorderedAccessView = nullptr;
+		
+		byte						m_padding2[4];
 
 		Quad2D						m_renderTargetQuad;
 		Quad2D						m_generalPurposeQuad;
