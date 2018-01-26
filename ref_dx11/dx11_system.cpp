@@ -380,3 +380,11 @@ void dx11::System::AppActivate(bool active)
 		}
 	}
 }
+
+bool dx11::System::DoesFileExist(std::string fileName)
+{
+	// Courtesy https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program
+	DWORD dwAttrib = GetFileAttributes(fileName.c_str());
+
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}

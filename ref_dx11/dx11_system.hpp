@@ -73,6 +73,8 @@ namespace dx11
 
 		std::string					GetCurrentWorkingDirectory();
 		bool						SetCurrentWorkingDirectory(std::string directory);
+
+		bool						DoesFileExist(std::string fileName);
 	};
 }
 
