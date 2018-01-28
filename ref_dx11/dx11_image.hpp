@@ -43,13 +43,15 @@ namespace dx11
 		D3D11_TEXTURE2D_DESC	m_textureDesc;
 		D3D11_SUBRESOURCE_DATA	m_data;
 		ID3D11Texture2D*		m_texture2D = nullptr;
+		imagetype_t				m_imageType;
+		unsigned int			m_registrationSequence = 0;
 	};
 
 	class ImageManager {
 	private:
 		unsigned int	m_8to24table[256];
 
-		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D11Resource>> m_images;
+		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
@@ -64,7 +66,7 @@ namespace dx11
 		bool						Initialize();
 		void						Shutdown();
 
-		std::shared_ptr<image_t>	Load(std::string name, imagetype_t type);
+		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
 	};
 
 	

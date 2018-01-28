@@ -339,28 +339,26 @@ void dx11::ImageManager::UploadScratchImage(ScratchImage &image, ID3D11Resource*
 	}*/
 }
 
-std::shared_ptr<image_t> dx11::ImageManager::Load(std::string name, imagetype_t type)
+std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imagetype_t type)
 {
 	LOG_FUNC();
+
+	std::shared_ptr<Texture2D> image = nullptr;
 
 	if (name.length() < 5)
 	{
 		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name (<5): " + name);
 	}
 
-	// Create a new image
-	std::shared_ptr<image_t> imgPtr = nullptr;
-
-	/*Concurrency::parallel_for_each(images.begin(), images.end(), [&](std::shared_ptr<image_t> image)
+	// First, see if the image has already been loaded in the map:
+	if (m_images.count(name) > 0)
 	{
-		if (name.compare(image->name) == 0)
-		{
-			// Found it
-			imgPtr = image;
-		}
-	});*/
+		image = m_images[name];
+		return image;
+	}
 
-	if (imgPtr == nullptr)
+	// Create a new image
+	if (image == nullptr)
 	{
 		// We didn't find it already, make a new one
 		imgPtr = std::make_shared<image_t>();
