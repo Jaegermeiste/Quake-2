@@ -97,15 +97,16 @@ void dx11::ImageManager::GetPalette(void)
 
 	for (unsigned int i = 0; i < 256; i++)
 	{
-		unsigned int r = pal[i * 3 + 0];
-		unsigned int g = pal[i * 3 + 1];
-		unsigned int b = pal[i * 3 + 2];
+		m_8to32table[i].r = pal[i * 3 + 0];
+		m_8to32table[i].g = pal[i * 3 + 1];
+		m_8to32table[i].b = pal[i * 3 + 2];
+		m_8to32table[i].a = 255;
 
-		unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		m_8to24table[i] = LittleULong(v);
+		//unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		//m_8to32table[i] = LittleULong(v);
 	}
 
-	m_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
+	m_8to32table[255].c &= LittleLong(0);	// 255 is transparent
 
 	if (pic != nullptr)
 	{
@@ -286,22 +287,27 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(ID3D
 
 		if (bpp == BPP_8)
 		{
-			unsigned int *d8to24table = m_8to24table;	// Hack around the lambda function parameter issue
+			DirectX::PackedVector::XMCOLOR *d8to32table = m_8to32table;	// Hack around the lambda function parameter issue
 
 			// De-palletize the texture data
 
 			//for (unsigned int i = 0; i < (width * height); i++)
-			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &d8to24table](unsigned int i)
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &d8to32table](unsigned int i)
 			{
 				if (raw[i] == 255)
 				{
 					// Transparent
-					rgba32[i] = 0;
+					rgba32[i] = 0x00000000;
 				}
 				else
 				{
 					// Paletted
-					rgba32[i] = d8to24table[raw[i]];
+					rgba32[i] = d8to32table[raw[i]];
+					//rgba32[i] = (d8to24table[raw[i]] << 24u | 255u);
+					//((byte *)&rgba32[i])[0] = ((byte *)&d8to24table[raw[i]])[0];
+					//((byte *)&rgba32[i])[1] = ((byte *)&d8to24table[raw[i]])[1];
+					//((byte *)&rgba32[i])[2] = ((byte *)&d8to24table[raw[i]])[2];
+					//((byte *)&rgba32[i])[3] = 255;
 				}
 			});
 		}

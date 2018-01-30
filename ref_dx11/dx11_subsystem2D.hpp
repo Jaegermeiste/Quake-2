@@ -35,6 +35,7 @@ namespace dx11
 		friend class System;
 		friend class SubsystemText;
 		friend class Draw;
+		friend class Dx;
 	private:
 		UINT						m_renderTargetWidth = 0;
 		UINT						m_renderTargetHeight = 0;
@@ -60,7 +61,7 @@ namespace dx11
 
 		ID3D11UnorderedAccessView*	m_2DunorderedAccessView = nullptr;
 		
-		byte						m_padding2[4];
+		ID3D11BlendState*			m_alphaBlendState = nullptr;
 
 		Quad2D						m_renderTargetQuad;
 		Quad2D						m_generalPurposeQuad;

@@ -298,9 +298,9 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 
 		// Create a texture sampler state description.
 		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP; //D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP; // D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; // D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.MipLODBias = 0.0f;
 		samplerDesc.MaxAnisotropy = 1;
 		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -451,11 +451,13 @@ bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 			return false;
 		}
 
+		// Set the vertex and pixel shaders that will be used to render this triangle.
+		deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+
 		// Set the vertex input layout.
 		deviceContext->IASetInputLayout(m_layout);
 
-		// Set the vertex and pixel shaders that will be used to render this triangle.
-		deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+
 		deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 
 		// Set the sampler state in the pixel shader.
@@ -464,7 +466,9 @@ bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 		// Draw the triangles.
 		deviceContext->DrawIndexed(indexCount, 0, 0);
 
+#ifdef _DEBUG
 		DumpD3DDebugMessagesToLog();
+#endif
 
 		return true;
 	}

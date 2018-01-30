@@ -67,6 +67,7 @@ ref_dx11
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
+#include <DirectXPackedVector.h>
 #include <wrl.h>
 #include <shellapi.h>
 #include <SafeInt.h>

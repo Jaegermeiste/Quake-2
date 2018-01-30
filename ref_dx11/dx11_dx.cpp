@@ -135,8 +135,13 @@ void dx11::Dx::BeginFrame(void)
 	{
 		if (m_backBufferRTV)
 		{
+#ifndef _DEBUG
+			// clear the back buffer to black
+			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Black);
+#else
 			// clear the back buffer to a deep blue
 			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
+#endif
 		}
 
 		if (m_depthStencilView)
@@ -156,7 +161,9 @@ void dx11::Dx::BeginFrame(void)
 		subsystem3D->Clear();
 	}
 
+#ifdef _DEBUG
 	DumpD3DDebugMessagesToLog();
+#endif
 }
 
 void dx11::Dx::RenderFrame(refdef_t * fd)
@@ -197,6 +204,9 @@ void dx11::Dx::EndFrame(void)
 		// Switch the back buffer and the front buffer
 		m_swapChain->Present(ref->cvars->Vsync->UInt(), 0);
 	}
+
+	// Set the overlay RTV as the current render target
+	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &ref->sys->dx->subsystem2D->m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
 
 	// Timing
 	if ((m_clockRunning) && (QueryPerformanceCounter(&m_clockFrameEndCurrent) == TRUE))

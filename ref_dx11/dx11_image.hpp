@@ -58,7 +58,7 @@ namespace dx11
 			"dds", "exr", "hdr", "tga", "png", "jpg", "tif", "gif", "bmp", "ico", "wdp", "jxr", "wal", "pcx"
 		};
 
-		unsigned int	m_8to24table[256];
+		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
 
 		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
 

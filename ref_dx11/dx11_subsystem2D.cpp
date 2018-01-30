@@ -25,6 +25,8 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+#define DEFERRED	1
+
 dx11::Subsystem2D::Subsystem2D()
 {
 	LOG_FUNC();
@@ -42,6 +44,7 @@ dx11::Subsystem2D::Subsystem2D()
 	m_d2dRenderTarget = nullptr;
 	m_d2dDrawingActive = false;
 	m_2DunorderedAccessView = nullptr;
+	m_alphaBlendState = nullptr;
 
 	fadeColor = nullptr;
 	colorBlack = nullptr;
@@ -77,6 +80,7 @@ bool dx11::Subsystem2D::Initialize()
 	m_renderTargetWidth = ref->sys->dx->m_windowWidth;
 	m_renderTargetHeight = ref->sys->dx->m_windowHeight;
 
+#ifdef DEFERRED
 	// Create deferred context
 	hr = ref->sys->dx->m_d3dDevice->CreateDeferredContext(0, &m_2DdeferredContext);
 	if (FAILED(hr))
@@ -84,6 +88,9 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(error) << "Unable to create 2D deferred context.";
 		return false;
 	}
+#else
+	m_2DdeferredContext = ref->sys->dx->m_immediateContext;
+#endif
 
 	// Setup the render target texture description.
 	textureDesc.Width = m_renderTargetWidth;
@@ -255,6 +262,36 @@ bool dx11::Subsystem2D::Initialize()
 		LOG(info) << "Successfully created DepthStencilState.";
 	}
 
+
+	D3D11_BLEND_DESC bs;
+	ZeroMemory(&bs, sizeof(D3D11_BLEND_DESC));
+	for (int i = 0; i<8; i++)
+	{
+		bs.RenderTarget[i].BlendEnable = TRUE;
+		bs.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		bs.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bs.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		bs.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
+		bs.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+		bs.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
+		bs.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ONE;
+	}
+	bs.IndependentBlendEnable = TRUE;
+
+	hr = ref->sys->dx->m_d3dDevice->CreateBlendState(&bs, &m_alphaBlendState);
+
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create BlendState.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created BlendState.";
+	}
+
+	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetBlendState(m_alphaBlendState, NULL, 1u);
+
 	// Calculate the width of the overlay.
 	int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
 
@@ -273,7 +310,7 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	if (!m_generalPurposeQuad.Initialize(ref->sys->dx->subsystem2D->m_2DdeferredContext, 0, 0, 1, 1, DirectX::Colors::White))
+	if (!m_generalPurposeQuad.Initialize(ref->sys->dx->subsystem2D->m_2DdeferredContext, x, y, width, height, DirectX::Colors::White))
 	{
 		LOG(error) << "Failed to properly initialize general purpose quad.";
 		return false;
@@ -303,7 +340,7 @@ bool dx11::Subsystem2D::Initialize()
 
 	LOG(info) << "Setting viewport.";
 
-	m_2DdeferredContext->RSSetViewports(1, &viewport);
+	//m_2DdeferredContext->RSSetViewports(1, &viewport);
 /*
 	if (SUCCEEDED(hr))
 	{
@@ -391,7 +428,10 @@ void dx11::Subsystem2D::Clear()
 #ifndef _DEBUG
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
 #else
-		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Fuchsia);
+		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Red);
+
+		m_generalPurposeQuad.Render(100, 100, 100, 100, DirectX::Colors::Yellow);
+		m_2DshaderVertexColor.Render(m_2DdeferredContext, m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, nullptr);
 #endif
 	}
 }
@@ -409,15 +449,21 @@ void dx11::Subsystem2D::Render()
 		// Set depth to disabled
 		ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
-		hr = ref->sys->dx->subsystem2D->m_2DdeferredContext->FinishCommandList(TRUE, &m_2DcommandList);
+		ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
+
+#ifdef DEFERRED
+		hr = m_2DdeferredContext->FinishCommandList(FALSE, &m_2DcommandList);
 		
 		if (m_2DcommandList)
 		{
+			ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
+
 			// Execute all pending commands to draw to the overlay render target
 			ref->sys->dx->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
 
 			SAFE_RELEASE(m_2DcommandList);
 		}
+#endif
 
 /*		EndD2DDrawing();
 		ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
@@ -432,7 +478,7 @@ void dx11::Subsystem2D::Render()
 		ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the back buffer as the current render target
-		ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, nullptr);
+		ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, ref->sys->dx->m_depthStencilView);
 
 		// Calculate the width of the overlay.
 		int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
@@ -459,7 +505,7 @@ void dx11::Subsystem2D::Render()
 		ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the overlay RTV as the current render target
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
 	}
 
 #ifdef _DEBUG
@@ -504,13 +550,17 @@ void dx11::Subsystem2D::Shutdown()
 
 	SAFE_RELEASE(fadeColor);
 
+	SAFE_RELEASE(m_alphaBlendState);
+
 	SAFE_RELEASE(m_d2dRenderTarget);
 
 	SAFE_RELEASE(m_dxgiSurface);
 
 	SAFE_RELEASE(m_depthDisabledStencilState);
 
+#ifdef DEFERRED
 	SAFE_RELEASE(m_2DdeferredContext);
+#endif
 
 	SAFE_RELEASE(m_2DshaderResourceView);
 

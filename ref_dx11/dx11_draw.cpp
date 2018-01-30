@@ -71,6 +71,7 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 	if (y <= -8)
 		return;			// totally off screen
 
+	/*
 	
 	if ((c >= '!') && (c <= '}'))
 	{
@@ -89,7 +90,12 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 
 		// Green Text
 		//ref->sys->dx->subsystemText->RenderText(x, y, CHAR_SIZE, CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorYellowGreen);
-	}
+	}*/
+
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, DirectX::Colors::White);
+
+	// Render the overlay to the back buffer
+	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr);
 }
 
 void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)
@@ -124,7 +130,7 @@ void dx11::Draw::FadeScreen(void)
 {
 	//ref->sys->dx->subsystem2D->FadeScreen();
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(0, 0, ref->sys->dx->subsystem2D->m_renderTargetWidth, ref->sys->dx->subsystem2D->m_renderTargetHeight, { 0.0f, 0.0f, 0.0f, 0.75f });
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(0, 0, ref->sys->dx->subsystem2D->m_renderTargetWidth, ref->sys->dx->subsystem2D->m_renderTargetHeight, { 0.0f, 0.0f, 0.0f, 0.25f });
 
 	// Render the overlay to the back buffer
 	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr);
@@ -138,7 +144,7 @@ void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 
 	//ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::Yellow);
 
 	// Render the overlay to the back buffer
 	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr);
