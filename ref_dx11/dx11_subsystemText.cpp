@@ -58,7 +58,7 @@ bool dx11::SubsystemText::Initialize()
 	}
 
 	hr = m_writeFactory->CreateTextFormat(
-		ref->sys->convertUTF.from_bytes(ref->cvars->font->String().c_str()).c_str(),
+		ref->sys->ToWideString(ref->cvars->font->String()).c_str(),
 		nullptr,
 		DWRITE_FONT_WEIGHT_BOLD,
 		DWRITE_FONT_STYLE_NORMAL,
@@ -130,7 +130,7 @@ void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string tex
 	
 	//ref->sys->dx->m_d2dContext->DrawText(
 	ref->sys->dx->subsystem2D->m_d2dRenderTarget->DrawText(
-		ref->sys->convertUTF.from_bytes(text.c_str()).c_str(),
+		ref->sys->ToWideString(text).c_str(),
 		text.length(),
 		m_textFormat,
 		D2D1::RectF(x, y,x + w, y + h),

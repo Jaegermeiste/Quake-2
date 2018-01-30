@@ -388,3 +388,33 @@ bool dx11::System::DoesFileExist(std::string fileName)
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+std::wstring dx11::System::ToWideString(std::string inStr)
+{
+	// Courtesy https://stackoverflow.com/questions/6693010/problem-using-multibytetowidechar
+	// Courtesy https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
+	if (inStr.empty())
+	{
+		return std::wstring();
+	}
+
+	int strLen = MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), inStr.size(), NULL, 0);
+	std::wstring outWString(strLen + 1, 0);
+	MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), inStr.size(), &outWString[0], strLen);
+	
+	return outWString;
+}
+
+std::string dx11::System::ToString(WCHAR* inWideStr)
+{
+	// Courtesy https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
+	if (!inWideStr)
+	{
+		return std::string();
+	}
+
+	int strLen = WideCharToMultiByte(CP_UTF8, 0, inWideStr, wcslen(inWideStr), NULL, 0, NULL, NULL);
+	std::string outString(strLen + 1, 0);
+	WideCharToMultiByte(CP_UTF8, 0, inWideStr, wcslen(inWideStr), &outString[0], strLen, NULL, NULL);
+	return outString;
+}

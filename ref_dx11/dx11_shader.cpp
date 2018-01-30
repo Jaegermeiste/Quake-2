@@ -144,8 +144,9 @@ bool dx11::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	
 	// Compile the shader code.
 	LOG(info) << "Compiling Shader File " << fileName << " with target " << target << " and entry point " << entryPoint;
+	
+	hr = D3DCompileFromFile(ref->sys->ToWideString(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), shaderFlags, 0, &shaderBuffer, &errorMessage);
 
-	hr = D3DCompileFromFile(ref->sys->convertUTF.from_bytes(fileName).c_str(), NULL, NULL, entryPoint.c_str(), target.c_str(), shaderFlags, 0, &shaderBuffer, &errorMessage);
 	if (FAILED(hr))
 	{
 		// If the shader failed to compile it should have writen something to the error message.

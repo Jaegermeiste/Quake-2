@@ -241,11 +241,11 @@ void dx11::Dx::D3D_Strings_f()
 	ref->client->Con_Printf(PRINT_ALL, "D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
 
 	// We need this to get a compliant string
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToUTF8;
+	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToUTF8;
 
 	std::stringstream hexValue;
 
-	ref->client->Con_Printf(PRINT_ALL, "Adapter Description: " + convertToUTF8.to_bytes(m_adapterDesc.Description));
+	ref->client->Con_Printf(PRINT_ALL, "Adapter Description: " + ref->sys->ToString(m_adapterDesc.Description));
 	hexValue.str(std::string());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.VendorId;

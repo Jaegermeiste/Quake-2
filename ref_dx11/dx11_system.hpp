@@ -56,7 +56,7 @@ namespace dx11
 		std::unique_ptr<Dx>			dx;			// Backend
 		std::unique_ptr<Web>		web;		// Networking
 
-		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertUTF;
+		//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertUTF;
 
 									System();
 
@@ -75,6 +75,9 @@ namespace dx11
 		bool						SetCurrentWorkingDirectory(std::string directory);
 
 		bool						DoesFileExist(std::string fileName);
+
+		std::wstring				ToWideString(std::string inStr);
+		std::string					ToString(WCHAR* inWideStr);
 	};
 }
 
