@@ -60,7 +60,7 @@ inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 
 	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
 	{
-		image = dx11::ref->img->Load(name, it_skin).get();
+		dx11::ref->img->Load(name, it_skin).get();
 	}
 
 	return image;
@@ -72,7 +72,7 @@ inline image_t	*SHIM_R_RegisterPic(char *name)
 
 	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
 	{
-		image = dx11::ref->img->Load(name, it_pic).get();
+		dx11::ref->img->Load(name, it_pic).get();
 	}
 
 	return image;
@@ -210,6 +210,11 @@ inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 
 inline void SHIM_R_Shutdown()
 {
+	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	{
+		dx11::ref->img->Shutdown();
+	}
+
 	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
 	{
 		dx11::ref->sys->Shutdown();

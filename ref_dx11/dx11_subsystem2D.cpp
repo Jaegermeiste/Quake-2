@@ -459,10 +459,12 @@ void dx11::Subsystem2D::Render()
 		ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the overlay RTV as the current render target
-		//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 	}
 
+#ifdef _DEBUG
 	DumpD3DDebugMessagesToLog();
+#endif
 }
 
 void dx11::Subsystem2D::FadeScreen()
@@ -485,6 +487,8 @@ void dx11::Subsystem2D::Shutdown()
 	LOG(info) << "Shutting down.";
 
 	EndD2DDrawing();
+
+	m_2DshaderVertexColor.Shutdown();
 
 	m_2DshaderTexture.Shutdown();
 

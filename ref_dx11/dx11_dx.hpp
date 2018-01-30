@@ -48,6 +48,7 @@ namespace dx11
 		friend class Subsystem2D;
 		friend class Subsystem3D;
 		friend class Draw;
+		friend class ImageManager;
 	private:
 		UINT							m_windowWidth = 0;
 		UINT							m_windowHeight = 0;

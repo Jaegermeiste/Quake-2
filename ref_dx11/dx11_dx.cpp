@@ -213,7 +213,9 @@ void dx11::Dx::EndFrame(void)
 
 	m_clockRunning = false;
 
+#ifdef _DEBUG
 	DumpD3DDebugMessagesToLog();
+#endif
 }
 
 void dx11::Dx::D3D_Strings_f()

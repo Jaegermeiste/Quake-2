@@ -39,25 +39,34 @@ namespace dx11
 	{
 		friend class ImageManager;
 	public:
-		std::string				m_name;
-		D3D11_TEXTURE2D_DESC	m_textureDesc;
-		D3D11_SUBRESOURCE_DATA	m_data;
-		ID3D11Texture2D*		m_texture2D = nullptr;
-		imagetype_t				m_imageType;
-		unsigned int			m_registrationSequence = 0;
+		std::string					m_name;
+		D3D11_TEXTURE2D_DESC		m_textureDesc;
+		ID3D11ShaderResourceView*	m_shaderResourceView = nullptr;
+		ID3D11Resource*				m_resource = nullptr;
+		ID3D11Texture2D*			m_texture2D = nullptr;
+		imagetype_t					m_imageType;
+		unsigned int				m_registrationSequence = 0;
+		std::string					m_format;
 	};
 
-	class ImageManager {
+	class ImageManager
+	{
+		friend class Draw;
 	private:
+		std::vector<std::string> m_imageExtensions =
+		{
+			"dds", "exr", "hdr", "tga", "png", "jpg", "tif", "gif", "bmp", "ico", "wdp", "jxr", "wal", "pcx"
+		};
+
 		unsigned int	m_8to24table[256];
 
 		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
-		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
+		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 
-		Texture2D*					CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte** raw);
+		std::shared_ptr<dx11::Texture2D> CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw);
 
 		void						UploadScratchImage(DirectX::ScratchImage & image, ID3D11Resource** pResource, bool generateMipMap);
 
