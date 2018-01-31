@@ -228,28 +228,28 @@ bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::X
 
 	// Load the vertex array with data.
 	// First triangle.
-	vertices[0].position = DirectX::XMFLOAT3A(left, top, 0.0f);  // Top left.
+	vertices[0].position = DirectX::XMFLOAT4A(left, top, 0.0f, 0.0f);  // Top left.
 	vertices[0].color	 = color;
 	vertices[0].texCoord = DirectX::XMFLOAT2A(0.0f, 0.0f);
 
-	vertices[1].position = DirectX::XMFLOAT3A(right, bottom, 0.0f);  // Bottom right.
+	vertices[1].position = DirectX::XMFLOAT4A(right, bottom, 0.0f, 0.0f);  // Bottom right.
 	vertices[1].color	 = color;
 	vertices[1].texCoord = DirectX::XMFLOAT2A(1.0f, 1.0f);
 
-	vertices[2].position = DirectX::XMFLOAT3A(left, bottom, 0.0f);  // Bottom left.
+	vertices[2].position = DirectX::XMFLOAT4A(left, bottom, 0.0f, 0.0f);  // Bottom left.
 	vertices[2].color	 = color;
 	vertices[2].texCoord = DirectX::XMFLOAT2A(0.0f, 1.0f);
 
 	// Second triangle.
-	vertices[3].position = DirectX::XMFLOAT3A(left, top, 0.0f);  // Top left.
+	vertices[3].position = DirectX::XMFLOAT4A(left, top, 0.0f, 0.0f);  // Top left.
 	vertices[3].color	 = color;
 	vertices[3].texCoord = DirectX::XMFLOAT2A(0.0f, 0.0f);
 
-	vertices[4].position = DirectX::XMFLOAT3A(right, top, 0.0f);  // Top right.
+	vertices[4].position = DirectX::XMFLOAT4A(right, top, 0.0f, 0.0f);  // Top right.
 	vertices[4].color	 = color;
 	vertices[4].texCoord = DirectX::XMFLOAT2A(1.0f, 0.0f);
 
-	vertices[5].position = DirectX::XMFLOAT3A(right, bottom, 0.0f);  // Bottom right.
+	vertices[5].position = DirectX::XMFLOAT4A(right, bottom, 0.0f, 0.0f);  // Bottom right.
 	vertices[5].color	 = color;
 	vertices[5].texCoord = DirectX::XMFLOAT2A(1.0f, 1.0f);
 

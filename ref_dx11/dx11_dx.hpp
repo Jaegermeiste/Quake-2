@@ -37,7 +37,7 @@ namespace dx11
 	//struct alignas(16) Vertex2D
 	//struct Vertex2D
 	{
-		DirectX::XMFLOAT3A		position;
+		DirectX::XMFLOAT4A		position;
 		DirectX::XMVECTORF32	color;
 		DirectX::XMFLOAT2A		texCoord;
 		/*
