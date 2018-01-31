@@ -57,6 +57,18 @@ void dx11::ImageManager::Shutdown()
 		image.second->m_format.clear();
 	}
 
+	if (m_rawTexture)
+	{
+		SAFE_RELEASE(m_rawTexture->m_shaderResourceView);
+		SAFE_RELEASE(m_rawTexture->m_texture2D);
+		SAFE_RELEASE(m_rawTexture->m_resource);
+		ZeroMemory(&m_rawTexture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		m_rawTexture->m_registrationSequence = 0;
+		m_rawTexture->m_name.clear();
+		m_rawTexture->m_format.clear();
+		m_rawTexture = nullptr;
+	}
+
 	LOG(info) << "Shutdown complete.";
 }
 
@@ -119,6 +131,8 @@ void dx11::ImageManager::GetPalette(void)
 		delete[] pal;
 		pal = nullptr;
 	}
+
+	SetRawPalette(nullptr);
 }
 
 /*
@@ -246,7 +260,7 @@ void dx11::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette,
 	}
 }
 
-std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette)
+std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D11_USAGE usage)
 {
 	LOG_FUNC();
 
@@ -277,16 +291,26 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		texture->m_textureDesc.SampleDesc.Count = 1;
 		texture->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D11_STANDARD_MULTISAMPLE_PATTERN);
-		texture->m_textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		texture->m_textureDesc.Usage = usage;
 		texture->m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		texture->m_textureDesc.CPUAccessFlags = 0;
+
+		if (usage == D3D11_USAGE_DYNAMIC)
+		{
+			texture->m_textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		}
+		else
+		{
+			texture->m_textureDesc.CPUAccessFlags = 0;
+		}
+
 		texture->m_textureDesc.ArraySize = 1;
 		data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
 		data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
-		unsigned int* rgba32 = new unsigned int[width * height]();
+		unsigned int* rgba32 = nullptr;
 
 		if (bpp == BPP_8)
 		{
+			rgba32 = new unsigned int[width * height]();
 			// De-palletize the texture data
 
 			//for (unsigned int i = 0; i < (width * height); i++)
@@ -306,6 +330,8 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		}
 		else if (bpp == BPP_24)
 		{
+			rgba32 = new unsigned int[width * height]();
+
 			// 24 bpp
 			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32](unsigned int i)
 			{
@@ -315,7 +341,8 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		}
 		else if (bpp == BPP_32)
 		{
-			std::memcpy(&rgba32, raw, width * height * (sizeof(unsigned int) / sizeof(byte)));
+			//std::memcpy(&rgba32, raw, width * height * (sizeof(unsigned int) / sizeof(byte)));
+			rgba32 = reinterpret_cast<unsigned int*>(raw);
 		}
 
 		data.pSysMem = rgba32;
@@ -327,6 +354,40 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 			delete[] rgba32;
 			rgba32 = nullptr;
 			return nullptr;
+		}
+
+		// Get texture/resource as necessary
+		if ((texture->m_resource) && (!texture->m_texture2D))
+		{
+			hr = texture->m_resource->QueryInterface(IID_ID3D11Texture2D, (void **)&texture->m_texture2D);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
+			}
+		}
+		else if ((!texture->m_resource) && (texture->m_texture2D))
+		{
+			hr = texture->m_texture2D->QueryInterface(IID_ID3D11Resource, (void **)&texture->m_resource);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
+			}
+		}
+
+		// Get SRV as necessary
+		if ((texture->m_resource) && (!texture->m_shaderResourceView))
+		{
+			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, NULL, &texture->m_shaderResourceView);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
+			}
+		}
+
+		// Overwrite the texture desc with whatever is in memory/on GPU
+		if (texture->m_texture2D)
+		{
+			texture->m_texture2D->GetDesc(&texture->m_textureDesc);
 		}
 	}
 
@@ -439,7 +500,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 		{
 			byte	*pic = nullptr, *palette = nullptr;
 			LoadPCX(buffer, bufferSize, &pic, &palette, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height);
-			m_images[name] = CreateTexture2DFromRaw(name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, BPP_8, pic, m_8to32table);
+			m_images[name] = CreateTexture2DFromRaw(name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, BPP_8, pic, m_8to32table, D3D11_USAGE_DEFAULT);
 		}
 		else if (m_images[name]->m_format.compare("wal") == 0)
 		{
@@ -590,9 +651,10 @@ void dx11::ImageManager::SetRawPalette(const unsigned char *palette)
 		//for (unsigned int i = 0; i < 256; i++)
 		Concurrency::parallel_for(0u, 256u, [&m_rawPalette = m_rawPalette, &palette](unsigned int i)
 		{
-			m_rawPalette[i].r = palette[i * 3 + 0];
+			// Supplied palette is BGR
+			m_rawPalette[i].r = palette[i * 3 + 2];
 			m_rawPalette[i].g = palette[i * 3 + 1];
-			m_rawPalette[i].b = palette[i * 3 + 2];
+			m_rawPalette[i].b = palette[i * 3 + 0];
 			m_rawPalette[i].a = 255;
 		});
 	}

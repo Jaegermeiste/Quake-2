@@ -150,65 +150,50 @@ void dx11::Draw::FadeScreen(void)
 void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
 {
 	LOG_FUNC();
-	/*
-	unsigned int	image32[256 * 256];
-	ZeroMemory(&image32, sizeof(unsigned int) * 256 * 256);
-	int				trows = rows;
-	byte			*source = nullptr;
-	int				frac, fracstep;
-	float			hscale = 1.0f;
-	int				row = 0;
-	float			t;
-	
-	if (rows <= 256)
+
+	if ((x < 0) || (x + w > ref->sys->dx->m_windowWidth) || (y + h > ref->sys->dx->m_windowHeight))
 	{
-		hscale = 1;
-		trows = rows;
+		ref->client->Sys_Error(ERR_FATAL, "Draw_StretchRaw: bad coordinates");
+	}
+	
+	unsigned int	*image32 = new unsigned int[rows * cols]();
+	DirectX::PackedVector::XMCOLOR* palette = ref->img->m_rawPalette;
+
+	// De-palletize the texture data
+	Concurrency::parallel_for(0u, (rows * cols), [&data, &image32, &palette](unsigned int i)
+	{
+		// Paletted
+		image32[i] = palette[data[i]];
+	});
+
+	if (!ref->img->m_rawTexture)
+	{
+		// Create the texture on demand
+		ref->img->m_rawTexture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, (byte*)image32, nullptr, D3D11_USAGE_DYNAMIC);
 	}
 	else
 	{
-		hscale = rows / 256.0;
-		trows = 256;
+		// Update the texture
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+
+		//	Disable GPU access to the texture data.
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->Map(ref->img->m_rawTexture->m_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		
+		//	Update the texture here.
+		memcpy(mappedResource.pData, image32, sizeof(unsigned int) * rows * cols);
+
+		//	Reenable GPU access to the texture data.
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->Unmap(ref->img->m_rawTexture->m_resource, 0);
 	}
-	t = rows * hscale / 256;
-
-	for (unsigned int i = 0; i < trows; i++)
-	{
-		row = static_cast<int>(i * hscale);
-		if (row > rows)
-		{
-			break;
-		}
-
-		source = data + cols * row;
-		unsigned int *dest = &image32[i * 256];
-		fracstep = cols * 0x10000 / 256;
-		frac = fracstep >> 1;
-
-		for (unsigned int j = 0; j < 256; j++)
-		{
-			dest[j] = ref->img->m_rawPalette[source[frac >> 16]];
-			frac += fracstep;
-		}
-	}
-	
-	byte* image = reinterpret_cast<byte*>(&image32);
-
-	auto texture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, image, nullptr);*/
-
-	auto texture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_8, data, ref->img->m_rawPalette);
 	
 	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
-	// Render the overlay to the back buffer
-	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, texture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->img->m_rawTexture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 
-	// Destroy the texture
-	SAFE_RELEASE(texture->m_shaderResourceView);
-	SAFE_RELEASE(texture->m_texture2D);
-	SAFE_RELEASE(texture->m_resource);
-	ZeroMemory(&texture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-	texture->m_registrationSequence = 0;
-	texture->m_name.clear();
-	texture->m_format.clear();
+	if (image32)
+	{
+		delete[] image32;
+		image32 = nullptr;
+	}
 }
