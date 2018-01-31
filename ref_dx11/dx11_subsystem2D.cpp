@@ -222,7 +222,7 @@ bool dx11::Subsystem2D::Initialize()
 	}*/
 
 	// Set the overlay RTV as the current render target
-	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 
 	//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMGetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, &m_2DunorderedAccessView);
 
@@ -292,6 +292,24 @@ bool dx11::Subsystem2D::Initialize()
 
 	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetBlendState(m_alphaBlendState, NULL, 1u);
 
+	// Setup the viewport
+	D3D11_VIEWPORT viewport;
+	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+	viewport.Width = (FLOAT)m_renderTargetWidth;
+	viewport.Height = (FLOAT)m_renderTargetHeight;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+
+	LOG(info) << "Setting viewport.";
+
+	m_2DdeferredContext->RSSetViewports(1, &viewport);
+
+	UINT viewportCount = 0;
+	m_2DdeferredContext->RSGetViewports(&viewportCount, nullptr);
+	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
+
 	// Calculate the width of the overlay.
 	int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
 
@@ -328,19 +346,7 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	// Setup the viewport
-	D3D11_VIEWPORT viewport;
-	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-	viewport.Width = (FLOAT)m_renderTargetWidth;
-	viewport.Height = (FLOAT)m_renderTargetHeight;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
 
-	LOG(info) << "Setting viewport.";
-
-	//m_2DdeferredContext->RSSetViewports(1, &viewport);
 /*
 	if (SUCCEEDED(hr))
 	{
@@ -429,9 +435,6 @@ void dx11::Subsystem2D::Clear()
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
 #else
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Red);
-
-		m_generalPurposeQuad.Render(100, 100, 100, 100, DirectX::Colors::Yellow);
-		m_2DshaderVertexColor.Render(m_2DdeferredContext, m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, nullptr);
 #endif
 	}
 }
@@ -447,16 +450,16 @@ void dx11::Subsystem2D::Render()
 		ID3D11ShaderResourceView* clearSRV = { NULL };
 
 		// Set depth to disabled
-		ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+		//ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 
-		ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
+		//ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
 
 #ifdef DEFERRED
-		hr = m_2DdeferredContext->FinishCommandList(FALSE, &m_2DcommandList);
+		hr = m_2DdeferredContext->FinishCommandList(TRUE, &m_2DcommandList);
 		
 		if (m_2DcommandList)
 		{
-			ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
+			//ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
 
 			// Execute all pending commands to draw to the overlay render target
 			ref->sys->dx->m_immediateContext->ExecuteCommandList(m_2DcommandList, TRUE);
@@ -475,10 +478,10 @@ void dx11::Subsystem2D::Render()
 			LOG(error) << "m_d2dRenderTarget->EndDraw() returned D2DERR_RECREATE_TARGET";
 		}
 */
-		ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
+		//ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the back buffer as the current render target
-		ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, ref->sys->dx->m_depthStencilView);
+		//ref->sys->dx->m_immediateContext->OMSetRenderTargets(1, &ref->sys->dx->m_backBufferRTV, ref->sys->dx->m_depthStencilView);
 
 		// Calculate the width of the overlay.
 		int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
@@ -492,7 +495,7 @@ void dx11::Subsystem2D::Render()
 		// Calculate the screen coordinates of the top of the overlay.
 		int y = ((msl::utilities::SafeInt<int>(ref->sys->dx->m_windowHeight) - height) / 2);
 
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->PSSetShaderResources(0, 1, &clearSRV);
+		//ref->sys->dx->subsystem2D->m_2DdeferredContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Render 2D overlay
 		m_renderTargetQuad.Render(x, y, width, height, DirectX::Colors::White);
@@ -501,11 +504,11 @@ void dx11::Subsystem2D::Render()
 		m_2DshaderTexture.Render(ref->sys->dx->m_immediateContext, m_renderTargetQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView);
 
 		// Clear the PS binding
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->PSSetShaderResources(0, 1, &clearSRV);
-		ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
+		//ref->sys->dx->subsystem2D->m_2DdeferredContext->PSSetShaderResources(0, 1, &clearSRV);
+		//ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the overlay RTV as the current render target
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
+		//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
 	}
 
 #ifdef _DEBUG

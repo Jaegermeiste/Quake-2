@@ -44,7 +44,7 @@ void dx11::Draw::Pic(int x, int y, std::string name)
 
 	if (image)
 	{
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, image->m_textureDesc.Width, image->m_textureDesc.Height, DirectX::Colors::White);
+		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->m_textureDesc.Width), msl::utilities::SafeInt<int>(image->m_textureDesc.Height), DirectX::Colors::White);
 
 		ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView);
 	}
@@ -130,7 +130,7 @@ void dx11::Draw::FadeScreen(void)
 {
 	//ref->sys->dx->subsystem2D->FadeScreen();
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(0, 0, ref->sys->dx->subsystem2D->m_renderTargetWidth, ref->sys->dx->subsystem2D->m_renderTargetHeight, { 0.0f, 0.0f, 0.0f, 0.25f });
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(0, 0, msl::utilities::SafeInt<int>(ref->sys->dx->subsystem2D->m_renderTargetWidth), msl::utilities::SafeInt<int>(ref->sys->dx->subsystem2D->m_renderTargetHeight), { 0.0f, 0.0f, 0.0f, 0.25f });
 
 	// Render the overlay to the back buffer
 	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr);
@@ -139,13 +139,65 @@ void dx11::Draw::FadeScreen(void)
 void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
 {
 	LOG_FUNC();
+	/*
+	unsigned int	image32[256 * 256];
+	ZeroMemory(&image32, sizeof(unsigned int) * 256 * 256);
+	int				trows = rows;
+	byte			*source = nullptr;
+	int				frac, fracstep;
+	float			hscale = 1.0f;
+	int				row = 0;
+	float			t;
+	
+	if (rows <= 256)
+	{
+		hscale = 1;
+		trows = rows;
+	}
+	else
+	{
+		hscale = rows / 256.0;
+		trows = 256;
+	}
+	t = rows * hscale / 256;
 
-	//ref->sys->dx->subsystem2D->ActivateD2DDrawing();
+	for (unsigned int i = 0; i < trows; i++)
+	{
+		row = static_cast<int>(i * hscale);
+		if (row > rows)
+		{
+			break;
+		}
 
-	//ref->sys->dx->m_d2dContext->FillRectangle(D2D1::RectF(x, y, x + w, y + h), ref->sys->dx->subsystem2D->colorBlack);
+		source = data + cols * row;
+		unsigned int *dest = &image32[i * 256];
+		fracstep = cols * 0x10000 / 256;
+		frac = fracstep >> 1;
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::Yellow);
+		for (unsigned int j = 0; j < 256; j++)
+		{
+			dest[j] = ref->img->m_rawPalette[source[frac >> 16]];
+			frac += fracstep;
+		}
+	}
+	
+	byte* image = reinterpret_cast<byte*>(&image32);
+
+	auto texture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, image, nullptr);*/
+
+	auto texture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_8, data, ref->img->m_rawPalette);
+	
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
 	// Render the overlay to the back buffer
-	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr);
+	ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, texture->m_shaderResourceView);
+
+	// Destroy the texture
+	SAFE_RELEASE(texture->m_shaderResourceView);
+	SAFE_RELEASE(texture->m_texture2D);
+	SAFE_RELEASE(texture->m_resource);
+	ZeroMemory(&texture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	texture->m_registrationSequence = 0;
+	texture->m_name.clear();
+	texture->m_format.clear();
 }

@@ -398,9 +398,9 @@ std::wstring dx11::System::ToWideString(std::string inStr)
 		return std::wstring();
 	}
 
-	int strLen = MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), inStr.size(), NULL, 0);
-	std::wstring outWString(strLen + 1, 0);
-	MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), inStr.size(), &outWString[0], strLen);
+	int strLen = MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), msl::utilities::SafeInt<int>(inStr.size()), NULL, 0);
+	std::wstring outWString(msl::utilities::SafeInt<size_t>(strLen + 1), 0);
+	MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), msl::utilities::SafeInt<int>(inStr.size()), &outWString[0], strLen);
 	
 	return outWString;
 }
@@ -413,8 +413,8 @@ std::string dx11::System::ToString(WCHAR* inWideStr)
 		return std::string();
 	}
 
-	int strLen = WideCharToMultiByte(CP_UTF8, 0, inWideStr, wcslen(inWideStr), NULL, 0, NULL, NULL);
-	std::string outString(strLen + 1, 0);
-	WideCharToMultiByte(CP_UTF8, 0, inWideStr, wcslen(inWideStr), &outString[0], strLen, NULL, NULL);
+	int strLen = WideCharToMultiByte(CP_UTF8, 0, inWideStr, msl::utilities::SafeInt<int>(wcslen(inWideStr)), NULL, 0, NULL, NULL);
+	std::string outString(msl::utilities::SafeInt<size_t>(strLen + 1), 0);
+	WideCharToMultiByte(CP_UTF8, 0, inWideStr, msl::utilities::SafeInt<int>(wcslen(inWideStr)), &outString[0], strLen, NULL, NULL);
 	return outString;
 }

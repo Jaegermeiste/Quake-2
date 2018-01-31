@@ -151,9 +151,16 @@ int dx11::Client::FS_LoadFile (std::string fileName, void **buf)
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	LOG(info) << "<fileName> " << fileName << " <buf> " << buf;
+	LOG(trace) << "<fileName> " << fileName << " <buf> " << buf;
 
-	return m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+	int retVal = m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+
+	if (retVal > 0)
+	{
+		LOG(info) << "Loaded " << fileName << " with length " << retVal << " at address " << *buf;
+	}
+
+	return retVal;
 }
 
 void dx11::Client::FS_FreeFile(void *buf)

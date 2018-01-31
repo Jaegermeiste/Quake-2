@@ -58,15 +58,11 @@ namespace dx11
 			"dds", "exr", "hdr", "tga", "png", "jpg", "tif", "gif", "bmp", "ico", "wdp", "jxr", "wal", "pcx"
 		};
 
-		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
-
 		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
 		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
-
-		std::shared_ptr<dx11::Texture2D> CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw);
 
 		void						UploadScratchImage(DirectX::ScratchImage & image, ID3D11Resource** pResource, bool generateMipMap);
 
@@ -75,7 +71,14 @@ namespace dx11
 		bool						Initialize();
 		void						Shutdown();
 
+		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
+		DirectX::PackedVector::XMCOLOR	m_rawPalette[256];
+
+		void						SetRawPalette(const unsigned char *palette);
+
 		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
+
+		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette);
 	};
 
 	

@@ -51,20 +51,20 @@ namespace dx11
 
 		byte						m_padding[12];
 
-		DirectX::XMVECTOR			m_colorPrev = DirectX::Colors::White;
+		DirectX::XMVECTORF32		m_colorPrev = DirectX::Colors::White;
 
 		bool						InitializeBuffers();
 
-		bool						UpdateBuffers(int x, int y, int width, int height, DirectX::XMVECTOR color);
+		bool						UpdateBuffers(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
 		void						RenderBuffers() const;
 
 	public:
 									Quad2D();
 
-		bool						Initialize(ID3D11DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTOR color);
+		bool						Initialize(ID3D11DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
-		void						Render(int x, int y, int width, int height, DirectX::XMVECTOR color);
+		void						Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
 		unsigned int				IndexCount() { return m_indexCount; };
 

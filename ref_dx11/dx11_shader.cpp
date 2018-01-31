@@ -228,7 +228,6 @@ bool dx11::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 
 	if (device)
 	{
-
 		HRESULT hr = E_UNEXPECTED;
 		D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 		ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 3);
@@ -452,13 +451,40 @@ bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 			return false;
 		}
 
-		// Set the vertex and pixel shaders that will be used to render this triangle.
-		deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+		UINT viewportCount = 0;
+		deviceContext->RSGetViewports(&viewportCount, nullptr);
+		if (viewportCount < 1)
+		{
+			LOG(warning) << std::to_string(viewportCount) << " viewports bound.";
+
+			/*D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+			shaderResource->GetDesc(&desc);*/
+
+			// Setup the viewport
+			D3D11_VIEWPORT viewport;
+			ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+			viewport.Width = 1600.0f;
+			viewport.Height = 900.0f;
+			viewport.MinDepth = 0.0f;
+			viewport.MaxDepth = 1.0f;
+			viewport.TopLeftX = 0;
+			viewport.TopLeftY = 0;
+
+			LOG(info) << "Setting viewport.";
+
+			deviceContext->RSSetViewports(1, &viewport);
+
+			viewportCount = 0;
+			deviceContext->RSGetViewports(&viewportCount, nullptr);
+			LOG(info) << std::to_string(viewportCount) << " viewports bound.";
+		}
 
 		// Set the vertex input layout.
 		deviceContext->IASetInputLayout(m_layout);
 
-
+		// Set the vertex and pixel shaders that will be used to render this triangle.
+		deviceContext->VSSetShader(m_vertexShader, NULL, 0);
 		deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 
 		// Set the sampler state in the pixel shader.

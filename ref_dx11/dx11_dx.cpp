@@ -647,6 +647,10 @@ bool dx11::Dx::InitDevice(HWND hWnd)
 
 	m_immediateContext->RSSetViewports(1, &viewport);
 
+	UINT viewportCount = 0;
+	m_immediateContext->RSGetViewports(&viewportCount, nullptr);
+	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
+
 	m_d3dInitialized = true;
 
 	return m_d3dInitialized;

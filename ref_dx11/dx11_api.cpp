@@ -225,7 +225,10 @@ inline void SHIM_R_Shutdown()
 
 inline void SHIM_R_SetPalette(const unsigned char *palette)
 {
-
+	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	{
+		dx11::ref->img->SetRawPalette(palette);
+	}
 }
 
 inline void	SHIM_R_BeginFrame(float camera_separation)

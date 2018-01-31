@@ -47,6 +47,8 @@ dx11::Log::Log()
 		boost::log::keywords::format = "[%TimeStamp%] <%Severity%> %Scope% - %Message%"
 	);
 
+	logSink->flush();
+
 	boost::log::add_console_log();
 
 	boost::log::core::get()->set_filter

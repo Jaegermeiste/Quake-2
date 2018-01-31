@@ -246,7 +246,7 @@ void dx11::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette,
 	}
 }
 
-std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(ID3D11Device* m_d3dDevice, std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw)
+std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette)
 {
 	LOG_FUNC();
 
@@ -287,12 +287,10 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(ID3D
 
 		if (bpp == BPP_8)
 		{
-			DirectX::PackedVector::XMCOLOR *d8to32table = m_8to32table;	// Hack around the lambda function parameter issue
-
 			// De-palletize the texture data
 
 			//for (unsigned int i = 0; i < (width * height); i++)
-			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &d8to32table](unsigned int i)
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &palette](unsigned int i)
 			{
 				if (raw[i] == 255)
 				{
@@ -302,12 +300,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(ID3D
 				else
 				{
 					// Paletted
-					rgba32[i] = d8to32table[raw[i]];
-					//rgba32[i] = (d8to24table[raw[i]] << 24u | 255u);
-					//((byte *)&rgba32[i])[0] = ((byte *)&d8to24table[raw[i]])[0];
-					//((byte *)&rgba32[i])[1] = ((byte *)&d8to24table[raw[i]])[1];
-					//((byte *)&rgba32[i])[2] = ((byte *)&d8to24table[raw[i]])[2];
-					//((byte *)&rgba32[i])[3] = 255;
+					rgba32[i] = palette[raw[i]];
 				}
 			});
 		}
@@ -327,7 +320,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(ID3D
 
 		data.pSysMem = rgba32;
 
-		hr = m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &data, &texture->m_texture2D);
+		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &data, &texture->m_texture2D);
 		if (FAILED(hr))
 		{
 			LOG(error) << "Failed to create texture";
@@ -429,18 +422,24 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 			}
 		}
 
+		if (bufferSize <= 0)
+		{
+			ref->client->Con_Printf(PRINT_ALL, "File not found: " + name);
+			return nullptr;
+		}
+
 		if (generateMipMap)
 		{
 			miscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		}
 
-		//ref->sys->BeginUpload();
+		ref->sys->BeginUpload();
 
 		if (m_images[name]->m_format.compare("pcx") == 0)
 		{
 			byte	*pic = nullptr, *palette = nullptr;
 			LoadPCX(buffer, bufferSize, &pic, &palette, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height);
-			m_images[name] = CreateTexture2DFromRaw(ref->sys->dx->m_d3dDevice, name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, 8, pic);
+			m_images[name] = CreateTexture2DFromRaw(name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, BPP_8, pic, m_8to32table);
 		}
 		else if (m_images[name]->m_format.compare("wal") == 0)
 		{
@@ -478,7 +477,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 		{
 			// Requesting a .hdr file
 			TexMetadata metadata;
-			hr = GetMetadataFromHDRMemory(buffer, bufferSize, metadata);
+			hr = GetMetadataFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), metadata);
 
 			if (FAILED(hr))
 			{
@@ -487,7 +486,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 			else
 			{
 				ScratchImage scratch;
-				hr = LoadFromHDRMemory(buffer, bufferSize, &metadata, scratch);
+				hr = LoadFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), &metadata, scratch);
 
 				if (FAILED(hr))
 				{
@@ -522,6 +521,8 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 		}
 
 		ref->sys->EndUpload();
+
+		LOG(info) << "Successfully uploaded " << name << " to GPU.";
 	}
 
 	if(buffer)
@@ -568,4 +569,50 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 
 	// Return the pointer
 	return m_images[name];
+}
+
+void dx11::ImageManager::SetRawPalette(const unsigned char *palette)
+{
+	LOG_FUNC();
+
+	if (palette)
+	{
+		// Overwrite with provided palette
+
+		/*for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = palette[i * 3 + 0];
+			rp[i * 4 + 1] = palette[i * 3 + 1];
+			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 3] = 0xff;
+		}*/
+
+		//for (unsigned int i = 0; i < 256; i++)
+		Concurrency::parallel_for(0u, 256u, [&m_rawPalette = m_rawPalette, &palette](unsigned int i)
+		{
+			m_rawPalette[i].r = palette[i * 3 + 0];
+			m_rawPalette[i].g = palette[i * 3 + 1];
+			m_rawPalette[i].b = palette[i * 3 + 2];
+			m_rawPalette[i].a = 255;
+		});
+	}
+	else
+	{
+		// Copy back default palette
+
+		/*for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = d_8to24table[i] & 0xff;
+			rp[i * 4 + 1] = (d_8to24table[i] >> 8) & 0xff;
+			rp[i * 4 + 2] = (d_8to24table[i] >> 16) & 0xff;
+			rp[i * 4 + 3] = 0xff;
+		}*/
+
+		//for (unsigned int i = 0; i < 256; i++)
+		Concurrency::parallel_for(0u, 256u, [&m_rawPalette = m_rawPalette, &m_8to32table = m_8to32table](unsigned int i)
+		{
+			m_rawPalette[i] = m_8to32table[i];
+			m_rawPalette[i].a = 255;			// Ensure we set alpha to 1
+		});
+	}
 }

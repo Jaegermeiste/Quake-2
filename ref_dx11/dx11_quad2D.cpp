@@ -38,11 +38,9 @@ dx11::Quad2D::Quad2D()
 	m_indexCount = 0;
 }
 
-bool dx11::Quad2D::Initialize(ID3D11DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTOR color = DirectX::Colors::White)
+bool dx11::Quad2D::Initialize(ID3D11DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color = DirectX::Colors::White)
 {
 	LOG_FUNC();
-
-	HRESULT hr = E_UNEXPECTED;
 
 	if (!context)
 	{
@@ -169,7 +167,7 @@ bool dx11::Quad2D::InitializeBuffers()
 	return true;
 }
 
-bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::XMVECTOR color = DirectX::Colors::White)
+bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::XMVECTORF32 color = DirectX::Colors::White)
 {
 	LOG_FUNC();
 
@@ -207,13 +205,13 @@ bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::X
 	m_colorPrev = color;
 
 	// Calculate the screen coordinates of the left side of the overlay.
-	left = static_cast<float>(((ref->sys->dx->m_windowWidth / 2) * -1.0) + x);
+	left = static_cast<float>(((static_cast<float>(ref->sys->dx->m_windowWidth) / 2.0f) * -1.0f) + static_cast<float>(x));
 
 	// Calculate the screen coordinates of the right side of the overlay.
 	right = left + static_cast<float>(width);
 
 	// Calculate the screen coordinates of the top of the overlay.
-	top = static_cast<float>((ref->sys->dx->m_windowHeight / 2) - y);
+	top = static_cast<float>((static_cast<float>(ref->sys->dx->m_windowHeight) / 2.0f) - static_cast<float>(y));
 
 	// Calculate the screen coordinates of the bottom of the overlay.
 	bottom = top - static_cast<float>(height);
@@ -226,32 +224,34 @@ bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::X
 		return false;
 	}
 
+	//ZeroMemory(&vertices, sizeof(Vertex2D) * m_vertexCount);
+
 	// Load the vertex array with data.
 	// First triangle.
-	vertices[0].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[0].position = DirectX::XMFLOAT3A(left, top, 0.0f);  // Top left.
 	vertices[0].color	 = color;
-	vertices[0].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+	vertices[0].texCoord = DirectX::XMFLOAT2A(0.0f, 0.0f);
 
-	vertices[1].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[1].position = DirectX::XMFLOAT3A(right, bottom, 0.0f);  // Bottom right.
 	vertices[1].color	 = color;
-	vertices[1].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+	vertices[1].texCoord = DirectX::XMFLOAT2A(1.0f, 1.0f);
 
-	vertices[2].position = DirectX::XMFLOAT3(left, bottom, 0.0f);  // Bottom left.
+	vertices[2].position = DirectX::XMFLOAT3A(left, bottom, 0.0f);  // Bottom left.
 	vertices[2].color	 = color;
-	vertices[2].texCoord = DirectX::XMFLOAT2(0.0f, 1.0f);
+	vertices[2].texCoord = DirectX::XMFLOAT2A(0.0f, 1.0f);
 
 	// Second triangle.
-	vertices[3].position = DirectX::XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[3].position = DirectX::XMFLOAT3A(left, top, 0.0f);  // Top left.
 	vertices[3].color	 = color;
-	vertices[3].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+	vertices[3].texCoord = DirectX::XMFLOAT2A(0.0f, 0.0f);
 
-	vertices[4].position = DirectX::XMFLOAT3(right, top, 0.0f);  // Top right.
+	vertices[4].position = DirectX::XMFLOAT3A(right, top, 0.0f);  // Top right.
 	vertices[4].color	 = color;
-	vertices[4].texCoord = DirectX::XMFLOAT2(1.0f, 0.0f);
+	vertices[4].texCoord = DirectX::XMFLOAT2A(1.0f, 0.0f);
 
-	vertices[5].position = DirectX::XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[5].position = DirectX::XMFLOAT3A(right, bottom, 0.0f);  // Bottom right.
 	vertices[5].color	 = color;
-	vertices[5].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+	vertices[5].texCoord = DirectX::XMFLOAT2A(1.0f, 1.0f);
 
 	// Lock the vertex buffer so it can be written to.
 	hr = m_context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -277,7 +277,9 @@ bool dx11::Quad2D::UpdateBuffers(int x, int y, int width, int height, DirectX::X
 		vertices = nullptr;
 	}
 
+#ifdef _DEBUG
 	DumpD3DDebugMessagesToLog();
+#endif
 
 	return true;
 }
@@ -304,7 +306,7 @@ void dx11::Quad2D::RenderBuffers() const
 	}
 }
 
-void dx11::Quad2D::Render(int x, int y, int width, int height, DirectX::XMVECTOR color = DirectX::Colors::White)
+void dx11::Quad2D::Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color = DirectX::Colors::White)
 {
 	LOG_FUNC();
 
