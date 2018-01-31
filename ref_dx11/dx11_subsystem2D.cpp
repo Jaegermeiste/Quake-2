@@ -263,22 +263,23 @@ bool dx11::Subsystem2D::Initialize()
 	}
 
 
-	D3D11_BLEND_DESC bs;
-	ZeroMemory(&bs, sizeof(D3D11_BLEND_DESC));
+	D3D11_BLEND_DESC blendStateDescription;
+	ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
 	for (int i = 0; i<8; i++)
 	{
-		bs.RenderTarget[i].BlendEnable = TRUE;
-		bs.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-		bs.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		bs.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-		bs.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
-		bs.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
-		bs.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
-		bs.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ONE;
+		// Create an alpha enabled blend state description.
+		blendStateDescription.RenderTarget[i].BlendEnable = TRUE;
+		blendStateDescription.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendStateDescription.RenderTarget[i].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendStateDescription.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendStateDescription.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDescription.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 	}
-	bs.IndependentBlendEnable = TRUE;
+	blendStateDescription.IndependentBlendEnable = TRUE;
 
-	hr = ref->sys->dx->m_d3dDevice->CreateBlendState(&bs, &m_alphaBlendState);
+	hr = ref->sys->dx->m_d3dDevice->CreateBlendState(&blendStateDescription, &m_alphaBlendState);
 
 	if (FAILED(hr))
 	{

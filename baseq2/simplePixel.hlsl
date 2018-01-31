@@ -27,15 +27,26 @@ struct PixelInputType
 ////////////////////////////////////////////////////////////////////////////////
 float4 PS_Entry(PixelInputType input) : SV_TARGET
 {
-	float4 source = shaderTexture.Sample(SampleType, input.tex);;
-	float4 destination;
-	
-	destination.r = source.r;
-	destination.g = source.g;
-	destination.b = source.b;
-	destination.a = source.a;
-	
-	destination.rgb *= source.a;
+	float4 source = shaderTexture.Sample(SampleType, input.tex);
+	float4 output;
+    float brightness = 0.1125;
+    float contrast = 1.05;
 
-	return destination;
+	
+    output.r = source.r;
+    output.g = source.g;
+    output.b = source.b;
+    output.a = source.a;
+        
+    output.rgba *= input.color;
+	
+    // Courtesy https://stackoverflow.com/questions/944713/help-with-pixel-shader-effect-for-brightness-and-contrast
+    // Apply contrast.
+    output.rgb = ((output.rgb - 0.5f) * max(contrast, 0)) + 0.5f;
+
+    // Apply brightness.
+    output.rgb += brightness;
+
+
+    return saturate(output);
 }
