@@ -10,6 +10,14 @@
 Texture2D shaderTexture;
 SamplerState SampleType;
 
+cbuffer constants : register(b0)
+{
+	float brightness;
+	float contrast;
+	float unused1;
+	float unused2;
+};
+
 
 //////////////
 // TYPEDEFS //
@@ -29,8 +37,8 @@ float4 PS_Entry(PixelInputType input) : SV_TARGET
 {
 	float4 source = shaderTexture.Sample(SampleType, input.tex);
 	float4 output;
-    float brightness = 0.1125;
-    float contrast = 1.05;
+    //float brightness = 0.1125;
+	//float contrast = 1.05;
 
 	
     output.r = source.r;

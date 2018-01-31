@@ -31,11 +31,20 @@ ref_dx11
 
 namespace dx11
 {
+	__declspec(align(16)) struct ShaderConstants2D
+	{
+		float brightness;
+		float contrast;
+		float unused1;
+		float unused2;
+	};
+
 	__declspec(align(16)) class Subsystem2D {
 		friend class System;
 		friend class SubsystemText;
 		friend class Draw;
 		friend class Dx;
+		friend class Quad2D;
 	private:
 		UINT						m_renderTargetWidth = 0;
 		UINT						m_renderTargetHeight = 0;
@@ -77,7 +86,8 @@ namespace dx11
 		ID2D1SolidColorBrush*		colorBlue = nullptr;
 
 	private:
-		byte						m_padding3[8];
+		ID3D11Buffer*				m_constantBuffer = nullptr;
+		byte						m_padding2[4];
 
 	public:
 									Subsystem2D();
@@ -87,6 +97,8 @@ namespace dx11
 		void						ActivateD2DDrawing();
 
 		void						Clear();
+
+		void						Update();
 
 		void						Render();
 

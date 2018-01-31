@@ -96,6 +96,8 @@ namespace dx11
 		std::shared_ptr<Cvar>  zFar3D;
 
 		std::shared_ptr<Cvar>  overlayScale;
+		std::shared_ptr<Cvar>  overlayBrightness;
+		std::shared_ptr<Cvar>  overlayContrast;
 
 		std::shared_ptr<Cvar>  xpLitDownloadEnable;
 		std::shared_ptr<Cvar>  xpLitDownloadPath;
@@ -104,6 +106,7 @@ namespace dx11
 		std::shared_ptr<Cvar>  xpLitPathXatrix;
 
 		std::shared_ptr<Cvar>  font;
+
 	};
 };
 

@@ -60,6 +60,8 @@ dx11::Cvars::Cvars()
 #else
 	overlayScale			= std::make_shared<Cvar>("dx11_overlayScale",				0.9,														CVAR_ARCHIVE);
 #endif
+	overlayBrightness		= std::make_shared<Cvar>("dx11_overlayBrightness",			0.1125,														CVAR_ARCHIVE);
+	overlayContrast			= std::make_shared<Cvar>("dx11_overlayContrast",			1.05,														CVAR_ARCHIVE);
 
 	// Courtesy Kirk Barnes @ http://quake2xp.sourceforge.net/
 	xpLitDownloadEnable		= std::make_shared<Cvar>("dx11_xpLitDownloadEnable",		false,														CVAR_ARCHIVE);

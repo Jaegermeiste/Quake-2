@@ -40,7 +40,7 @@ namespace dx11
 		ID3D11DeviceContext*		m_context = nullptr;
 		ID3D11Buffer*				m_vertexBuffer = nullptr;
 		ID3D11Buffer*				m_indexBuffer = nullptr;
-
+		
 		unsigned int				m_vertexCount = 0,
 									m_indexCount = 0;
 

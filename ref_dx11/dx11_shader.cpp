@@ -379,7 +379,7 @@ void dx11::Shader::OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string 
 }
 
 
-bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource)
+bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants)
 {
 	LOG_FUNC();
 
@@ -428,6 +428,12 @@ bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 			deviceContext->PSSetShaderResources(0, 1, &shaderResource);
 		}
 
+		// Set the constant buffer.
+		if (constants)
+		{
+			deviceContext->PSSetConstantBuffers(0, 1, &constants);
+		}
+
 		return true;
 	}
 	else
@@ -439,13 +445,13 @@ bool dx11::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 }
 
 
-bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource)
+bool dx11::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants)
 {
 	LOG_FUNC();
 
 	if (deviceContext)
 	{
-		if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, shaderResource))
+		if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, shaderResource, constants))
 		{
 			LOG(error) << "Failed to set shader parameters";
 			return false;

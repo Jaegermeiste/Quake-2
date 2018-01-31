@@ -45,6 +45,7 @@ dx11::Subsystem2D::Subsystem2D()
 	m_d2dDrawingActive = false;
 	m_2DunorderedAccessView = nullptr;
 	m_alphaBlendState = nullptr;
+	m_constantBuffer = nullptr;
 
 	fadeColor = nullptr;
 	colorBlack = nullptr;
@@ -311,6 +312,42 @@ bool dx11::Subsystem2D::Initialize()
 	m_2DdeferredContext->RSGetViewports(&viewportCount, nullptr);
 	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
 
+	D3D11_BUFFER_DESC		constantBufferDesc;
+	D3D11_SUBRESOURCE_DATA	constantData;
+	ShaderConstants2D		constants;
+	ZeroMemory(&constantBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	ZeroMemory(&constantData, sizeof(D3D11_SUBRESOURCE_DATA));
+
+	// Set up the description of the dynamic constant buffer.
+	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	constantBufferDesc.ByteWidth = sizeof(ShaderConstants2D);
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	constantBufferDesc.MiscFlags = 0;
+	constantBufferDesc.StructureByteStride = 0;
+
+	constants.brightness = ref->cvars->overlayBrightness->Float();
+	constants.contrast = ref->cvars->overlayContrast->Float();
+	constants.unused1 = -1.0f;
+	constants.unused2 = -2.0f;
+
+	// Give the subresource structure a pointer to the constant data.
+	constantData.pSysMem = &constants;
+	constantData.SysMemPitch = 0;
+	constantData.SysMemSlicePitch = 0;
+
+	// Create the constant buffer.
+	hr = ref->sys->dx->m_d3dDevice->CreateBuffer(&constantBufferDesc, &constantData, &ref->sys->dx->subsystem2D->m_constantBuffer);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to create constant buffer.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created constant buffer.";
+	}
+
 	// Calculate the width of the overlay.
 	int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
 
@@ -440,6 +477,40 @@ void dx11::Subsystem2D::Clear()
 	}
 }
 
+void dx11::Subsystem2D::Update()
+{
+	HRESULT hr = E_UNEXPECTED;
+	ShaderConstants2D*			constantsPtr = nullptr;
+	D3D11_MAPPED_SUBRESOURCE	mappedResource;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+
+	// Update the constants buffer as necessary
+	if (ref->cvars->overlayBrightness->Modified() || ref->cvars->overlayContrast->Modified())
+	{
+		// Lock the constant buffer so it can be written to.
+		hr = m_2DdeferredContext->Map(ref->sys->dx->subsystem2D->m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to lock constant buffer.";
+			return;
+		}
+
+		// Get a pointer to the data in the constants buffer.
+		constantsPtr = static_cast<ShaderConstants2D*>(mappedResource.pData);
+
+		// Update values
+		constantsPtr->brightness = ref->cvars->overlayBrightness->Float();
+		constantsPtr->contrast = ref->cvars->overlayContrast->Float();
+
+		// Unlock the constants buffer.
+		m_2DdeferredContext->Unmap(ref->sys->dx->subsystem2D->m_constantBuffer, 0);
+
+		// Clear the modified flag
+		ref->cvars->overlayBrightness->SetModified(false);
+		ref->cvars->overlayContrast->SetModified(false);
+	}
+}
+
 void dx11::Subsystem2D::Render()
 {
 	LOG_FUNC();
@@ -448,7 +519,7 @@ void dx11::Subsystem2D::Render()
 
 	if (ref->sys->dx->m_immediateContext)
 	{
-		ID3D11ShaderResourceView* clearSRV = { NULL };
+		//ID3D11ShaderResourceView* clearSRV = { NULL };
 
 		// Set depth to disabled
 		//ref->sys->dx->m_immediateContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
@@ -502,7 +573,7 @@ void dx11::Subsystem2D::Render()
 		m_renderTargetQuad.Render(x, y, width, height, DirectX::Colors::White);
 
 		// Render the overlay to the back buffer
-		m_2DshaderTexture.Render(ref->sys->dx->m_immediateContext, m_renderTargetQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView);
+		m_2DshaderTexture.Render(ref->sys->dx->m_immediateContext, m_renderTargetQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_2DorthographicMatrix, m_2DshaderResourceView, m_constantBuffer);
 
 		// Clear the PS binding
 		//ref->sys->dx->subsystem2D->m_2DdeferredContext->PSSetShaderResources(0, 1, &clearSRV);
@@ -545,6 +616,8 @@ void dx11::Subsystem2D::Shutdown()
 	m_generalPurposeQuad.Shutdown();
 
 	m_renderTargetQuad.Shutdown();
+
+	SAFE_RELEASE(m_constantBuffer);
 
 	SAFE_RELEASE(colorYellowGreen);
 

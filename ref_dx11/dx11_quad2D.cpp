@@ -66,12 +66,12 @@ bool dx11::Quad2D::InitializeBuffers()
 	// Courtesy http://www.rastertek.com/dx11tut11.html
 	LOG_FUNC();
 
-	HRESULT hr = E_UNEXPECTED;
+	HRESULT					hr = E_UNEXPECTED;
 	m_vertexCount = m_indexCount = 6;
-	Vertex2D* vertices = new Vertex2D[m_vertexCount];
-	unsigned long* indices = new unsigned long[m_indexCount];
-	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, indexData;
+	Vertex2D*				vertices = new Vertex2D[m_vertexCount];
+	unsigned long*			indices = new unsigned long[m_indexCount];
+	D3D11_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
+	D3D11_SUBRESOURCE_DATA	vertexData, indexData;
 
 	if (!vertices)
 	{
@@ -302,7 +302,9 @@ void dx11::Quad2D::RenderBuffers() const
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+#ifdef _DEBUG
 		DumpD3DDebugMessagesToLog();
+#endif
 	}
 }
 

@@ -153,6 +153,7 @@ void dx11::Dx::BeginFrame(void)
 
 	if (subsystem2D)
 	{
+		subsystem2D->Update();
 		subsystem2D->Clear();
 	}
 

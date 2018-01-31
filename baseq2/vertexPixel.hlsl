@@ -14,6 +14,14 @@ struct PixelInputType
     float2 tex : TEXCOORD0;
 };
 
+cbuffer constants : register(b0)
+{
+	float brightness;
+	float contrast;
+	float unused1;
+	float unused2;
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
