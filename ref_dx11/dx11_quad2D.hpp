@@ -49,13 +49,18 @@ namespace dx11
 									m_widthPrev = -1,
 									m_heightPrev = -1;
 
+		float						m_u1Prev = -1,
+									m_v1Prev = -1,
+									m_u2Prev = -1,
+									m_v2Prev = -1;
+
 		byte						m_padding[12];
 
 		DirectX::XMVECTORF32		m_colorPrev = DirectX::Colors::White;
 
 		bool						InitializeBuffers();
 
-		bool						UpdateBuffers(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
+		bool						UpdateBuffers(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 
 		void						RenderBuffers() const;
 
@@ -65,6 +70,8 @@ namespace dx11
 		bool						Initialize(ID3D11DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
 		void						Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
+
+		void						Render(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 
 		unsigned int				IndexCount() { return m_indexCount; };
 
