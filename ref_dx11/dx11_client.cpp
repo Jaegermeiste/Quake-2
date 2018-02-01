@@ -61,7 +61,11 @@ void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 
 	LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
-	m_refImport.Cmd_AddCommand(const_cast<char*>(name.c_str()), cmd);
+	char *cName = new char[64]();
+	name.copy(cName, name.length(), 0);
+	m_cmdNames.push_back(cName);
+
+	m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
 }
 
 void dx11::Client::Cmd_RemoveCommand(std::string name)
@@ -291,6 +295,16 @@ dx11::Client::~Client()
 	dx11::Client::Cvar_Get			= nullptr;
 	dx11::Client::Cvar_Set			= nullptr;
 	dx11::Client::Cvar_SetValue		= nullptr;
+
+	// Blow out any stored cmdnames
+	for (auto & cmdName : m_cmdNames)
+	{
+		if (cmdName)
+		{
+			delete[] cmdName;
+			cmdName = nullptr;
+		}
+	}
 }
 
 #ifndef REF_HARD_LINKED

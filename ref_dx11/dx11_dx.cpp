@@ -241,31 +241,34 @@ void dx11::Dx::D3D_Strings_f()
 
 	ref->client->Con_Printf(PRINT_ALL, "D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
 
-	// We need this to get a compliant string
-	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertToUTF8;
-
 	std::stringstream hexValue;
 
-	ref->client->Con_Printf(PRINT_ALL, "Adapter Description: " + ref->sys->ToString(m_adapterDesc.Description));
+	ref->client->Con_Printf(PRINT_ALL, "    Adapter Description: " + ref->sys->ToString(m_adapterDesc.Description));
+	ref->client->Con_Printf(PRINT_ALL, "");
+
 	hexValue.str(std::string());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.VendorId;
-	ref->client->Con_Printf(PRINT_ALL, "        Vendor ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, "              Vendor ID: " + hexValue.str());
+
 	hexValue.str(std::string());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.DeviceId;
-	ref->client->Con_Printf(PRINT_ALL, "        Device ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, "              Device ID: " + hexValue.str());
+
 	hexValue.str(std::string());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.SubSysId;
-	ref->client->Con_Printf(PRINT_ALL, "        Subsystem ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, "           Subsystem ID: " + hexValue.str());
+
 	hexValue.str(std::string());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.Revision;
-	ref->client->Con_Printf(PRINT_ALL, "        Revision: " + hexValue.str());
-	ref->client->Con_Printf(PRINT_ALL, "Dedicated Video Memory: " + std::to_string(m_adapterDesc.DedicatedVideoMemory));
+	ref->client->Con_Printf(PRINT_ALL, "               Revision: " + hexValue.str());
+
+	ref->client->Con_Printf(PRINT_ALL, " Dedicated Video Memory: " + std::to_string(m_adapterDesc.DedicatedVideoMemory));
 	ref->client->Con_Printf(PRINT_ALL, "Dedicated System Memory: " + std::to_string(m_adapterDesc.DedicatedSystemMemory));
-	ref->client->Con_Printf(PRINT_ALL, "Shared System Memory: " + std::to_string(m_adapterDesc.SharedSystemMemory));
+	ref->client->Con_Printf(PRINT_ALL, "   Shared System Memory: " + std::to_string(m_adapterDesc.SharedSystemMemory));
 }
 
 extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f(void)

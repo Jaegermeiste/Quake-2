@@ -74,6 +74,7 @@ namespace dx11
 		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
 		DirectX::PackedVector::XMCOLOR	m_rawPalette[256];
 
+		std::shared_ptr<Texture2D>		m_conChars;
 		std::shared_ptr<Texture2D>		m_rawTexture;
 
 		void						SetRawPalette(const unsigned char *palette);

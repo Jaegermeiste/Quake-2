@@ -68,11 +68,25 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 {
 	LOG_FUNC();
 
-	if (y <= -8)
-		return;			// totally off screen
+	if ((y <= -CHAR_SIZE) || ((c & 127) == 32))
+	{
+		// Offscreen, or space
+		return;
+	}
 
-	if ((c & 127) == 32)
-		return;		// space
+	unsigned char row = c >> 4i8;
+	unsigned char col = c & 15i8;
+
+	float size = 0.0625f;
+	float frow = row * size;
+	float fcol = col * size;
+
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
+
+	// Render the overlay to the back buffer
+	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+
+	/*
 
 	if ((c >= '!') && (c <= '}'))
 	{
@@ -99,7 +113,7 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 
 		// Render the overlay to the back buffer
 		ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);
-	}
+	}*/
 }
 
 void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)

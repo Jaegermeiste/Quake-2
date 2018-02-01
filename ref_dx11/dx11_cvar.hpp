@@ -38,7 +38,7 @@ namespace dx11
 	public:
 		class Cvar {
 		private:
-			std::unique_ptr<cvar_t> m_clientMemPtr;
+			cvar_t*					m_clientMemPtr;
 
 			std::mutex				m_ptrAccessMutex;
 
@@ -51,6 +51,7 @@ namespace dx11
 									Cvar(std::string name, float defaultValue, unsigned int flags);
 									Cvar(std::string name, double defaultValue, unsigned int flags);
 									Cvar(std::string name, int defaultValue, unsigned int flags);
+									~Cvar();
 
 					bool			Bool();
 					signed int		Int();

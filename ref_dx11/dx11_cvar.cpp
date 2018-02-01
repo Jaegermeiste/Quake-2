@@ -82,7 +82,8 @@ dx11::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned in
 
 	LOG(info) << "<name> " << name << " <string> " << defaultString << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), msl::utilities::SafeInt<int>(flags)));
+	//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), msl::utilities::SafeInt<int>(flags)));
+	m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), msl::utilities::SafeInt<int>(flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags)
@@ -94,7 +95,8 @@ dx11::Cvars::Cvar::Cvar(std::string name, float defaultValue, unsigned int flags
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flags)
@@ -106,7 +108,8 @@ dx11::Cvars::Cvar::Cvar(std::string name, double defaultValue, unsigned int flag
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
 }
 
 dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
@@ -118,7 +121,13 @@ dx11::Cvars::Cvar::Cvar(std::string name, int defaultValue, unsigned int flags)
 
 	LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
-	m_clientMemPtr = std::make_unique<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
+	m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
+}
+
+dx11::Cvars::Cvar::~Cvar()
+{
+	m_clientMemPtr = nullptr;
 }
 
 float dx11::Cvars::Cvar::Float()
@@ -209,7 +218,7 @@ bool dx11::Cvars::Cvar::Modified()
 	return false;
 }
 
-inline std::string dx11::Cvars::Cvar::CvarFlagsToString(unsigned flags)
+inline std::string dx11::Cvars::Cvar::CvarFlagsToString(unsigned int flags)
 {
 	std::string flagString = "";
 

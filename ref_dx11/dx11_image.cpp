@@ -36,6 +36,8 @@ bool dx11::ImageManager::Initialize()
 
 	GetPalette();
 
+	m_conChars = Load("pics/conchars.pcx", it_pic);
+
 	return true;
 }
 
@@ -443,7 +445,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 		m_images[name] = std::make_shared<Texture2D>();
 
 		// Determine the image type
-		std::string fileName = std::experimental::filesystem::path(name).filename().string();
+		std::string fileName = std::experimental::filesystem::path(name).stem().string();
 		std::string extension = std::experimental::filesystem::path(name).extension().string();
 		std::string path = "";
 

@@ -38,6 +38,8 @@ namespace dx11
 
 		std::mutex	m_refImportMutex;
 
+		std::vector<char*>	m_cmdNames;
+
 		cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
 		cvar_t			*(*Cvar_Set)			(char *name, char *value);
 		void			(*Cvar_SetValue)		(char *name, float value);

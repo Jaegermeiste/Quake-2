@@ -136,7 +136,13 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 
 inline void	SHIM_Draw_Char(int x, int y, int c)
 {
-	if ((c > 0) && (dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
+	if ((c < 0) || (y <= -CHAR_SIZE) || ((c & 127) == 32))
+	{
+		// Invalid, offscreen, or space
+		return;
+	}
+
+	if ((dx11::ref != nullptr) && (dx11::ref->draw != nullptr))
 	{
 		dx11::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned char>(c));
 	}
