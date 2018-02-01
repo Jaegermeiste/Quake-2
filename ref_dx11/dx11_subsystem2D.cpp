@@ -372,13 +372,13 @@ bool dx11::Subsystem2D::Initialize()
 		return false;
 	}
 
-	if (!m_2DshaderVertexColor.Initialize(ref->sys->dx->m_d3dDevice, "colorVertex.hlsl", "vertexPixel.hlsl"))
+	if (!m_2DshaderVertexColor.Initialize(ref->sys->dx->m_d3dDevice, "vertexColor2D.hlsl", "pixelVertexColor2D.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;
 	}
 
-	if (!m_2DshaderTexture.Initialize(ref->sys->dx->m_d3dDevice, "simpleVertex.hlsl", "simplePixel.hlsl"))
+	if (!m_2DshaderTexture.Initialize(ref->sys->dx->m_d3dDevice, "vertexTexture2D.hlsl", "pixelTexture2D.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
 		return false;

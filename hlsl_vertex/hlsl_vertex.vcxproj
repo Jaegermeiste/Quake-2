@@ -121,8 +121,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <FxCompile Include="..\baseq2\colorVertex.hlsl" />
-    <FxCompile Include="..\baseq2\simpleVertex.hlsl" />
+    <FxCompile Include="..\baseq2\vertexColor2D.hlsl" />
+    <FxCompile Include="..\baseq2\vertexTexture2D.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

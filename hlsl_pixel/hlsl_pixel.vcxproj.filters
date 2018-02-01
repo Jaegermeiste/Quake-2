@@ -14,10 +14,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\baseq2\simplePixel.hlsl">
+    <FxCompile Include="..\baseq2\pixelTexture2D.hlsl">
       <Filter>Source Files</Filter>
     </FxCompile>
-    <FxCompile Include="..\baseq2\vertexPixel.hlsl">
+    <FxCompile Include="..\baseq2\pixelVertexColor2D.hlsl">
       <Filter>Source Files</Filter>
     </FxCompile>
   </ItemGroup>
