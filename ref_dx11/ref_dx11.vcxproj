@@ -152,6 +152,17 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dx11_bsp.cpp" />
+    <ClCompile Include="dx11_bsp_v29.cpp" />
+    <ClCompile Include="dx11_bsp_v38.cpp" />
+    <ClCompile Include="dx11_bsp_v46.cpp" />
+    <ClCompile Include="dx11_bsp_v47.cpp" />
+    <ClCompile Include="dx11_model_md2.cpp" />
+    <ClCompile Include="dx11_model_md3.cpp" />
+    <ClCompile Include="dx11_model_md4.cpp" />
+    <ClCompile Include="dx11_model_md5.cpp" />
+    <ClCompile Include="dx11_model_mdl.cpp" />
+    <ClCompile Include="dx11_image_pcx.cpp" />
     <ClCompile Include="dx11_quad2D.cpp" />
     <ClCompile Include="dx11_subsystem2D.cpp" />
     <ClCompile Include="dx11_subsystem3D.cpp" />
@@ -169,6 +180,7 @@
     <ClCompile Include="dx11_system.cpp" />
     <ClCompile Include="dx11_shader.cpp" />
     <ClCompile Include="dx11_subsystemText.cpp" />
+    <ClCompile Include="dx11_image_wal.cpp" />
     <ClCompile Include="dx11_web.cpp" />
     <ClCompile Include="q_shared.cpp" />
     <ClCompile Include="q_shwin.cpp" />
