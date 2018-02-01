@@ -74,8 +74,8 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 		return;
 	}
 
-	unsigned char row = c >> 4i8;
-	unsigned char col = c & 15i8;
+	unsigned char row = static_cast<unsigned char>(c >> 4);
+	unsigned char col = static_cast<unsigned char>(c & 15);
 
 	float size = 0.0625f;
 	float frow = row * size;

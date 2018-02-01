@@ -472,7 +472,8 @@ void dx11::Subsystem2D::Clear()
 #ifndef _DEBUG
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Transparent);
 #else
-		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, DirectX::Colors::Red);
+		DirectX::XMVECTORF32 ClearColor = { 1.000000000f, 0.000000000f, 0.000000000f, 0.250000000f };
+		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, ClearColor);
 #endif
 	}
 }
