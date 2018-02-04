@@ -42,11 +42,9 @@ namespace dx11
 		WNDCLASSEX					m_wndClassEx;
 		HWND						m_hWnd;
 
-		bool						m_inRegistration;
-		bool						m_uploadBatchOpen;
-
 		bool						m_clockRunning;
 		bool						m_clockFrequencyObtained;
+		byte						m_padding[2];
 		LARGE_INTEGER				m_clockFrequency;
 
 		bool						VID_CreateWindow();
@@ -56,20 +54,12 @@ namespace dx11
 		std::unique_ptr<Dx>			dx;			// Backend
 		std::unique_ptr<Web>		web;		// Networking
 
-		//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertUTF;
-
 									System();
 
 		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);
 		void						Shutdown();
 
 		void						AppActivate(bool active);
-
-		void						BeginRegistration();
-		void						EndRegistration();
-
-		void						BeginUpload();
-		void						EndUpload();
 
 		std::string					GetCurrentWorkingDirectory();
 		bool						SetCurrentWorkingDirectory(std::string directory);

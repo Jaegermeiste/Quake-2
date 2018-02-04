@@ -43,7 +43,9 @@ dx11::Cvars::Cvars()
 	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1600,														CVAR_ARCHIVE);
 	r_customHeight			= std::make_shared<Cvar>("r_customheight",					900,														CVAR_ARCHIVE);
 #endif
+	flushmap				= std::make_shared<Cvar>("flushmap",						0,															0);
 
+	// DX Specific
 	featureLevel			= std::make_shared<Cvar>("dx11_featureLevel",				"D3D_FEATURE_LEVEL_12_1",									CVAR_ARCHIVE);	// Leave this on 12_1, even on dx11
 	bufferCount				= std::make_shared<Cvar>("dx11_bufferCount",				2,															CVAR_ARCHIVE);
 	backBufferFormat		= std::make_shared<Cvar>("dx11_backBufferFormat",			"DXGI_FORMAT_R8G8B8A8_UNORM",								CVAR_ARCHIVE);

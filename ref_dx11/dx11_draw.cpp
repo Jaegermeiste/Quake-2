@@ -27,7 +27,7 @@ ref_dx11
 
 void dx11::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name)
 {
-	std::shared_ptr<dx11::Texture2D> image = ref->img->Load(name, it_pic);
+	std::shared_ptr<dx11::Texture2D> image = ref->media->img->Load(name, it_pic);
 
 	if (image)
 	{
@@ -40,7 +40,7 @@ void dx11::Draw::Pic(int x, int y, std::string name)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<dx11::Texture2D> image = ref->img->Load(name, it_pic);
+	std::shared_ptr<dx11::Texture2D> image = ref->media->img->Load(name, it_pic);
 
 	if (image)
 	{
@@ -54,7 +54,7 @@ void dx11::Draw::StretchPic(int x, int y, int w, int h, std::string name)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<dx11::Texture2D> image = ref->img->Load(name, it_pic);
+	std::shared_ptr<dx11::Texture2D> image = ref->media->img->Load(name, it_pic);
 
 	if (image)
 	{
@@ -84,7 +84,7 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
 
 	// Render the overlay to the back buffer
-	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 
 	/*
 
@@ -120,7 +120,7 @@ void dx11::Draw::TileClear(int x, int y, int w, int h, std::string name)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<dx11::Texture2D> image = ref->img->Load(name, it_pic);
+	std::shared_ptr<dx11::Texture2D> image = ref->media->img->Load(name, it_pic);
 
 	if (image)
 	{
@@ -141,9 +141,9 @@ void dx11::Draw::Fill(int x, int y, int w, int h, int c)
 	}
 
 	DirectX::XMVECTORF32 color = DirectX::Colors::White;
-	color.f[0] = ref->img->m_8to32table[c].r;
-	color.f[1] = ref->img->m_8to32table[c].g;
-	color.f[2] = ref->img->m_8to32table[c].b;
+	color.f[0] = ref->media->img->m_8to32table[c].r;
+	color.f[1] = ref->media->img->m_8to32table[c].g;
+	color.f[2] = ref->media->img->m_8to32table[c].b;
 
 	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, color);
 
@@ -171,7 +171,7 @@ void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 	}
 	
 	unsigned int	*image32 = new unsigned int[rows * cols]();
-	DirectX::PackedVector::XMCOLOR* palette = ref->img->m_rawPalette;
+	DirectX::PackedVector::XMCOLOR* palette = ref->media->img->m_rawPalette;
 
 	// De-palletize the texture data
 	Concurrency::parallel_for(0u, (rows * cols), [&data, &image32, &palette](unsigned int i)
@@ -180,10 +180,10 @@ void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 		image32[i] = palette[data[i]];
 	});
 
-	if (!ref->img->m_rawTexture)
+	if (!ref->media->img->m_rawTexture)
 	{
 		// Create the texture on demand
-		ref->img->m_rawTexture = ref->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, (byte*)image32, nullptr, D3D11_USAGE_DYNAMIC);
+		ref->media->img->m_rawTexture = ref->media->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, (byte*)image32, nullptr, D3D11_USAGE_DYNAMIC);
 	}
 	else
 	{
@@ -192,18 +192,18 @@ void dx11::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
 		//	Disable GPU access to the texture data.
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->Map(ref->img->m_rawTexture->m_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->Map(ref->media->img->m_rawTexture->m_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		
 		//	Update the texture here.
 		memcpy(mappedResource.pData, image32, sizeof(unsigned int) * rows * cols);
 
 		//	Reenable GPU access to the texture data.
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->Unmap(ref->img->m_rawTexture->m_resource, 0);
+		ref->sys->dx->subsystem2D->m_2DdeferredContext->Unmap(ref->media->img->m_rawTexture->m_resource, 0);
 	}
 	
 	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
-	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->img->m_rawTexture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_rawTexture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 
 	if (image32)
 	{

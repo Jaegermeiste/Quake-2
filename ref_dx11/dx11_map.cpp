@@ -26,9 +26,7 @@ ref_dx11
 #include "dx11_local.hpp"
 
 // Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
-
-
-bool DownloadXPLitForMap(std::string mapName)
+bool dx11::Map::DownloadXPLitForMap(std::string mapName)
 {
 	LOG_FUNC();
 
@@ -53,4 +51,26 @@ bool DownloadXPLitForMap(std::string mapName)
 	LOG(info) << "Saving xpLit to " << destinationPath;
 
 	return dx11::ref->sys->web->DownloadFile(downloadURL, destinationPath);
+}
+
+dx11::Map::Map()
+{
+	LOG_FUNC();
+}
+
+bool dx11::Map::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
+}
+
+void dx11::Map::Shutdown()
+{
+	LOG_FUNC();
+}
+
+void dx11::Map::Load(std::string mapName)
+{
+	LOG_FUNC();
 }

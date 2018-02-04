@@ -137,131 +137,6 @@ void dx11::ImageManager::GetPalette(void)
 	SetRawPalette(nullptr);
 }
 
-/*
-================
-LoadWal
-================
-*/
-void dx11::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
-{
-	LOG_FUNC();
-
-	miptex_t		*mt = nullptr;
-	unsigned int	ofs	= 0;
-
-	ref->client->FS_LoadFile(fileName, (void **)&mt);
-
-	if (!mt)
-	{
-		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
-		return;
-	}
-
-	width = LittleULong(mt->width);
-	height = LittleULong(mt->height);
-	ofs = LittleULong(mt->offsets[0]);
-
-	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
-
-	ref->client->FS_FreeFile((void *)mt);
-}
-
-/*
-==============
-LoadPCX
-==============
-*/
-void dx11::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height)
-{
-	LOG_FUNC();
-
-	pcx_t	*pcx		= nullptr;
-	byte	dataByte	= 0;
-	int		runLength	= 0;
-	byte	*out		= nullptr,
-			*pix		= nullptr;
-
-	*pic = nullptr;
-	*palette = nullptr;
-	width = 0;
-	height = 0;
-
-	if ((!raw) || (len <= 0))
-	{
-		LOG(warning) << "Empty buffer passed.";
-		return;
-	}
-
-	//
-	// parse the PCX file
-	//
-	pcx = reinterpret_cast<pcx_t *>(raw);
-
-	pcx->xmin = LittleUShort(pcx->xmin);
-	pcx->ymin = LittleUShort(pcx->ymin);
-	pcx->xmax = LittleUShort(pcx->xmax);
-	pcx->ymax = LittleUShort(pcx->ymax);
-	pcx->hres = LittleUShort(pcx->hres);
-	pcx->vres = LittleUShort(pcx->vres);
-	pcx->bytes_per_line = LittleUShort(pcx->bytes_per_line);
-	pcx->palette_type = LittleUShort(pcx->palette_type);
-
-	raw = &pcx->data;
-
-	if (pcx->manufacturer != 0x0a
-		|| pcx->version != 5
-		|| pcx->encoding != 1
-		|| pcx->bits_per_pixel != 8
-		|| pcx->xmax >= 640
-		|| pcx->ymax >= 480)
-	{
-		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file.");
-		return;
-	}
-
-	out = new byte[(pcx->ymax + 1u) * (pcx->xmax + 1u)]();
-
-	*pic = out;
-
-	pix = out;
-
-	if (palette)
-	{
-		*palette = new byte[768]();
-		memcpy(*palette, reinterpret_cast<byte *>(pcx) + len - 768, 768);
-	}
-
-	width = msl::utilities::SafeInt<unsigned int>(pcx->xmax + 1);
-	height = msl::utilities::SafeInt<unsigned int>(pcx->ymax + 1);
-
-	for (unsigned short y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
-	{
-		for (unsigned short x = 0; x <= pcx->xmax; )
-		{
-			dataByte = *raw++;
-
-			if ((dataByte & 0xC0) == 0xC0)
-			{
-				runLength = dataByte & 0x3F;
-				dataByte = *raw++;
-			}
-			else
-				runLength = 1;
-
-			while (runLength-- > 0)
-				pix[x++] = dataByte;
-		}
-
-	}
-
-	if (raw - reinterpret_cast<byte *>(pcx) > len)
-	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "PCX file was malformed.");
-		delete[] *pic;
-		*pic = nullptr;
-	}
-}
-
 std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D11_USAGE usage)
 {
 	LOG_FUNC();
@@ -496,8 +371,6 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 			miscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		}
 
-		ref->sys->BeginUpload();
-
 		if (m_images[name]->m_format.compare("pcx") == 0)
 		{
 			byte	*pic = nullptr, *palette = nullptr;
@@ -582,8 +455,6 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with WIC loader.");
 			}
 		}
-
-		ref->sys->EndUpload();
 
 		LOG(info) << "Successfully uploaded " << name << " to GPU.";
 	}

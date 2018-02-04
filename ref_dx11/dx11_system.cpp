@@ -51,64 +51,6 @@ dx11::System::System()
 	web = std::make_unique<Web>();
 }
 
-void dx11::System::BeginRegistration()
-{
-	LOG_FUNC();
-
-	if (!m_inRegistration)
-	{
-		BeginUpload();
-
-		m_inRegistration = true;
-	}
-}
-
-void dx11::System::EndRegistration()
-{
-	LOG_FUNC();
-
-	if (m_inRegistration)
-	{
-		m_inRegistration = false;
-
-		EndUpload();
-	}
-}
-
-void dx11::System::BeginUpload()
-{
-	LOG_FUNC();
-
-	/*if (resourceUpload == nullptr)
-	{
-		resourceUpload = new DirectX::ResourceUploadBatch(ref->sys->d3dDevice);
-	}*/
-
-	if (!m_uploadBatchOpen)
-	{
-		//resourceUpload->Begin();
-
-		m_uploadBatchOpen = true;
-	}
-}
-
-void dx11::System::EndUpload()
-{
-	LOG_FUNC();
-
-	// Only flush the upload if the batch is open AND we are not in registration mode
-	if (m_uploadBatchOpen && (!m_inRegistration))
-	{
-		// Upload the resources to the GPU.
-		//auto uploadResourcesFinished = resourceUpload->End(ref->sys->cmdQueue);
-
-		// Wait for the upload thread to terminate
-		//uploadResourcesFinished.wait();
-
-		m_uploadBatchOpen = false;
-	}
-}
-
 /*
 ** VID_CreateWindow
 */

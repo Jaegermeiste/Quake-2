@@ -27,16 +27,9 @@ ref_dx11
 
 inline void	SHIM_R_BeginRegistration(char *map)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr))
 	{
-		dx11::ref->sys->BeginRegistration();
-
-		if (dx11::ref->model != nullptr)
-		{
-			std::string mapName(map);
-
-			dx11::ref->model->LoadMap(mapName);
-		}
+		dx11::ref->media->BeginRegistration(map);
 	}
 }
 
@@ -44,11 +37,11 @@ inline model_s* SHIM_R_RegisterModel(char *name)
 {
 	model_s *model = nullptr;
 
-	if ((dx11::ref != nullptr) && (dx11::ref->model != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr) && (dx11::ref->media->model != nullptr))
 	{
 		std::string modelName(name);
 
-		model = dx11::ref->model->LoadModel(modelName).get();
+		model = dx11::ref->media->model->Load(modelName).get();
 	}
 
 	return model;
@@ -58,9 +51,9 @@ inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 {
 	image_s *image = nullptr;
 
-	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr) && (dx11::ref->media->img != nullptr))
 	{
-		dx11::ref->img->Load(name, it_skin).get();
+		dx11::ref->media->img->Load(name, it_skin).get();
 	}
 
 	return image;
@@ -70,9 +63,9 @@ inline image_t	*SHIM_R_RegisterPic(char *name)
 {
 	image_s *image = nullptr;
 
-	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr) && (dx11::ref->media->img != nullptr))
 	{
-		dx11::ref->img->Load(name, it_pic).get();
+		dx11::ref->media->img->Load(name, it_pic).get();
 	}
 
 	return image;
@@ -80,17 +73,17 @@ inline image_t	*SHIM_R_RegisterPic(char *name)
 
 inline void SHIM_R_SetSky(char *name, float rotate, vec3_t axis)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr) && (dx11::ref->media->img != nullptr))
 	{
-		dx11::ref->img->Load(name, it_sky);
+		dx11::ref->media->img->Load(name, it_sky);
 	}
 }
 
 inline void	SHIM_R_EndRegistration(void)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr))
 	{
-		dx11::ref->sys->EndRegistration();
+		dx11::ref->media->EndRegistration();
 	}
 }
 
@@ -203,7 +196,7 @@ inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 		bool retVal = dx11::ref->sys->Initialize(hInstance, wndProc);
 		if (retVal == true)
 		{
-			retVal = dx11::ref->img->Initialize();
+			retVal = dx11::ref->media->Initialize();
 
 			if (retVal == true)
 			{
@@ -216,9 +209,9 @@ inline qboolean SHIM_R_Init	(void *hinstance, void *wndproc)
 
 inline void SHIM_R_Shutdown()
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr))
 	{
-		dx11::ref->img->Shutdown();
+		dx11::ref->media->Shutdown();
 	}
 
 	if ((dx11::ref != nullptr) && (dx11::ref->sys != nullptr))
@@ -231,9 +224,9 @@ inline void SHIM_R_Shutdown()
 
 inline void SHIM_R_SetPalette(const unsigned char *palette)
 {
-	if ((dx11::ref != nullptr) && (dx11::ref->img != nullptr))
+	if ((dx11::ref != nullptr) && (dx11::ref->media != nullptr) && (dx11::ref->media->img != nullptr))
 	{
-		dx11::ref->img->SetRawPalette(palette);
+		dx11::ref->media->img->SetRawPalette(palette);
 	}
 }
 

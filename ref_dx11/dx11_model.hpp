@@ -225,11 +225,15 @@ typedef struct model_s
 
 namespace dx11
 {
-	class Model 
+	class ModelManager 
 	{
 	public:
-		std::shared_ptr<model_t>	LoadMap(std::string name);
-		std::shared_ptr<model_t>	LoadModel(std::string name);
+									ModelManager();
+
+		bool						Initialize();
+		void						Shutdown();
+
+		std::shared_ptr<model_t>	Load(std::string modelName);
 	};
 }
 

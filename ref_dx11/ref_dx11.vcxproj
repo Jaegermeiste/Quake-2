@@ -84,6 +84,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;d3d11.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -133,6 +134,9 @@
     <ClInclude Include="..\qcommon\qcommon.h" />
     <ClInclude Include="..\qcommon\qfiles.h" />
     <ClInclude Include="..\win32\winquake.h" />
+    <ClInclude Include="dx11_bsp.hpp" />
+    <ClInclude Include="dx11_map.hpp" />
+    <ClInclude Include="dx11_media.hpp" />
     <ClInclude Include="dx11_quad2D.hpp" />
     <ClInclude Include="dx11_subsystem2D.hpp" />
     <ClInclude Include="dx11_subsystem3D.hpp" />
@@ -157,6 +161,7 @@
     <ClCompile Include="dx11_bsp_v38.cpp" />
     <ClCompile Include="dx11_bsp_v46.cpp" />
     <ClCompile Include="dx11_bsp_v47.cpp" />
+    <ClCompile Include="dx11_media.cpp" />
     <ClCompile Include="dx11_model_md2.cpp" />
     <ClCompile Include="dx11_model_md3.cpp" />
     <ClCompile Include="dx11_model_md4.cpp" />

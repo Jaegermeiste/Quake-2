@@ -84,6 +84,10 @@ namespace dx11
 		std::shared_ptr<Cvar>  r_mode;
 		std::shared_ptr<Cvar>  r_customWidth;
 		std::shared_ptr<Cvar>  r_customHeight;
+
+		std::shared_ptr<Cvar>  flushmap;
+
+		// DX Specific
 		
 		std::shared_ptr<Cvar>  featureLevel;
 		std::shared_ptr<Cvar>  bufferCount;

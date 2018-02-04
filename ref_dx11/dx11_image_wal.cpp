@@ -24,3 +24,31 @@ ref_dx11
 */
 
 #include "dx11_local.hpp"
+/*
+================
+LoadWal
+================
+*/
+void dx11::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
+{
+	LOG_FUNC();
+
+	miptex_t		*mt = nullptr;
+	unsigned int	ofs = 0;
+
+	ref->client->FS_LoadFile(fileName, (void **)&mt);
+
+	if (!mt)
+	{
+		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
+		return;
+	}
+
+	width = LittleULong(mt->width);
+	height = LittleULong(mt->height);
+	ofs = LittleULong(mt->offsets[0]);
+
+	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
+
+	ref->client->FS_FreeFile((void *)mt);
+}

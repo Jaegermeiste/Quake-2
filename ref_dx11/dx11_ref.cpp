@@ -36,8 +36,7 @@ void	dx11::Ref::Init(refimport_t rimp)
 	
 	client	= std::make_unique<Client>(rimp);
 	cvars	= std::make_unique<Cvars>();
-	img		= std::make_unique<ImageManager>();
+	media	= std::make_unique<Media>();
 	draw	= std::make_unique<Draw>();
 	sys		= std::make_unique<System>();
-	model	= std::make_unique<Model>();
 }

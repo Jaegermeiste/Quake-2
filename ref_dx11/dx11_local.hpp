@@ -124,6 +124,9 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 #include "dx11_client.hpp"
 #include "dx11_image.hpp"
 #include "dx11_model.hpp"
+#include "dx11_bsp.hpp"
+#include "dx11_map.hpp"
+#include "dx11_media.hpp"
 #include "dx11_ref.hpp"
 
 namespace dx11

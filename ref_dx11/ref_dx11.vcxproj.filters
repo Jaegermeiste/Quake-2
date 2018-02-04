@@ -96,6 +96,15 @@
     <ClInclude Include="dx11_quad2D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dx11_map.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_media.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx11_bsp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11_api.cpp">
@@ -192,6 +201,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx11_image_wal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx11_media.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

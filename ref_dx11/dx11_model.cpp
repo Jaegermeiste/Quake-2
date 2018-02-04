@@ -25,13 +25,26 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-
-std::shared_ptr<model_t> dx11::Model::LoadMap(std::string name)
+dx11::ModelManager::ModelManager()
 {
-	return nullptr;
+	LOG_FUNC();
 }
 
-std::shared_ptr<model_t> dx11::Model::LoadModel(std::string name)
+bool dx11::ModelManager::Initialize()
 {
+	LOG_FUNC();
+
+	return true;
+}
+
+void dx11::ModelManager::Shutdown()
+{
+	LOG_FUNC();
+}
+
+std::shared_ptr<model_t> dx11::ModelManager::Load(std::string name)
+{
+	LOG_FUNC();
+
 	return nullptr;
 }
