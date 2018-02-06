@@ -135,6 +135,7 @@
     <ClInclude Include="..\qcommon\qfiles.h" />
     <ClInclude Include="..\win32\winquake.h" />
     <ClInclude Include="dx11_bsp.hpp" />
+    <ClInclude Include="dx11_light.hpp" />
     <ClInclude Include="dx11_map.hpp" />
     <ClInclude Include="dx11_media.hpp" />
     <ClInclude Include="dx11_quad2D.hpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="dx11_shader.hpp" />
     <ClInclude Include="dx11_subsystemText.hpp" />
     <ClInclude Include="dx11_web.hpp" />
+    <ClInclude Include="dx11_xplit.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +189,7 @@
     <ClCompile Include="dx11_subsystemText.cpp" />
     <ClCompile Include="dx11_image_wal.cpp" />
     <ClCompile Include="dx11_web.cpp" />
+    <ClCompile Include="dx11_xplit.cpp" />
     <ClCompile Include="q_shared.cpp" />
     <ClCompile Include="q_shwin.cpp" />
   </ItemGroup>

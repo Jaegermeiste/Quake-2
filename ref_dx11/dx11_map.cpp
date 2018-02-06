@@ -25,34 +25,6 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-// Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
-bool dx11::Map::DownloadXPLitForMap(std::string mapName)
-{
-	LOG_FUNC();
-
-	std::string gameDir = dx11::ref->client->FS_Gamedir();
-	std::string mapsPath = dx11::ref->cvars->xpLitPathBaseQ2->String();
-
-	if (gameDir.find("xatrix"))
-	{
-		mapsPath = dx11::ref->cvars->xpLitPathXatrix->String();
-	}
-	else if (gameDir.find("rogue"))
-	{
-		mapsPath = dx11::ref->cvars->xpLitPathRogue->String();
-	}
-
-	std::string downloadURL = dx11::ref->cvars->xpLitDownloadPath->String() + mapsPath + mapName + ".xplit?format=raw";
-
-	LOG(info) << "Downloading xpLit for map " << mapName << " from " << downloadURL;
-
-	std::string destinationPath = dx11::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
-
-	LOG(info) << "Saving xpLit to " << destinationPath;
-
-	return dx11::ref->sys->web->DownloadFile(downloadURL, destinationPath);
-}
-
 dx11::Map::Map()
 {
 	LOG_FUNC();
@@ -73,4 +45,61 @@ void dx11::Map::Shutdown()
 void dx11::Map::Load(std::string mapName)
 {
 	LOG_FUNC();
+
+	unsigned int*	fileBuffer = nullptr;
+
+	if (mapName.empty())
+	{
+		ref->client->Sys_Error(ERR_DROP, "Empty filename provided.");
+	}
+
+	if (mapName == m_mapName)
+	{
+		// This is the currently loaded map
+		return;
+	}
+
+	//
+	// load the file
+	//
+	int fileLen = ref->client->FS_LoadFile(mapName, reinterpret_cast<void**>(&fileBuffer));
+	if (!fileBuffer)
+	{
+		ref->client->Sys_Error(ERR_DROP, "Map " + mapName + " not found.");
+		return;
+	}
+
+	// call the apropriate loader
+	if (LittleULong(*fileBuffer) == IDBSPHEADER)
+	{
+		disk_bsp_header_t* header = reinterpret_cast<disk_bsp_header_t *>(fileBuffer);
+
+		int bspVersion = LittleLong(header->version);
+
+		switch (bspVersion)
+		{
+		case BSP38_VERSION:
+			// Quake 2
+			m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
+			break;
+		case BSP46_VERSION:
+			// Quake 3
+			break;
+		case BSP47_VERSION:
+			// RTCW
+			break;
+		default:
+			break;
+		}
+	}
+	else if (LittleULong(*fileBuffer) == 29)
+	{
+		// Quake 1 BSP
+	}
+	else
+	{
+		ref->client->Sys_Error(ERR_DROP, "Unknown file type for " + mapName);
+	}
+
+	ref->client->FS_FreeFile(fileBuffer);
 }

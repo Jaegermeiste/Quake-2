@@ -23,29 +23,19 @@ ref_dx11
 2017 Bleeding Eye Studios
 */
 
-#ifndef __DX11_MAP_HPP__
-#define __DX11_MAP_HPP__
+#ifndef __DX11_XPLIT_HPP__
+#define __DX11_XPLIT_HPP__
 #pragma once
 
 #include "dx11_local.hpp"
 
 namespace dx11
 {
-	class Map
+	class xpLit
 	{
-	private:
-		std::string					m_mapName;
-
-		std::unique_ptr<BSP>		m_bsp = nullptr;
-
 	public:
-									Map();
-
-		bool						Initialize();
-		void						Shutdown();
-
-		void						Load(std::string mapName);
+		std::vector<dx11::Light> Load(std::string fileName);
 	};
 }
 
-#endif // !__DX11_MAP_HPP__
+#endif // !__DX11_LIGHT_HPP__

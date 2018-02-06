@@ -23,29 +23,34 @@ ref_dx11
 2017 Bleeding Eye Studios
 */
 
-#ifndef __DX11_MAP_HPP__
-#define __DX11_MAP_HPP__
+#ifndef __DX11_LIGHT_HPP__
+#define __DX11_LIGHT_HPP__
 #pragma once
 
 #include "dx11_local.hpp"
 
 namespace dx11
 {
-	class Map
+	typedef struct Light_s
 	{
-	private:
-		std::string					m_mapName;
-
-		std::unique_ptr<BSP>		m_bsp = nullptr;
-
-	public:
-									Map();
-
-		bool						Initialize();
-		void						Shutdown();
-
-		void						Load(std::string mapName);
-	};
+		DirectX::XMVECTOR	m_origin;
+		DirectX::XMVECTOR	m_radius;
+		DirectX::XMVECTOR	m_color;
+		DirectX::XMVECTOR	m_angles;
+		DirectX::XMVECTOR	m_speed;
+		bool				m_shadowCaster;
+		bool				m_ambient;
+		int					m_style;
+		int					m_filter;
+		int					m_ambient;
+		float				m_cone;
+		bool				m_flare;
+		float				m_flareSize;
+		DirectX::XMVECTOR	m_flareOrigin;
+		float				m_fog;
+		float				m_fogDensity;
+		int					m_flags;
+	} Light;
 }
 
-#endif // !__DX11_MAP_HPP__
+#endif // !__DX11_LIGHT_HPP__
