@@ -29,83 +29,103 @@ dx11::BSP38::BSP38(std::string name, unsigned int* buffer)
 {
 	m_name = name;
 	m_version = BSP38_VERSION;
+	m_header = reinterpret_cast<dheader_t *>(buffer);
 
-	dheader_t	*header = reinterpret_cast<dheader_t *>(buffer);
-
-	m_version = LittleULong(header->version);
+	m_version = msl::utilities::SafeInt<unsigned int>(LittleLong(m_header->version));
 	if (m_version != BSP38_VERSION)
 	{
 		ref->client->Sys_Error(ERR_DROP, "BSP " + name + " has wrong version number (" + std::to_string(m_version) + " should be " + std::to_string(BSP38_VERSION) + ").");
+		m_header = nullptr;
 		return;
 	}
 
 	LoadLighting();
 }
 
-// Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
-bool dx11::BSP38::DownloadXPLitForMap(std::string mapName)
+// Courtesy https://sourceforge.net/p/quake2xp/code/HEAD/tree/trunk/ref_gl/r_light.c
+std::vector<dx11::Light> dx11::BSP38::LoadLighting()
 {
 	LOG_FUNC();
 
-	std::string gameDir = dx11::ref->client->FS_Gamedir();
-	std::string mapsPath = dx11::ref->cvars->xpLitPathBaseQ2->String();
+	std::vector<dx11::Light> lights;
+	bool addLight = false;
+	char *bspEntityString[MAX_MAP_ENTSTRING], *token, key[256], *value, target[MAX_QPATH];
+	bool runTokenLoop = true;
 
-	if (gameDir.find("xatrix"))
+	if (!m_header)
 	{
-		mapsPath = dx11::ref->cvars->xpLitPathXatrix->String();
+		ref->client->Con_Printf(PRINT_ALL, "No map loaded.");
+		runTokenLoop = false;
+		return lights;
 	}
-	else if (gameDir.find("rogue"))
+
+	lump_t* entLump = &m_header->lumps[BSP38_LUMP_ENTITIES];
+	if (entLump->filelen > MAX_MAP_ENTSTRING)
 	{
-		mapsPath = dx11::ref->cvars->xpLitPathRogue->String();
+		ref->client->Sys_Error(ERR_DROP, "Map has too large entity lump: " + std::to_string(entLump->filelen));
+		return lights;
 	}
 
-	std::string downloadURL = dx11::ref->cvars->xpLitDownloadPath->String() + mapsPath + mapName + ".xplit?format=raw";
+	memcpy(bspEntityString, reinterpret_cast<byte*>(m_header) + entLump->fileofs, msl::utilities::SafeInt<size_t>(entLump->filelen));
 
-	LOG(info) << "Downloading xpLit for map " << mapName << " from " << downloadURL;
-
-	std::string destinationPath = dx11::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
-
-	LOG(info) << "Saving xpLit to " << destinationPath;
-
-	return dx11::ref->sys->web->DownloadFile(downloadURL, destinationPath);
-}
-
-void dx11::BSP38::LoadLighting()
-{
-	// Attempt to load relight file from file system
-	unsigned int*	xpLitBuffer = nullptr;
-	int fileLen = ref->client->FS_LoadFile(m_name, reinterpret_cast<void**>(&xpLitBuffer));
-	if ((fileLen < 1) || (!xpLitBuffer))
+	while (runTokenLoop)
 	{
-		// File not found
-		if (ref->cvars->xpLitDownloadEnable->Bool())
-		{
-			// Download relight file
-			if (DownloadXPLitForMap(m_name))
+		token = COM_Parse(bspEntityString);
+		if (!bspEntityString)
+			break;
+
+		Light newLight;
+
+		memset(target, 0, sizeof(target));
+
+		addLight = false;
+
+		while (runTokenLoop) {
+			token = COM_Parse(bspEntityString);
+			if (token[0] == '}')
+				break;
+
+			strncpy(key, token, sizeof(key) - 1);
+
+			value = COM_Parse(bspEntityString);
+			if (!_stricmp(key, "classname")) 
 			{
-				// Try to load again
-				fileLen = ref->client->FS_LoadFile(m_name, reinterpret_cast<void**>(&xpLitBuffer));
-
-				if ((fileLen < 1) || (!xpLitBuffer))
+				if (!_stricmp(value, "light"))
 				{
-					return;
+					addLight = true;
+				}
+				if (!_stricmp(value, "light_mine1")) 
+				{
+					addLight = true;
+				}
+				if (!_stricmp(value, "light_mine2")) 
+				{
+					addLight = true;
 				}
 			}
-			else
-			{
-				return;
-			}
-		}
-		else
-		{
-			return;
-		}
-	}
 
-	if ((fileLen > 0) && (xpLitBuffer))
-	{
-		// We sucessfully loaded the lights file
+			if (!_stricmp(key, "light"))
+				newLight.m_radius.m128_f32[0] = atof(value);
+			if (!_stricmp(key, "origin"))
+				sscanf(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
+			if (!_stricmp(key, "color"))
+				sscanf(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
+			if (!_stricmp(key, "style"))
+				newLight.m_style = atoi(value);
+			if (!_stricmp(key, "_cone"))
+				newLight.m_cone = atof(value);
+			if (!_stricmp(key, "spawnflags"))
+				newLight.m_flags = atoi(value);
+		}
+
+		if (addLight)
+		{
+			lights.push_back(newLight);
+		}
 	}
+	LOG(info) << "Loaded " << std::to_string(lights.size()) << " lights.";
+
+	return lights;
 }
 
 dx11::BSP38::~BSP38()

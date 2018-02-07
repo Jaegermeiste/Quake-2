@@ -36,6 +36,9 @@ namespace dx11
 	protected:
 		std::string		m_name;
 		unsigned int	m_version;
+
+	public:
+		virtual std::vector<Light>	LoadLighting() { return std::vector<Light>(); };
 	};
 
 #define BSP38_VERSION			38
@@ -72,7 +75,7 @@ namespace dx11
 	private:
 		static bool			DownloadXPLitForMap(std::string mapName);
 
-		void				LoadLighting();
+		dheader_t*			m_header = nullptr;
 
 	protected:
 		//
@@ -114,11 +117,11 @@ namespace dx11
 		msurface_t**		m_markSurfaces;
 
 		dvis_t*				m_vis;
-
-		byte*				m_lightdata;
 	public:
 							BSP38(std::string name, unsigned int* buffer);
 							~BSP38();
+
+		std::vector<Light>	LoadLighting();
 	};
 
 #define BSP46_VERSION	46

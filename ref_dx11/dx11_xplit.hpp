@@ -33,8 +33,11 @@ namespace dx11
 {
 	class xpLit
 	{
+	private:
+		static	bool						DownloadXPLitForMap(std::string mapName);
+
 	public:
-		std::vector<dx11::Light> Load(std::string fileName);
+		static	std::vector<dx11::Light>	Load(std::string fileName);
 	};
 }
 

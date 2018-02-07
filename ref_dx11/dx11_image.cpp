@@ -302,9 +302,9 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 	bool generateMipMap = ((type != it_pic) && (type != it_sky));
 	unsigned int	miscFlags = 0;
 
-	if (name.length() < 5)
+	if (name.length() < 1)
 	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name (<5): " + name);
+		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name: " + name);
 	}
 
 	// First, see if the image has already been loaded in the map:

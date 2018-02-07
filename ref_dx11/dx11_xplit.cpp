@@ -22,68 +22,86 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 using namespace DirectX;
 
-// https://sourceforge.net/p/quake2xp/code/HEAD/tree/trunk/ref_gl/r_light.c
-std::vector<dx11::Light> dx11::xpLit::Load(std::string fileName) 
+// Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
+bool dx11::xpLit::DownloadXPLitForMap(std::string mapName)
 {
 	LOG_FUNC();
 
-	int		style, numLights = 0, filter, shadow, ambient, flare, flag, fog;
-	XMVECTOR	angles, speed, color, origin, lOrigin, fOrg, radius;
-	char	*c, *token, key[256], *value, target[MAX_QPATH];
-	float	cone, fSize, fogDensity;
-	char	name[MAX_QPATH], path[MAX_QPATH];
+	std::string gameDir = dx11::ref->client->FS_Gamedir();
+	std::string mapsPath = dx11::ref->cvars->xpLitPathBaseQ2->String();
 
-	std::vector<dx11::Light>	lights;
-	bool						runParseLoop = true;
-	std::string					key = "",
-								token = "";
-
-	FS_StripExtension(r_worldmodel->name, name, sizeof(name));
-	Com_sprintf(path, sizeof(path), "%s.xplit", name);
-	FS_LoadFile(path, (void **)&c);
-
-	if (!c) {
-		Load_BspLights();
-		return;
+	if (gameDir.find("xatrix"))
+	{
+		mapsPath = dx11::ref->cvars->xpLitPathXatrix->String();
+	}
+	else if (gameDir.find("rogue"))
+	{
+		mapsPath = dx11::ref->cvars->xpLitPathRogue->String();
 	}
 
-	LOG(info) << "Loaded lights from " << path;
+	std::string downloadURL = dx11::ref->cvars->xpLitDownloadPath->String() + mapsPath + mapName + ".xplit?format=raw";
 
-	while (runParseLoop) {
-		token = COM_Parse(&c);
+	LOG(info) << "Downloading xpLit for map " << mapName << " from " << downloadURL;
 
-		if (!c)
+	std::string destinationPath = dx11::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
+
+	LOG(info) << "Saving xpLit to " << destinationPath;
+
+	return dx11::ref->sys->web->DownloadFile(downloadURL, destinationPath);
+}
+
+// https://sourceforge.net/p/quake2xp/code/HEAD/tree/trunk/ref_gl/r_light.c
+std::vector<dx11::Light> dx11::xpLit::Load(std::string mapName) 
+{
+	LOG_FUNC();
+
+	char	*xpLitCharData, *token, key[256], *value, target[MAX_QPATH];
+
+	std::vector<dx11::Light>	lights;
+	bool						runParseLoop = false;
+	std::string fileName = mapName + ".xplit";
+
+	// Attempt to load relight file from file system
+	unsigned int*	xpLitBuffer = nullptr;
+	int fileLen = ref->client->FS_LoadFile(fileName, reinterpret_cast<void**>(&xpLitCharData));
+	if ((fileLen < 1) || (!xpLitCharData))
+	{
+		// File not found
+		if (ref->cvars->xpLitDownloadEnable->Bool())
+		{
+			// Download relight file
+			if (DownloadXPLitForMap(mapName))
+			{
+				// Try to load again
+				fileLen = ref->client->FS_LoadFile(fileName, reinterpret_cast<void**>(&xpLitBuffer));
+			}
+		}
+	}
+
+	if ((fileLen > 0) && (xpLitBuffer))
+	{
+		// We sucessfully loaded the lights file
+		LOG(info) << "Loaded lights from " << fileName;
+		runParseLoop = true;
+	}
+
+	while (runParseLoop) 
+	{
+		token = COM_Parse(&xpLitCharData);
+
+		if (!xpLitCharData)
 		{
 			runParseLoop = false;
 			break;
 		}
 
-
-
 		Light newLight;
 
-		newLight.m_style = 0;
-		newLight.m_filter = 0;
-		newLight.m_shadow = 1;
-		newLight.m_ambient = 0;
-		newLight.m_cone = 0;
-		newLight.m_flareSize = 0;
-		newLight.m_flare = 0;
-		newLight.m_flags = 0;
-		newLight.m_fog = 0;
-		newLight.m_fogDensity = 0.0;
 		memset(target, 0, sizeof(target));
-		newLight.m_radius = XMVectorZero();
-		newLight.m_angles = XMVectorZero();
-		newLight.m_speed = XMVectorZero();
-		newLight.m_origin = XMVectorZero();
-		newLight.m_lOrigin = XMVectorZero();
-		newLight.m_color = XMVectorZero();
-		newLight.m_flareOrigin = XMVectorZero();
 
 		while (runParseLoop) 
 		{
-			token = COM_Parse(&c);
+			token = COM_Parse(&xpLitCharData);
 			if (token[0] == '}')
 			{
 				break;
@@ -91,41 +109,41 @@ std::vector<dx11::Light> dx11::xpLit::Load(std::string fileName)
 
 			strncpy(key, token, sizeof(key) - 1);
 
-			value = COM_Parse(&c);
+			value = COM_Parse(&xpLitCharData);
 
 			if (!_stricmp(key, "radius"))
 				sscanf(value, "%f %f %f", &newLight.m_radius.m128_f32[0], &newLight.m_radius.m128_f32[1], &newLight.m_radius.m128_f32[2]);
-			else if (!_stricmp(key, "origin"))
+			if (!_stricmp(key, "origin"))
 				sscanf(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
-			else if (!_stricmp(key, "color"))
+			if (!_stricmp(key, "color"))
 				sscanf(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
-			else if (!_stricmp(key, "style"))
+			if (!_stricmp(key, "style"))
 				newLight.m_style = atoi(value);
-			else if (!_stricmp(key, "filter"))
+			if (!_stricmp(key, "filter"))
 				newLight.m_filter = atoi(value);
-			else if (!_stricmp(key, "angles"))
+			if (!_stricmp(key, "angles"))
 				sscanf(value, "%f %f %f", &newLight.m_angles.m128_f32[0], &newLight.m_angles.m128_f32[1], &newLight.m_angles.m128_f32[2]);
-			else if (!_stricmp(key, "speed"))
+			if (!_stricmp(key, "speed"))
 				sscanf(value, "%f %f %f", &newLight.m_speed.m128_f32[0], &newLight.m_speed.m128_f32[1], &newLight.m_speed.m128_f32[2]);
-			else if (!_stricmp(key, "shadow"))
+			if (!_stricmp(key, "shadow"))
 				newLight.m_shadowCaster = static_cast<bool>(atoi(value));
-			else if (!_stricmp(key, "ambient"))
+			if (!_stricmp(key, "ambient"))
 				newLight.m_ambient = atoi(value);
-			else if (!_stricmp(key, "_cone"))
+			if (!_stricmp(key, "_cone"))
 				newLight.m_cone = atof(value);
-			else if (!_stricmp(key, "flare"))
+			if (!_stricmp(key, "flare"))
 				newLight.m_flare = static_cast<bool>(atoi(value));
-			else if (!_stricmp(key, "flareOrigin"))
+			if (!_stricmp(key, "flareOrigin"))
 				sscanf(value, "%f %f %f", &newLight.m_flareOrigin.m128_f32[0], &newLight.m_flareOrigin.m128_f32[1], &newLight.m_flareOrigin.m128_f32[2]);
-			else if (!_stricmp(key, "flareSize"))
+			if (!_stricmp(key, "flareSize"))
 				newLight.m_flareSize = atof(value);
-			else if (!_stricmp(key, "targetname"))
-				Q_strncpyz(target, value, sizeof(target));
-			else if (!_stricmp(key, "spawnflags"))
+			if (!_stricmp(key, "targetname"))
+				strncpy(target, value, sizeof(target));
+			if (!_stricmp(key, "spawnflags"))
 				newLight.m_flags = atoi(value);
-			else if (!_stricmp(key, "fogLight"))
+			if (!_stricmp(key, "fogLight"))
 				newLight.m_fog = atof(value);
-			else if (!_stricmp(key, "fogDensity"))
+			if (!_stricmp(key, "fogDensity"))
 				newLight.m_fogDensity = atof(value);
 
 		}

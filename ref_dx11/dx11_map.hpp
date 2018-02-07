@@ -38,6 +38,8 @@ namespace dx11
 
 		std::unique_ptr<BSP>		m_bsp = nullptr;
 
+		std::vector<Light>			m_lights;
+
 	public:
 									Map();
 

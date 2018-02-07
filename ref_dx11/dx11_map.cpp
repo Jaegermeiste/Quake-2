@@ -63,7 +63,7 @@ void dx11::Map::Load(std::string mapName)
 	// load the file
 	//
 	int fileLen = ref->client->FS_LoadFile(mapName, reinterpret_cast<void**>(&fileBuffer));
-	if (!fileBuffer)
+	if ((fileLen < 1) || (!fileBuffer))
 	{
 		ref->client->Sys_Error(ERR_DROP, "Map " + mapName + " not found.");
 		return;
@@ -81,6 +81,15 @@ void dx11::Map::Load(std::string mapName)
 		case BSP38_VERSION:
 			// Quake 2
 			m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
+
+			// Lighting
+			m_lights = xpLit::Load(mapName);
+
+			// If we got nothing back from xpLit, load from the BSP
+			if ((m_lights.size() == 0) && (m_bsp))
+			{
+				m_lights = m_bsp->LoadLighting();
+			}
 			break;
 		case BSP46_VERSION:
 			// Quake 3

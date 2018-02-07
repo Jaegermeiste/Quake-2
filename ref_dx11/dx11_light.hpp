@@ -31,26 +31,47 @@ ref_dx11
 
 namespace dx11
 {
-	typedef struct Light_s
+	class Light
 	{
+	public:
 		DirectX::XMVECTOR	m_origin;
 		DirectX::XMVECTOR	m_radius;
 		DirectX::XMVECTOR	m_color;
 		DirectX::XMVECTOR	m_angles;
 		DirectX::XMVECTOR	m_speed;
-		bool				m_shadowCaster;
-		bool				m_ambient;
-		int					m_style;
-		int					m_filter;
-		int					m_ambient;
-		float				m_cone;
-		bool				m_flare;
-		float				m_flareSize;
 		DirectX::XMVECTOR	m_flareOrigin;
+		float				m_cone;
+		float				m_flareSize;
 		float				m_fog;
 		float				m_fogDensity;
+		int					m_style;
+		int					m_filter;
 		int					m_flags;
-	} Light;
+		bool				m_flare;
+		bool				m_shadowCaster;
+		bool				m_ambient;
+		byte				m_padding;
+
+		Light()
+		{
+			m_style			= 0;
+			m_filter		= 0;
+			m_shadowCaster	= true;
+			m_ambient		= false;
+			m_cone			= 0.0f;
+			m_flareSize		= 0;
+			m_flare			= false;
+			m_flags			= NULL;
+			m_fog			= 0.0f;
+			m_fogDensity	= 0.0f;
+			m_radius		= DirectX::XMVectorZero();
+			m_angles		= DirectX::XMVectorZero();
+			m_speed			= DirectX::XMVectorZero();
+			m_origin		= DirectX::XMVectorZero();
+			m_color			= DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);	// White Light by default
+			m_flareOrigin	= DirectX::XMVectorZero();
+		};
+	};
 }
 
 #endif // !__DX11_LIGHT_HPP__
