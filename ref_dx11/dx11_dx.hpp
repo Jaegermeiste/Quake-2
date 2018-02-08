@@ -34,24 +34,10 @@ ref_dx11
 namespace dx11
 {
 	__declspec(align(16)) struct Vertex2D
-	//struct alignas(16) Vertex2D
-	//struct Vertex2D
 	{
 		DirectX::XMFLOAT4A		position;
 		DirectX::XMVECTORF32	color;
 		DirectX::XMFLOAT2A		texCoord;
-		/*
-		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-		void* operator new(size_t i)
-		{
-			return _mm_malloc(i, 16);
-		}
-
-		void operator delete(void* p)
-		{
-			_mm_free(p);
-		}
-		*/
 	};
 
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
@@ -136,16 +122,7 @@ namespace dx11
 		// Commands
 		void							D3D_Strings_f();
 
-		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-		void* operator new(size_t i)
-		{
-			return _mm_malloc(i, 16);
-		}
-
-		void operator delete(void* p)
-		{
-			_mm_free(p);
-		}
+		ALIGNED_16_MEMORY_OPERATORS;
 	};
 }
 

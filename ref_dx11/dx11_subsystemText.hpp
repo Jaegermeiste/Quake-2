@@ -29,38 +29,66 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
-#define CHAR_SIZE	8
+#define SMALL_CHAR_SIZE	8
+#define SMALLCHAR_WIDTH		8
+#define SMALLCHAR_HEIGHT	8
+#define BIGCHAR_WIDTH		16
+#define BIGCHAR_HEIGHT		16
+
+#define MAX_BATCH_CHARS		1024
+#define MAX_VERTICES		MAX_BATCH_CHARS * 4		// 4 corners to a quad
+#define MAX_INDICES			MAX_BATCH_CHARS * 6		// Each tris references 3 corners, 2 tris to a quad = 6 indices
 
 namespace dx11
 {
 	__declspec(align(16)) class SubsystemText {
 		friend class System;
 	private:
-		IDWriteFactory*				m_writeFactory = nullptr;
-		IDWriteTextFormat*			m_textFormat = nullptr;
+#ifdef USE_DIRECT2D
+		IDWriteFactory*					m_writeFactory = nullptr;
+		IDWriteTextFormat*				m_textFormat = nullptr;
+#endif
+		ID3D11DeviceContext*			m_context = nullptr;
+		ID3D11Buffer*					m_vertexBuffer = nullptr;
+		ID3D11Buffer*					m_indexBuffer = nullptr;
 
-		byte						m_padding[8];
+		Vertex2D*						m_vertices = nullptr;
+		unsigned long*					m_indices = nullptr;
+
+		unsigned int					m_vertexCount = 0,
+										m_indexCount = 0;
+
+		bool							m_inBatch;
+
+		std::shared_ptr<Shader>			m_shader = nullptr;
+
+		byte							m_padding[8];
+
+		bool							InitializeBuffers();
 
 	public:
-									SubsystemText();
+										SubsystemText();
 
-		bool						Initialize();
+		bool							Initialize();
 
-		void						RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush);
-		void						RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush);
+#ifdef USE_DIRECT2D
+		void							RenderText(int x, int y, int w, int h, std::string text, ID2D1SolidColorBrush* colorBrush);
+		void							RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush);
+#endif
 
-		void						Shutdown();
+		void							DrawSmallChar		(int x, int y, int ch);
 
-		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-		void* operator new(size_t i)
-		{
-			return _mm_malloc(i, 16);
-		}
+		void							DrawSmallStringExt	(int x, int y, std::string string, const DirectX::XMVECTORF32 setColor, bool forceColor);
 
-		void operator delete(void* p)
-		{
-			_mm_free(p);
-		}
+		void							DrawBigChar			(int x, int y, int ch);
+
+		void							DrawBigStringExt	(int x, int y, std::string string, const DirectX::XMVECTORF32 setColor, bool forceColor);
+
+		void							Flush();
+
+		void							Shutdown();
+
+		ALIGNED_16_MEMORY_OPERATORS;
 	};
 }
 

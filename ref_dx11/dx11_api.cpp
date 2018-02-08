@@ -129,7 +129,7 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 
 inline void	SHIM_Draw_Char(int x, int y, int c)
 {
-	if ((c < 0) || (y <= -CHAR_SIZE) || ((c & 127) == 32))
+	if ((c < 0) || (y <= -SMALL_CHAR_SIZE) || ((c & 127) == 32))
 	{
 		// Invalid, offscreen, or space
 		return;

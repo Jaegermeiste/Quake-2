@@ -106,16 +106,7 @@ namespace dx11
 
 		void						Shutdown();
 
-		//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
-		void* operator new(size_t i)
-		{
-			return _mm_malloc(i, 16);
-		}
-
-		void operator delete(void* p)
-		{
-			_mm_free(p);
-		}
+		ALIGNED_16_MEMORY_OPERATORS;
 	};
 }
 

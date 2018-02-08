@@ -68,7 +68,7 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 {
 	LOG_FUNC();
 
-	if ((y <= -CHAR_SIZE) || ((c & 127) == 32))
+	if ((y <= -SMALL_CHAR_SIZE) || ((c & 127) == 32))
 	{
 		// Offscreen, or space
 		return;
@@ -81,7 +81,7 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 	float frow = row * size;
 	float fcol = col * size;
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
+	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
 
 	// Render the overlay to the back buffer
 	ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
@@ -95,8 +95,8 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 		strChar[0] = c;
 
 		// Gray Text
-		//ref->sys->dx->subsystemText->RenderText(x, y, CHAR_SIZE, CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorGray);
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, DirectX::Colors::Gray);
+		//ref->sys->dx->subsystemText->RenderText(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorGray);
+		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::Gray);
 
 		// Render the overlay to the back buffer
 		ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);
@@ -108,8 +108,8 @@ void dx11::Draw::Char(int x, int y, unsigned char c)
 		strChar[0] = msl::utilities::SafeInt<unsigned char>(c - 128);
 
 		// Green Text
-		//ref->sys->dx->subsystemText->RenderText(x, y, CHAR_SIZE, CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorYellowGreen);
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, CHAR_SIZE, CHAR_SIZE, DirectX::Colors::Green);
+		//ref->sys->dx->subsystemText->RenderText(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, strChar, ref->sys->dx->subsystem2D->colorYellowGreen);
+		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::Green);
 
 		// Render the overlay to the back buffer
 		ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);

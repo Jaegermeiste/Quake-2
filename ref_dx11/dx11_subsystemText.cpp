@@ -31,8 +31,10 @@ dx11::SubsystemText::SubsystemText()
 
 	LOG(info) << "Initializing";
 
+#ifdef USE_DIRECT2D
 	m_writeFactory = nullptr;
 	m_textFormat = nullptr;
+#endif
 }
 
 bool dx11::SubsystemText::Initialize()
@@ -41,6 +43,7 @@ bool dx11::SubsystemText::Initialize()
 
 	HRESULT hr = E_UNEXPECTED;
 
+#ifdef USE_DIRECT2D
 	hr = DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
 		__uuidof(IDWriteFactory),
@@ -82,11 +85,150 @@ bool dx11::SubsystemText::Initialize()
 	m_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 
 	m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
+#endif
 
 	return true;
 }
 
+bool dx11::SubsystemText::InitializeBuffers()
+{
+	// Courtesy http://www.rastertek.com/dx11tut11.html
+	LOG_FUNC();
+
+	HRESULT					hr = E_UNEXPECTED;
+
+	D3D11_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
+	D3D11_SUBRESOURCE_DATA	vertexData, indexData;
+
+	m_vertices = new Vertex2D[MAX_VERTICES]();
+	m_indices = new unsigned long[MAX_INDICES]();
+	m_vertexCount = m_indexCount = 0;
+
+	if (!m_vertices)
+	{
+		LOG(error) << "Failed to allocate memory for vertex buffer.";
+		return false;
+	}
+
+	if (!m_indices)
+	{
+		LOG(error) << "Failed to allocate memory for index buffer.";
+		return false;
+	}
+
+	// Wipe Structs
+	ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	ZeroMemory(&indexBufferDesc, sizeof(D3D11_BUFFER_DESC));
+	ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+	ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+
+	// Set up the description of the vertex buffer.
+	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vertexBufferDesc.ByteWidth = sizeof(Vertex2D) * MAX_VERTICES;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// Give the subresource structure a pointer to the vertex data.
+	vertexData.pSysMem = m_vertices;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	// Now create the vertex buffer.
+	hr = ref->sys->dx->m_d3dDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to create vertex buffer.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created vertex buffer.";
+	}
+
+	// Set up the description of the static index buffer.
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * MAX_INDICES;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// Give the subresource structure a pointer to the index data.
+	indexData.pSysMem = m_indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// Create the index buffer.
+	hr = ref->sys->dx->m_d3dDevice->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed to create index buffer.";
+		return false;
+	}
+	else
+	{
+		LOG(info) << "Successfully created index buffer.";
+	}
+
+	LOG(info) << "Successfully initialized buffers.";
+
+	return true;
+}
+
+void dx11::SubsystemText::DrawSmallChar(int x, int y, int ch)
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::DrawSmallStringExt(int x, int y, std::string string, const DirectX::XMVECTORF32 setColor, bool forceColor)
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::DrawBigChar(int x, int y, int ch)
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::DrawBigStringExt(int x, int y, std::string string, const DirectX::XMVECTORF32 setColor, bool forceColor)
+{
+	LOG_FUNC();
+}
+
+void dx11::SubsystemText::Flush()
+{
+	LOG_FUNC();
+
+	if ((m_vertexCount > 0) && (m_indexCount > 0) && (m_context))
+	{
+		static UINT stride = sizeof(Vertex2D);
+		static UINT offset = 0;
+
+		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		m_context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+
+		// Set the index buffer to active in the input assembler so it can be rendered.
+		m_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		if (m_shader->Render(m_context, m_indexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer))
+		{
+			// Render succeeded, so reset
+			m_inBatch = false;
+			m_vertexCount = 0;
+			m_indexCount = 0;
+		}
+
+#ifdef _DEBUG
+		DumpD3DDebugMessagesToLog();
+#endif
+	}
+
+#ifdef USE_DIRECT2D
 void dx11::SubsystemText::RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush)
 {
 	LOG_FUNC();
@@ -142,6 +284,7 @@ void dx11::SubsystemText::RenderText(int x, int y, int w, int h, std::string tex
 	ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
 
 }
+#endif
 
 void dx11::SubsystemText::Shutdown()
 {
@@ -149,9 +292,24 @@ void dx11::SubsystemText::Shutdown()
 
 	LOG(info) << "Shutting down.";
 
+#ifdef USE_DIRECT2D
 	SAFE_RELEASE(m_textFormat);
 
 	SAFE_RELEASE(m_writeFactory);
+#endif
+
+	// Release the arrays now that the vertex and index buffers have been created and loaded.
+	if (m_vertices)
+	{
+		delete[] m_vertices;
+		m_vertices = nullptr;
+	}
+
+	if (m_indices)
+	{
+		delete[] m_indices;
+		m_indices = nullptr;
+	}
 
 	LOG(info) << "Shutdown complete.";
 }
