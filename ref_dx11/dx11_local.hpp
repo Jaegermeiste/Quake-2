@@ -58,6 +58,8 @@ extern	unsigned int	LittleULong(unsigned int l);
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
+typedef int	qhandle_t;
+
 typedef struct viddef_s
 {
 	unsigned		width, height;			// coordinates from main game
@@ -109,6 +111,15 @@ extern CRITICAL_SECTION CriticalSection;
 extern ID3D11Debug* d3dDebug;
 extern ID3D11InfoQueue *d3dInfoQueue;
 #endif
+
+namespace dx11 {
+	typedef __declspec(align(16)) struct Vertex2D_s
+	{
+		DirectX::XMFLOAT4A		position;
+		DirectX::XMVECTORF32	color;
+		DirectX::XMFLOAT2A		texCoord;
+	} Vertex2D;
+}
 
 #include "dx11_log.hpp"
 #include "dx11_cvar.hpp"

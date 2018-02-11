@@ -33,13 +33,6 @@ ref_dx11
 
 namespace dx11
 {
-	__declspec(align(16)) struct Vertex2D
-	{
-		DirectX::XMFLOAT4A		position;
-		DirectX::XMVECTORF32	color;
-		DirectX::XMFLOAT2A		texCoord;
-	};
-
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 	__declspec(align(16)) class Dx
 	{

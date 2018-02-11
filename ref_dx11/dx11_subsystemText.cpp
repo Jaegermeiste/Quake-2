@@ -227,6 +227,7 @@ void dx11::SubsystemText::Flush()
 		DumpD3DDebugMessagesToLog();
 #endif
 	}
+}
 
 #ifdef USE_DIRECT2D
 void dx11::SubsystemText::RenderText(int x, int y, int w, int h, WCHAR* text, ID2D1SolidColorBrush* colorBrush)

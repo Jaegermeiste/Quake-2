@@ -52,17 +52,19 @@ namespace dx11
 		ID3D11Buffer*					m_vertexBuffer = nullptr;
 		ID3D11Buffer*					m_indexBuffer = nullptr;
 
-		Vertex2D*						m_vertices = nullptr;
+		dx11::Vertex2D*					m_vertices = nullptr;
 		unsigned long*					m_indices = nullptr;
 
 		unsigned int					m_vertexCount = 0,
 										m_indexCount = 0;
 
 		bool							m_inBatch;
+		
+		byte							m_padding[3];
 
 		std::shared_ptr<Shader>			m_shader = nullptr;
 
-		byte							m_padding[8];
+		byte							m_padding2[8];
 
 		bool							InitializeBuffers();
 
