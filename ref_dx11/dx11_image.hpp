@@ -76,6 +76,9 @@ namespace dx11
 			Texture2D,
 
 			boost::multi_index::indexed_by<
+			// Self
+			boost::multi_index::ordered_unique< boost::multi_index::identity<Texture2D>	>,
+
 			// Enable random access
 			boost::multi_index::random_access<>,
 
