@@ -59,25 +59,34 @@ void dx11::ImageManager::Shutdown()
 		image.second->m_name.clear();
 		image.second->m_format.clear();
 #else
-		SAFE_RELEASE(image->m_shaderResourceView);
-		SAFE_RELEASE(image->m_texture2D);
-		SAFE_RELEASE(image->m_resource);
-		ZeroMemory(&image->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-		image->m_registrationSequence = 0;
-		image->m_name.clear();
-		image->m_format.clear();
+		if (image.m_data)
+		{
+			SAFE_RELEASE(image.m_data->m_shaderResourceView);
+			SAFE_RELEASE(image.m_data->m_texture2D);
+			SAFE_RELEASE(image.m_data->m_resource);
+			ZeroMemory(&image.m_data->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+			image.m_data->m_format.clear();
+			m_images.modify(image.m_data.reset();
+		}
+		image.m_registrationSequence = 0;
+
 #endif
 	}
 
 	if (m_rawTexture)
 	{
-		SAFE_RELEASE(m_rawTexture->m_shaderResourceView);
-		SAFE_RELEASE(m_rawTexture->m_texture2D);
-		SAFE_RELEASE(m_rawTexture->m_resource);
-		ZeroMemory(&m_rawTexture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-		m_rawTexture->m_registrationSequence = 0;
+		if (m_rawTexture->m_data)
+		{
+			SAFE_RELEASE(m_rawTexture->m_data->m_shaderResourceView);
+			SAFE_RELEASE(m_rawTexture->m_data->m_texture2D);
+			SAFE_RELEASE(m_rawTexture->m_data->m_resource);
+			ZeroMemory(&m_rawTexture->m_data->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+			m_rawTexture->m_data->m_format.clear();
+			m_rawTexture->m_data = nullptr;
+		}
 		m_rawTexture->m_name.clear();
-		m_rawTexture->m_format.clear();
+		m_rawTexture->m_handle = -1;
+		m_rawTexture->m_registrationSequence = 0;
 		m_rawTexture = nullptr;
 	}
 
@@ -158,39 +167,40 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 	if (raw != nullptr)
 	{
 		texture = std::make_shared<dx11::Texture2D>();
+		texture->m_data = std::make_shared<dx11::Texture2D::Texture2DData>();
 
-		ZeroMemory(&texture->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		ZeroMemory(&texture->m_data->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
 		ZeroMemory(&data, sizeof(D3D11_SUBRESOURCE_DATA));
 
 		texture->m_name = name;
-		texture->m_textureDesc.Width = width;
-		texture->m_textureDesc.Height = height;
+		texture->m_data->m_textureDesc.Width = width;
+		texture->m_data->m_textureDesc.Height = height;
 		if (generateMipmaps)
 		{
-			texture->m_textureDesc.MipLevels = 0;
-			texture->m_textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+			texture->m_data->m_textureDesc.MipLevels = 0;
+			texture->m_data->m_textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		}
 		else
 		{
-			texture->m_textureDesc.MipLevels = 1;
-			texture->m_textureDesc.MiscFlags = 0;
+			texture->m_data->m_textureDesc.MipLevels = 1;
+			texture->m_data->m_textureDesc.MiscFlags = 0;
 		}
-		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		texture->m_textureDesc.SampleDesc.Count = 1;
-		texture->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D11_STANDARD_MULTISAMPLE_PATTERN);
-		texture->m_textureDesc.Usage = usage;
-		texture->m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		texture->m_data->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texture->m_data->m_textureDesc.SampleDesc.Count = 1;
+		texture->m_data->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D11_STANDARD_MULTISAMPLE_PATTERN);
+		texture->m_data->m_textureDesc.Usage = usage;
+		texture->m_data->m_textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
 		if (usage == D3D11_USAGE_DYNAMIC)
 		{
-			texture->m_textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			texture->m_data->m_textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		}
 		else
 		{
-			texture->m_textureDesc.CPUAccessFlags = 0;
+			texture->m_data->m_textureDesc.CPUAccessFlags = 0;
 		}
 
-		texture->m_textureDesc.ArraySize = 1;
+		texture->m_data->m_textureDesc.ArraySize = 1;
 		data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
 		data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
 		unsigned int* rgba32 = nullptr;
@@ -234,7 +244,7 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 
 		data.pSysMem = rgba32;
 
-		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &data, &texture->m_texture2D);
+		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_data->m_textureDesc, &data, &texture->m_data->m_texture2D);
 		if (FAILED(hr))
 		{
 			LOG(error) << "Failed to create texture";
@@ -244,17 +254,17 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		}
 
 		// Get texture/resource as necessary
-		if ((texture->m_resource) && (!texture->m_texture2D))
+		if ((texture->m_data->m_resource) && (!texture->m_data->m_texture2D))
 		{
-			hr = texture->m_resource->QueryInterface(IID_ID3D11Texture2D, (void **)&texture->m_texture2D);
+			hr = texture->m_data->m_resource->QueryInterface(IID_ID3D11Texture2D, (void **)&texture->m_data->m_texture2D);
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
 			}
 		}
-		else if ((!texture->m_resource) && (texture->m_texture2D))
+		else if ((!texture->m_data->m_resource) && (texture->m_data->m_texture2D))
 		{
-			hr = texture->m_texture2D->QueryInterface(IID_ID3D11Resource, (void **)&texture->m_resource);
+			hr = texture->m_data->m_texture2D->QueryInterface(IID_ID3D11Resource, (void **)&texture->m_data->m_resource);
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
@@ -262,9 +272,9 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		}
 
 		// Get SRV as necessary
-		if ((texture->m_resource) && (!texture->m_shaderResourceView))
+		if ((texture->m_data->m_resource) && (!texture->m_data->m_shaderResourceView))
 		{
-			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, NULL, &texture->m_shaderResourceView);
+			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_data->m_resource, NULL, &texture->m_data->m_shaderResourceView);
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
@@ -272,9 +282,9 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::CreateTexture2DFromRaw(std:
 		}
 
 		// Overwrite the texture desc with whatever is in memory/on GPU
-		if (texture->m_texture2D)
+		if (texture->m_data->m_texture2D)
 		{
-			texture->m_texture2D->GetDesc(&texture->m_textureDesc);
+			texture->m_data->m_texture2D->GetDesc(&texture->m_data->m_textureDesc);
 		}
 	}
 

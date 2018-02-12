@@ -39,16 +39,25 @@ namespace dx11
 	{
 		friend class ImageManager;
 	public:
-		qhandle_t					m_handle;
-		std::string					m_name;
-		D3D11_TEXTURE2D_DESC		m_textureDesc;
-		ID3D11ShaderResourceView*	m_shaderResourceView = nullptr;
-		ID3D11Resource*				m_resource = nullptr;
-		ID3D11Texture2D*			m_texture2D = nullptr;
-		imagetype_t					m_imageType;
-		unsigned int				m_registrationSequence = 0;
-		std::string					m_format;
+		class Texture2DData
+		{
+			friend class ImageManager;
+		public:
+			D3D11_TEXTURE2D_DESC		m_textureDesc;
+			ID3D11ShaderResourceView*	m_shaderResourceView = nullptr;
+			ID3D11Resource*				m_resource = nullptr;
+			ID3D11Texture2D*			m_texture2D = nullptr;
+			imagetype_t					m_imageType;
+			std::string					m_format;
+		};
+
+		qhandle_t						m_handle;
+		std::string						m_name;
+		unsigned int					m_registrationSequence = 0;
+		std::shared_ptr<Texture2DData>	m_data;
 	};
+
+
 
 	class ImageManager
 	{
@@ -63,21 +72,31 @@ namespace dx11
 
 		//std::map<std::string, std::shared_ptr<Texture2D>> m_images;
 
-		boost::multi_index_container<
-			std::shared_ptr<Texture2D>,
+		typedef boost::multi_index_container<
+			Texture2D,
 
 			boost::multi_index::indexed_by<
 			// Enable random access
 			boost::multi_index::random_access<>,
 
 			// sort by handle
-			boost::multi_index::hashed_unique<boost::multi_index::member<Texture2D, qhandle_t, &Texture2D::m_handle> >,
+			boost::multi_index::hashed_unique<boost::multi_index::tag<handle>, boost::multi_index::member<Texture2D, qhandle_t, &Texture2D::m_handle> >,
 
 			// sort by name
-			boost::multi_index::hashed_unique<boost::multi_index::member<Texture2D, std::string, &Texture2D::m_name> >
-			>
-		> m_images;
+			boost::multi_index::hashed_unique<boost::multi_index::tag<name>, boost::multi_index::member<Texture2D, std::string, &Texture2D::m_name> >,
 
+			// sort by registration sequence
+			boost::multi_index::ordered_non_unique<boost::multi_index::tag<registration>, boost::multi_index::member<Texture2D, unsigned int, &Texture2D::m_registrationSequence> >
+			>
+		> ImageContainer;
+		typedef ImageContainer::index<handle>::type			ImagesByHandle;
+		typedef ImageContainer::index<name>::type			ImagesByName;
+		typedef ImageContainer::index<registration>::type	ImagesByRegistrationSequence;
+		
+		ImageContainer										m_images;
+		ImagesByHandle										m_imagesByHandle;
+		ImagesByName										m_imagesByName;
+		ImagesByRegistrationSequence						m_imagesbyRegistrationSequence;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);

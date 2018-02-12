@@ -66,6 +66,12 @@ ref_dx11
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/tag.hpp>
+
+// Boost Container Index Tags
+struct name {}; 
+struct handle {};
+struct registration {};
 
 // Windows Includes
 #include <windows.h>
