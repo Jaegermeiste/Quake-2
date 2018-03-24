@@ -48,18 +48,21 @@ void dx11::ImageManager::Shutdown()
 	LOG(info) << "Shutting down.";
 
 	// Destroy all the loaded images
-	//for (auto & image : m_images)
-	for (unsigned int i = 0; i < m_images.size(); i++)
-	{
+
+
 #ifdef USE_STD_MAP
-		SAFE_RELEASE(image.second->m_shaderResourceView);
-		SAFE_RELEASE(image.second->m_texture2D);
-		SAFE_RELEASE(image.second->m_resource);
-		ZeroMemory(&image.second->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	for (auto & image : m_images)
+		{
+		SAFE_RELEASE(image.second->m_data->m_shaderResourceView);
+		SAFE_RELEASE(image.second->m_data->m_texture2D);
+		SAFE_RELEASE(image.second->m_data->m_resource);
+		ZeroMemory(&image.second->m_data->m_textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
 		image.second->m_registrationSequence = 0;
 		image.second->m_name.clear();
-		image.second->m_format.clear();
+		image.second->m_data->m_format.clear();
 #else
+	for (unsigned int i = 0; i < m_images.size(); i++)
+	{
 		if (m_images[i].m_data)
 		{
 			SAFE_RELEASE(image.m_data->m_shaderResourceView);
@@ -331,8 +334,11 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 	// First, see if the image has already been loaded in the map:
 	if (m_images.count(name) > 0)
 	{
-		//return m_images[name];
+#ifdef USE_STD_MAP
+		return m_images[name];
+#else
 		return m_images.find(name);
+#endif
 	}
 	else
 	{
@@ -496,7 +502,11 @@ std::shared_ptr<dx11::Texture2D> dx11::ImageManager::Load(std::string name, imag
 		ref->client->FS_FreeFile(buffer);
 	}
 
+#ifdef USE_STD_MAP
+	std::shared_ptr<Texture2D> texture = m_images[name];
+#else
 	std::shared_ptr<Texture2D> texture = m_images.find(name);
+#endif
 
 	// Get texture/resource as necessary
 	if ((texture->m_data->m_resource) && (!texture->m_data->m_texture2D))

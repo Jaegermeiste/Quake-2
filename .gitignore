@@ -64,3 +64,12 @@ Debug/ref_dx11.dll
 Debug/quake2.bsc
 *.log
 *.TMP
+*.nupkg
+packages/directxtex_desktop_2015.2017.12.13.1/build/configurations.autopkg
+packages/directxtex_desktop_2015.2017.12.13.1/build/native/default-propertiesui.xml
+packages/directxtex_desktop_2015.2017.12.13.1/build/native/directxtex_desktop_2015-propertiesui-12eae85c-ed27-4286-a98a-bd0461a26c2e.xml
+packages/directxtex_desktop_2015.2017.12.13.1/build/native/directxtex_desktop_2015.targets
+packages/directxtex_desktop_2015.2017.12.13.1/build/native/include/DirectXTex.h
+packages/directxtex_desktop_2015.2017.12.13.1/build/native/include/DirectXTex.inl
+packages/directxtex_desktop_2015.2017.12.13.1/build/publisher-info.txt
+packages/directxtex_desktop_2015.2017.12.13.1/directxtex_desktop_2015.2017.12.13.1.nupkg

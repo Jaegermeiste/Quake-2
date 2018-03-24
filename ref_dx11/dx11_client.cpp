@@ -62,7 +62,7 @@ void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 	LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
 	char *cName = new char[64]();
-	name.copy(cName, name.length(), 0);
+	strncpy_s(cName, sizeof(cName), name.c_str(), name.length());
 	m_cmdNames.push_back(cName);
 
 	m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
@@ -315,7 +315,7 @@ void Sys_Error(char *error, ...)
 	char		text[1024];
 
 	va_start(argptr, error);
-	vsprintf(text, error, argptr);
+	vsprintf_s(text, error, argptr);
 	va_end(argptr);
 
 	dx11::ref->client->Sys_Error(ERR_FATAL, text);
@@ -327,7 +327,7 @@ void Com_Printf(char *fmt, ...)
 	char		text[1024];
 
 	va_start(argptr, fmt);
-	vsprintf(text, fmt, argptr);
+	vsprintf_s(text, fmt, argptr);
 	va_end(argptr);
 
 	dx11::ref->client->Con_Printf(PRINT_ALL, text);

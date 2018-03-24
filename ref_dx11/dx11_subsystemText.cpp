@@ -215,7 +215,7 @@ void dx11::SubsystemText::Flush()
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		if (m_shader->Render(m_context, m_indexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer))
+		if (m_shader->Render(m_context, m_indexCount, DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_data->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer))
 		{
 			// Render succeeded, so reset
 			m_inBatch = false;

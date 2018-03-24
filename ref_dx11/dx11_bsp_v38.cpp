@@ -85,7 +85,7 @@ std::vector<dx11::Light> dx11::BSP38::LoadLighting()
 			if (token[0] == '}')
 				break;
 
-			strncpy(key, token, sizeof(key) - 1);
+			strncpy_s(key, token, sizeof(key) - 1);
 
 			value = COM_Parse(bspEntityString);
 			if (!_stricmp(key, "classname")) 
@@ -107,9 +107,9 @@ std::vector<dx11::Light> dx11::BSP38::LoadLighting()
 			if (!_stricmp(key, "light"))
 				newLight.m_radius.m128_f32[0] = atof(value);
 			if (!_stricmp(key, "origin"))
-				sscanf(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
 			if (!_stricmp(key, "color"))
-				sscanf(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
 			if (!_stricmp(key, "style"))
 				newLight.m_style = atoi(value);
 			if (!_stricmp(key, "_cone"))

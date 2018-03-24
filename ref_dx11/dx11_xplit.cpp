@@ -107,24 +107,24 @@ std::vector<dx11::Light> dx11::xpLit::Load(std::string mapName)
 				break;
 			}
 
-			strncpy(key, token, sizeof(key) - 1);
+			strncpy_s(key, token, sizeof(key) - 1);
 
 			value = COM_Parse(&xpLitCharData);
 
 			if (!_stricmp(key, "radius"))
-				sscanf(value, "%f %f %f", &newLight.m_radius.m128_f32[0], &newLight.m_radius.m128_f32[1], &newLight.m_radius.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_radius.m128_f32[0], &newLight.m_radius.m128_f32[1], &newLight.m_radius.m128_f32[2]);
 			if (!_stricmp(key, "origin"))
-				sscanf(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_origin.m128_f32[0], &newLight.m_origin.m128_f32[1], &newLight.m_origin.m128_f32[2]);
 			if (!_stricmp(key, "color"))
-				sscanf(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_color.m128_f32[0], &newLight.m_color.m128_f32[1], &newLight.m_color.m128_f32[2]);
 			if (!_stricmp(key, "style"))
 				newLight.m_style = atoi(value);
 			if (!_stricmp(key, "filter"))
 				newLight.m_filter = atoi(value);
 			if (!_stricmp(key, "angles"))
-				sscanf(value, "%f %f %f", &newLight.m_angles.m128_f32[0], &newLight.m_angles.m128_f32[1], &newLight.m_angles.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_angles.m128_f32[0], &newLight.m_angles.m128_f32[1], &newLight.m_angles.m128_f32[2]);
 			if (!_stricmp(key, "speed"))
-				sscanf(value, "%f %f %f", &newLight.m_speed.m128_f32[0], &newLight.m_speed.m128_f32[1], &newLight.m_speed.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_speed.m128_f32[0], &newLight.m_speed.m128_f32[1], &newLight.m_speed.m128_f32[2]);
 			if (!_stricmp(key, "shadow"))
 				newLight.m_shadowCaster = static_cast<bool>(atoi(value));
 			if (!_stricmp(key, "ambient"))
@@ -134,11 +134,11 @@ std::vector<dx11::Light> dx11::xpLit::Load(std::string mapName)
 			if (!_stricmp(key, "flare"))
 				newLight.m_flare = static_cast<bool>(atoi(value));
 			if (!_stricmp(key, "flareOrigin"))
-				sscanf(value, "%f %f %f", &newLight.m_flareOrigin.m128_f32[0], &newLight.m_flareOrigin.m128_f32[1], &newLight.m_flareOrigin.m128_f32[2]);
+				sscanf_s(value, "%f %f %f", &newLight.m_flareOrigin.m128_f32[0], &newLight.m_flareOrigin.m128_f32[1], &newLight.m_flareOrigin.m128_f32[2]);
 			if (!_stricmp(key, "flareSize"))
 				newLight.m_flareSize = atof(value);
 			if (!_stricmp(key, "targetname"))
-				strncpy(target, value, sizeof(target));
+				strncpy_s(target, value, sizeof(target));
 			if (!_stricmp(key, "spawnflags"))
 				newLight.m_flags = atoi(value);
 			if (!_stricmp(key, "fogLight"))

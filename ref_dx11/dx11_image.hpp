@@ -33,6 +33,8 @@ ref_dx11
 #define BPP_24	24
 #define BPP_32	32
 
+#define USE_STD_MAP	true
+
 namespace dx11
 {
 	class Texture2D
@@ -70,8 +72,9 @@ namespace dx11
 
 		qhandle_t				m_lastHandle = 0;
 
-		//std::map<std::string, std::shared_ptr<Texture2D>> m_images;
-
+#ifdef USE_STD_MAP
+		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
+#else
 		typedef boost::multi_index_container<
 			Texture2D,
 
@@ -100,6 +103,7 @@ namespace dx11
 		ImagesByHandle										m_imagesByHandle;
 		ImagesByName										m_imagesByName;
 		ImagesByRegistrationSequence						m_imagesbyRegistrationSequence;
+#endif
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
