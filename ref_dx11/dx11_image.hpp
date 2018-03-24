@@ -41,22 +41,16 @@ namespace dx11
 	{
 		friend class ImageManager;
 	public:
-		class Texture2DData
-		{
-			friend class ImageManager;
-		public:
-			D3D11_TEXTURE2D_DESC		m_textureDesc;
-			ID3D11ShaderResourceView*	m_shaderResourceView = nullptr;
-			ID3D11Resource*				m_resource = nullptr;
-			ID3D11Texture2D*			m_texture2D = nullptr;
-			imagetype_t					m_imageType;
-			std::string					m_format;
-		};
+		D3D11_TEXTURE2D_DESC		m_textureDesc;
+		ID3D11ShaderResourceView*	m_shaderResourceView = nullptr;
+		ID3D11Resource*				m_resource = nullptr;
+		ID3D11Texture2D*			m_texture2D = nullptr;
+		imagetype_t					m_imageType;
+		std::string					m_format;
 
-		qhandle_t						m_handle;
-		std::string						m_name;
-		unsigned int					m_registrationSequence = 0;
-		std::shared_ptr<Texture2DData>	m_data;
+		qhandle_t					m_handle;
+		std::string					m_name;
+		unsigned int				m_registrationSequence = 0;
 	};
 
 

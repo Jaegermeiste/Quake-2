@@ -62,7 +62,7 @@ void dx11::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 	LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
 	char *cName = new char[64]();
-	strncpy_s(cName, sizeof(cName), name.c_str(), name.length());
+	strncpy_s(cName, 64, name.c_str(), name.length());
 	m_cmdNames.push_back(cName);
 
 	m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
