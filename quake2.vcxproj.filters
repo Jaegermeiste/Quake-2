@@ -243,7 +243,4 @@
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
 </Project>

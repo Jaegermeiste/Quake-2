@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{59CD4B0D-F33C-4C09-A0DC-ECDAF62AC887}</ProjectGuid>
     <RootNamespace>ref_dx12</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -140,23 +140,6 @@
     <ClCompile Include="dx12_ref.cpp" />
     <ClCompile Include="dx12_system.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\directxtex_desktop_2015.2018.2.9.1\build\native\directxtex_desktop_2015.targets" Condition="Exists('..\packages\directxtex_desktop_2015.2018.2.9.1\build\native\directxtex_desktop_2015.targets')" />
-    <Import Project="..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets" Condition="Exists('..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets')" />
-    <Import Project="..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets" Condition="Exists('..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" />
-    <Import Project="..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets" Condition="Exists('..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\directxtex_desktop_2015.2018.2.9.1\build\native\directxtex_desktop_2015.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_desktop_2015.2018.2.9.1\build\native\directxtex_desktop_2015.targets'))" />
-    <Error Condition="!Exists('..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk12_desktop_2015.2017.12.13.1\build\native\directxtk12_desktop_2015.targets'))" />
-    <Error Condition="!Exists('..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets'))" />
-    <Error Condition="!Exists('..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib-msvc-x86.1.2.11.8900\build\native\zlib-msvc-x86.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
