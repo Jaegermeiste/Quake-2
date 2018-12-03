@@ -179,8 +179,9 @@ void dx11::Dx::RenderFrame(refdef_t * fd)
 		LOG(warning) << "NULL refdef provided";
 	}
 
-	// Draw 2D
-	//LOG(trace) << "Drawing 2D"
+	// Z-Prepass
+
+
 }
 
 void dx11::Dx::EndFrame(void)

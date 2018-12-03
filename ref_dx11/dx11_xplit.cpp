@@ -80,7 +80,7 @@ std::vector<dx11::Light> dx11::xpLit::Load(std::string mapName)
 
 	if ((fileLen > 0) && (xpLitBuffer))
 	{
-		// We sucessfully loaded the lights file
+		// We successfully loaded the lights file
 		LOG(info) << "Loaded lights from " << fileName;
 		runParseLoop = true;
 	}

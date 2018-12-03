@@ -31,11 +31,26 @@ ref_dx11
 
 namespace dx11
 {
+	typedef struct disk_bsp_header_s
+	{
+		int			ident;
+		int			version;
+		lump_t		*lumps;
+	} bsp_disk_header;
+
 	class BSP
 	{
 	protected:
-		std::string		m_name;
-		unsigned int	m_version;
+		std::string					m_name;
+		unsigned int				m_version;
+
+		unsigned int				m_numVertices;
+		dxVertex*					m_vertices;
+
+		bsp_disk_header*			m_header = nullptr;
+
+		virtual unsigned int		LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length) = 0;
+		virtual unsigned int		LoadVertices(bsp_disk_header* header) = 0;
 
 	public:
 		virtual std::vector<Light>	LoadLighting() { return std::vector<Light>(); };
@@ -63,19 +78,20 @@ namespace dx11
 #define	BSP38_LUMP_AREAPORTALS	18
 #define	BSP38_HEADER_LUMPS		19
 
-	typedef struct disk_bsp_header_s
-	{
-		int			ident;
-		int			version;
-		lump_t		*lumps;
-	} disk_bsp_header_t;
+
 
 	class BSP38 : public BSP
 	{
 	private:
 		static bool			DownloadXPLitForMap(std::string mapName);
 
-		dheader_t*			m_header = nullptr;
+		DirectX::XMFLOAT3A*		d_vertices = nullptr;
+		unsigned int			d_numVertices = 0;
+
+		texinfo_t*				d_texInfo = nullptr;
+		unsigned int			d_numTexInfo = 0;
+
+		unsigned int			LoadTexInfo(bsp_disk_header* header);
 
 	protected:
 		//
@@ -93,9 +109,6 @@ namespace dx11
 
 		unsigned int		m_numLeafs;		// number of visible leafs, not counting 0
 		mleaf_t*			m_leafs;
-
-		unsigned int		m_numVertices;
-		DirectX::XMFLOAT3A*	m_vertices;
 
 		unsigned int		m_numEdges;
 		medge_t*			m_edges;
@@ -120,6 +133,8 @@ namespace dx11
 	public:
 							BSP38(std::string name, unsigned int* buffer);
 							~BSP38();
+
+							unsigned int LoadVertices(bsp_disk_header * header);
 
 		std::vector<Light>	LoadLighting();
 	};

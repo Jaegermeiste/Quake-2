@@ -25,6 +25,8 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+typedef vec3_t BSP38_d_vertex;
+
 dx11::BSP38::BSP38(std::string name, unsigned int* buffer)
 {
 	m_name = name;
@@ -131,4 +133,99 @@ std::vector<dx11::Light> dx11::BSP38::LoadLighting()
 dx11::BSP38::~BSP38()
 {
 
+}
+
+unsigned int dx11::BSP38::LoadVertices(bsp_disk_header* header)
+{
+	unsigned int	i = 0;
+	
+	// Clear any existing data in memory
+	if (d_vertices != nullptr)
+	{
+		delete[] d_vertices;
+		d_vertices = nullptr;
+	}
+	d_numVertices = 0;
+
+	//
+	// Load Disk Vertices
+	//
+	size_t d_vertexDataLength = header->lumps[BSP38_LUMP_VERTEXES].filelen;
+	d_numVertices = d_vertexDataLength / sizeof(float[3]);
+
+	if (d_vertexDataLength % sizeof(float[3]))
+	{
+		ref->client->Sys_Error(ERR_DROP, "Unexpected lump size in LUMP_VERTICES.");
+		return 0;
+	}
+
+	float* vertexInputArray = reinterpret_cast<float*>(*(&header + header->lumps[BSP38_LUMP_VERTEXES].fileofs));
+	d_vertices = new DirectX::XMFLOAT3A[d_numVertices];
+
+	for (i = 0; i < d_numVertices; i += 3)
+	{
+		d_vertices[i].x = LittleFloat(vertexInputArray[i + 0]);
+		d_vertices[i].y = LittleFloat(vertexInputArray[i + 1]);
+		d_vertices[i].z = LittleFloat(vertexInputArray[i + 2]);
+	}
+
+	return d_numVertices;
+}
+
+unsigned int dx11::BSP38::LoadTexInfo(bsp_disk_header* header)
+{
+	unsigned int	i = 0,
+					j = 0;
+
+	// Clear any existing data in memory
+	if (d_texInfo != nullptr)
+	{
+		delete[] d_texInfo;
+		d_texInfo = nullptr;
+	}
+	d_numTexInfo = 0;
+
+	//
+	// Load Disk TexInfo
+	//
+	size_t				d_texInfoDataLength = header->lumps[BSP38_LUMP_TEXINFO].filelen;
+	d_numTexInfo		= d_texInfoDataLength / sizeof(float[3]);
+
+	if (d_texInfoDataLength % sizeof(texinfo_t))
+	{
+		ref->client->Sys_Error(ERR_DROP, "Unexpected lump size in LUMP_TEXINFO.");
+		return 0;
+	}
+
+	texinfo_t*				texInfoInputArray	= reinterpret_cast<texinfo_t*>(*(&header + header->lumps[BSP38_LUMP_TEXINFO].fileofs));
+	texinfo_t*				d_texInfo			= new texinfo_t[d_numTexInfo];
+
+	for (i = 0; i < d_numTexInfo; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
+			d_texInfo[i].vecs[0][j] = LittleFloat(texInfoInputArray[i].vecs[0][j]);
+		}
+
+		d_texInfo[i].flags = LittleLong(texInfoInputArray[i].flags);
+		
+		// FIXME: Do we actually need next?
+		/*next = LittleLong(texInfoInputArray[i].nexttexinfo);
+		if (next > 0)
+			next = loadmodel->texinfo + next;
+		else
+			d_texInfo[i].next = NULL;*/
+
+		// Load texture
+		/*Com_sprintf(name, sizeof(name), "textures/%s.wal", texInfoInputArray[i].texture);
+		d_texInfo[i].image = GL_FindImage(name, it_wall);
+		if (!d_texInfo[i].image)
+		{
+			ri.Con_Printf(PRINT_ALL, "Couldn't load %s\n", name);
+			d_texInfo[i].image = r_notexture;
+		}
+		*/
+	}
+
+	return m_numVertices;
 }

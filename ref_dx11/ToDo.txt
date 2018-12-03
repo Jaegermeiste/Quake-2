@@ -1,0 +1,11 @@
+Load and render skybox
+Load BSP
+Render BSP as wireframe
+Load WAL images
+Render BSP as diffuse
+Render BSP as lit diffuse (xpLit)
+Load MD2 models
+Render MD2 models transformed
+Render MD2 models animated
+Render transparent surfaces
+Animate surfaces

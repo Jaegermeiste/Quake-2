@@ -29,6 +29,15 @@ ref_dx11
 
 #include "dx11_local.hpp"
 
+typedef struct dxVertex_s {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT4 tangent;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT2 textureCoordinate0;
+	DirectX::XMFLOAT2 textureCoordinate1;
+} dxVertex;
+
 /*
 
 d*_t structures are on-disk representations
