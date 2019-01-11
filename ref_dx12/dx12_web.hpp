@@ -20,31 +20,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
-#ifndef __DX12_REF_HPP__
-#define __DX12_REF_HPP__
+#ifndef __DX12_WEB_HPP__
+#define __DX12_WEB_HPP__
 #pragma once
 
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	class Ref {
+	class Web {
+		friend class System;
 	private:
 
 	public:
-		void					Init(refimport_t rimp);
+									Web();
 
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Media>	media;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
+		bool						Initialize();
+
+		bool						DownloadFile(std::string downloadURL, std::string destinationPath);
+
+		void						Shutdown();
 	};
-
-	extern std::unique_ptr<Ref> ref;
 }
 
-#endif // !__DX12_REF_HPP__
+#endif // !__DX12_WEB_HPP__

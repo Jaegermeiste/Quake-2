@@ -20,24 +20,68 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #include "dx12_local.hpp"
 
+// Global variable (per MS documentation)
+CRITICAL_SECTION CriticalSection;
+
+#ifdef _DEBUG
+ID3D12Debug* d3dDebug = nullptr;
+ID3D12DebugDevice* d3dDebugDev = nullptr;
+ID3D12InfoQueue *d3dInfoQueue = nullptr;
+#endif
+
 /*
 ===============
-dx12::Init
+dx12::Initialize
 ===============
 */
-bool dx12::Init(HINSTANCE hInstance, WNDPROC wndProc)
+bool dx12::Initialize()
 {
+	LOG_FUNC();
+
 	if (dx12::ref->client != nullptr)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "ref_dx12 version: " REF_VERSION "\n");
+		dx12::ref->client->Con_Printf(PRINT_ALL, "ref_dx12 version: " REF_VERSION);
 	}
 
+	// Initialize the critical section one time only.
+	if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
+	{
+		return false;
+	}
+
+
 	return true;
+}
+
+void dx12::DumpD3DDebugMessagesToLog()
+{
+#ifdef _DEBUG
+	if (d3dInfoQueue)
+	{
+		UINT64 numDebugMsgs = d3dInfoQueue->GetNumStoredMessages();
+
+		for (UINT64 i = 0; i < numDebugMsgs; i++)
+		{
+			// Get the size of the message
+			SIZE_T messageLength = 0;
+			HRESULT hr = d3dInfoQueue->GetMessage(i, NULL, &messageLength);
+
+			// Allocate space and get the message
+			D3D12_MESSAGE * pMessage = (D3D12_MESSAGE*)malloc(messageLength);
+			hr = d3dInfoQueue->GetMessage(i, pMessage, &messageLength);
+
+			// Log the message
+			LOG(debug) << "Category: " << pMessage->Category << " Severity: " << pMessage->Severity << " Description: " << pMessage->pDescription;
+		}
+
+		d3dInfoQueue->ClearStoredMessages();
+	}
+#endif
 }
 
 /*
@@ -45,8 +89,20 @@ bool dx12::Init(HINSTANCE hInstance, WNDPROC wndProc)
 dx12::Shutdown
 ===============
 */
-void dx12::Shutdown(void)
+void dx12::Shutdown()
 {
-	// Clean up
-	// ref is a smart pointer - it will call the destructor when dereferenced
+	LOG_FUNC();
+
+	// Release resources used by the critical section object.
+	DeleteCriticalSection(&CriticalSection);
+
+#ifdef _DEBUG
+	if (d3dDebugDev != nullptr)
+	{
+		d3dDebugDev->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
+
+		SAFE_RELEASE(d3dDebug);
+	}
+#endif
+
 }

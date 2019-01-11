@@ -19,43 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 /*
-ref_dx11
-2017 Bleeding Eye Studios
+ref_dx12
+2019 Bleeding Eye Studios
 */
 
-#ifndef __DX11_LOG_HPP__
-#define __DX11_LOG_HPP__
-#pragma once
-
-#include "dx11_local.hpp"
-
-#define LOG_FILE_NAME	"%y%m%d_%H%M_ref_dx11.log"
-#define LOG_PATH		"logs/ref_dx11"
-
-#define LOG(level)	BOOST_LOG_TRIVIAL(level)
-#define LOG_FUNC()	__pragma(warning(disable:4365))		/*Signed/unsigned mismatch*/		\
-					/*BOOST_LOG_NAMED_SCOPE(__func__)*/BOOST_LOG_NAMED_SCOPE(__FUNCTION__)	\
-					__pragma(warning(default:4365))		/*Signed/unsigned mismatch*/
-
-enum severity_level
-{
-	trace,
-	debug,
-	info,
-	warning,
-	error,
-	fatal
-};
-
-namespace dx11
-{
-	class Log 
-	{
-	public:
-		Log();
-	};
-
-	extern std::unique_ptr<Log> log;
-}
-
-#endif // !__DX11_LOG_HPP__
+#include "dx12_local.hpp"

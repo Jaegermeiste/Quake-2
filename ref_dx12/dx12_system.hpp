@@ -31,30 +31,42 @@ ref_dx12
 
 namespace dx12
 {
-	class System {
+	class System 
+	{
+		friend class Dx;
 	private:
-		bool	inRegistration;
-		bool	uploadBatchOpen;
+		HINSTANCE					m_hInstance;
+		WNDPROC						m_wndProc;
+		WNDCLASSEX					m_wndClassEx;
+		HWND						m_hWnd;
+
+		bool						m_clockRunning;
+		bool						m_clockFrequencyObtained;
+		byte						m_padding[2];
+		LARGE_INTEGER				m_clockFrequency;
+
+		bool						VID_CreateWindow();
+		void						VID_DestroyWindow();
 
 	public:
+		std::unique_ptr<Dx>			dx;			// Backend
+		std::unique_ptr<Web>		web;		// Networking
+
 		System();
-		~System();
 
-		void GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter);
+		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);
+		void						Shutdown();
 
-		ID3D12Device					*d3dDevice;
-		ID3D12CommandQueue				*cmdQueue;
+		void						AppActivate(bool active);
 
-		DirectX::ResourceUploadBatch	*resourceUpload;
+		std::string					GetCurrentWorkingDirectory();
+		bool						SetCurrentWorkingDirectory(std::string directory);
 
-		void	BeginRegistration();
-		void	EndRegistration();
+		bool						DoesFileExist(std::string fileName);
 
-		void	BeginUpload();
-		void	EndUpload();
+		std::wstring				ToWideString(std::string inStr);
+		std::string					ToString(WCHAR* inWideStr);
 	};
-
-	extern System* sys;
 }
 
 #endif // !__DX12_SYSTEM_HPP__

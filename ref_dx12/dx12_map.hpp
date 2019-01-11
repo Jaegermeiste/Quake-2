@@ -20,31 +20,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
-#ifndef __DX12_REF_HPP__
-#define __DX12_REF_HPP__
+#ifndef __DX12_MAP_HPP__
+#define __DX12_MAP_HPP__
 #pragma once
 
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	class Ref {
+	class Map
+	{
 	private:
+		std::string					m_mapName;
+
+		std::unique_ptr<BSP>		m_bsp = nullptr;
+
+		std::vector<Light>			m_lights;
 
 	public:
-		void					Init(refimport_t rimp);
+									Map();
 
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Media>	media;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
+		bool						Initialize();
+		void						Shutdown();
+
+		void						Load(std::string mapName);
 	};
-
-	extern std::unique_ptr<Ref> ref;
 }
 
-#endif // !__DX12_REF_HPP__
+#endif // !__DX12_MAP_HPP__

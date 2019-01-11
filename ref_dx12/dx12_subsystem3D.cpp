@@ -23,28 +23,38 @@ ref_dx12
 2017 Bleeding Eye Studios
 */
 
-#ifndef __DX12_REF_HPP__
-#define __DX12_REF_HPP__
-#pragma once
-
 #include "dx12_local.hpp"
 
-namespace dx12
+dx12::Subsystem3D::Subsystem3D()
 {
-	class Ref {
-	private:
+	LOG_FUNC();
 
-	public:
-		void					Init(refimport_t rimp);
+	LOG(info) << "Initializing";
 
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Media>	media;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
-	};
-
-	extern std::unique_ptr<Ref> ref;
 }
 
-#endif // !__DX12_REF_HPP__
+bool dx12::Subsystem3D::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
+}
+
+void dx12::Subsystem3D::Clear()
+{
+	LOG_FUNC();
+}
+
+void dx12::Subsystem3D::Render()
+{
+	LOG_FUNC();
+}
+
+void dx12::Subsystem3D::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	LOG(info) << "Shutdown complete.";
+}

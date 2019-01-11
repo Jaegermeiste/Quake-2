@@ -20,31 +20,35 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
-#ifndef __DX12_REF_HPP__
-#define __DX12_REF_HPP__
-#pragma once
-
 #include "dx12_local.hpp"
-
-namespace dx12
+/*
+================
+LoadWal
+================
+*/
+void dx12::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
 {
-	class Ref {
-	private:
+	LOG_FUNC();
 
-	public:
-		void					Init(refimport_t rimp);
+	miptex_t		*mt = nullptr;
+	unsigned int	ofs = 0;
 
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Media>	media;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
-	};
+	ref->client->FS_LoadFile(fileName, (void **)&mt);
 
-	extern std::unique_ptr<Ref> ref;
+	if (!mt)
+	{
+		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
+		return;
+	}
+
+	width = LittleULong(mt->width);
+	height = LittleULong(mt->height);
+	ofs = LittleULong(mt->offsets[0]);
+
+	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
+
+	ref->client->FS_FreeFile((void *)mt);
 }
-
-#endif // !__DX12_REF_HPP__

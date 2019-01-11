@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #include "dx12_local.hpp"
@@ -30,38 +30,116 @@ using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
+bool dx12::ImageManager::Initialize()
+{
+	LOG_FUNC();
+
+	GetPalette();
+
+	m_conChars = Load("pics/conchars.pcx", it_pic);
+
+	return true;
+}
+
+void dx12::ImageManager::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	// Destroy all the loaded images
+
+
+#ifdef USE_STD_MAP
+	for (auto & image : m_images)
+		{
+		SAFE_RELEASE(image.second->m_shaderResourceView);
+		SAFE_RELEASE(image.second->m_texture2D);
+		SAFE_RELEASE(image.second->m_resource);
+		ZeroMemory(&image.second->m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
+		image.second->m_registrationSequence = 0;
+		image.second->m_name.clear();
+		image.second->m_format.clear();
+#else
+	for (unsigned int i = 0; i < m_images.size(); i++)
+	{
+		if (m_images[i].m_data)
+		{
+			SAFE_RELEASE(image.m_shaderResourceView);
+			SAFE_RELEASE(image.m_texture2D);
+			SAFE_RELEASE(image.m_resource);
+			ZeroMemory(&image.m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
+			image.m_format.clear();
+			m_images.modify(image.m_data.reset();
+		}
+		image.m_registrationSequence = 0;
+
+#endif
+	}
+
+	if (m_rawTexture)
+	{
+		SAFE_RELEASE(m_rawTexture->m_shaderResourceView);
+		SAFE_RELEASE(m_rawTexture->m_texture2D);
+		SAFE_RELEASE(m_rawTexture->m_resource);
+		ZeroMemory(&m_rawTexture->m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
+		m_rawTexture->m_format.clear();
+		m_rawTexture->m_name.clear();
+		m_rawTexture->m_handle = -1;
+		m_rawTexture->m_registrationSequence = 0;
+		m_rawTexture = nullptr;
+	}
+
+	LOG(info) << "Shutdown complete.";
+}
+
 /*
 ===============
 GetPalette
 ===============
 */
-void dx12::Image::GetPalette(void)
+void dx12::ImageManager::GetPalette(void)
 {
-	byte			*pic	= nullptr,
+	LOG_FUNC();
+
+	byte			*raw	= nullptr,
+					*pic	= nullptr,
 					*pal	= nullptr;
 	unsigned int	width	= 0, 
 					height	= 0;
 
-	// get the palette
+	//
+	// load the file
+	//
+	int len = ref->client->FS_LoadFile("pics/colormap.pcx", (void **)&raw);
+	if (!raw)
+	{
+		ref->client->Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		return;
+	}
 
-	LoadPCX("pics/colormap.pcx", &pic, &pal, width, height);
+	// get the palette
+	LOG(info) << "Loading pics/colormap.pcx";
+	LoadPCX(raw, len, &pic, &pal, width, height);
 
 	if (!pal)
 	{
 		ref->client->Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		return;
 	}
 
 	for (unsigned int i = 0; i < 256; i++)
 	{
-		unsigned int r = pal[i * 3 + 0];
-		unsigned int g = pal[i * 3 + 1];
-		unsigned int b = pal[i * 3 + 2];
+		m_8to32table[i].r = pal[i * 3 + 0];
+		m_8to32table[i].g = pal[i * 3 + 1];
+		m_8to32table[i].b = pal[i * 3 + 2];
+		m_8to32table[i].a = 255;
 
-		unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		d_8to24table[i] = LittleLong(v);
+		//unsigned int v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		//m_8to32table[i] = LittleULong(v);
 	}
 
-	d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
+	m_8to32table[255].c &= LittleLong(0);	// 255 is transparent
 
 	if (pic != nullptr)
 	{
@@ -74,299 +152,439 @@ void dx12::Image::GetPalette(void)
 		delete[] pal;
 		pal = nullptr;
 	}
+
+	SetRawPalette(nullptr);
 }
 
-/*
-================
-GL_LoadWal
-================
-*/
-void dx12::Image::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage)
 {
-	miptex_t		*mt = nullptr;
-	unsigned int	ofs	= 0;
+	LOG_FUNC();
 
-	ref->client->FS_LoadFile(fileName, (void **)&mt);
+	std::shared_ptr<dx12::Texture2D> texture = nullptr;
+	D3D12_SUBRESOURCE_DATA		data;
+	HRESULT hr = E_UNEXPECTED;
 
-	if (!mt)
+	if (raw != nullptr)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
-		return;
-	}
+		texture = std::make_shared<dx12::Texture2D>();
 
-	width = LittleLong(mt->width);
-	height = LittleLong(mt->height);
-	ofs = LittleLong(mt->offsets[0]);
+		ZeroMemory(&texture->m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
+		ZeroMemory(&data, sizeof(D3D12_SUBRESOURCE_DATA));
 
-	image = GL_LoadPic(name, (byte *)mt + ofs, width, height, it_wall, 8);
-
-	ref->client->FS_FreeFile((void *)mt);
-}
-
-/*
-==============
-LoadPCX
-==============
-*/
-void dx12::Image::LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height)
-{
-	byte	*raw		= nullptr;
-	pcx_t	*pcx		= nullptr;
-	int		len			= 0;
-	int		dataByte	= 0, 
-			runLength	= 0;
-	byte	*out		= nullptr,
-			*pix		= nullptr;
-
-	*pic = nullptr;
-	*palette = nullptr;
-
-	//
-	// load the file
-	//
-	len = ref->client->FS_LoadFile(fileName, (void **)&raw);
-	if ((len < 0) || (!raw))
-	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad pcx file " + fileName + "\n");
-		return;
-	}
-
-	//
-	// parse the PCX file
-	//
-	pcx = reinterpret_cast<pcx_t *>(raw);
-
-	pcx->xmin = LittleShort(pcx->xmin);
-	pcx->ymin = LittleShort(pcx->ymin);
-	pcx->xmax = LittleShort(pcx->xmax);
-	pcx->ymax = LittleShort(pcx->ymax);
-	pcx->hres = LittleShort(pcx->hres);
-	pcx->vres = LittleShort(pcx->vres);
-	pcx->bytes_per_line = LittleShort(pcx->bytes_per_line);
-	pcx->palette_type = LittleShort(pcx->palette_type);
-
-	raw = &pcx->data;
-
-	if (pcx->manufacturer != 0x0a
-		|| pcx->version != 5
-		|| pcx->encoding != 1
-		|| pcx->bits_per_pixel != 8
-		|| pcx->xmax >= 640
-		|| pcx->ymax >= 480)
-	{
-		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file " + fileName + "\n");
-		return;
-	}
-
-	out = new byte[(pcx->ymax + 1) * (pcx->xmax + 1)]();
-
-	*pic = out;
-
-	pix = out;
-
-	if (palette)
-	{
-		*palette = new byte[768]();
-		memcpy(*palette, reinterpret_cast<byte *>(pcx) + len - 768, 768);
-	}
-
-	width = pcx->xmax + 1;
-	height = pcx->ymax + 1;
-
-	for (unsigned short y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
-	{
-		for (unsigned short x = 0; x <= pcx->xmax; )
+		texture->m_name = name;
+		texture->m_textureDesc.Width = width;
+		texture->m_textureDesc.Height = height;
+		if (generateMipmaps)
 		{
-			dataByte = *raw++;
+			texture->m_textureDesc.MipLevels = 0;
+			texture->m_textureDesc.MiscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
+		}
+		else
+		{
+			texture->m_textureDesc.MipLevels = 1;
+			texture->m_textureDesc.MiscFlags = 0;
+		}
+		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texture->m_textureDesc.SampleDesc.Count = 1;
+		texture->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D12_STANDARD_MULTISAMPLE_PATTERN);
+		texture->m_textureDesc.Usage = usage;
+		texture->m_textureDesc.BindFlags = D3D12_BIND_SHADER_RESOURCE;
 
-			if ((dataByte & 0xC0) == 0xC0)
-			{
-				runLength = dataByte & 0x3F;
-				dataByte = *raw++;
-			}
-			else
-				runLength = 1;
-
-			while (runLength-- > 0)
-				pix[x++] = dataByte;
+		if (usage == D3D12_USAGE_DYNAMIC)
+		{
+			texture->m_textureDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
+		}
+		else
+		{
+			texture->m_textureDesc.CPUAccessFlags = 0;
 		}
 
-	}
+		texture->m_textureDesc.ArraySize = 1;
+		data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
+		data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
+		unsigned int* rgba32 = nullptr;
 
-	if (raw - reinterpret_cast<byte *>(pcx) > len)
-	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "PCX file " + fileName + " was malformed");
-		delete[] *pic;
-		*pic = nullptr;
-	}
-
-	ref->client->FS_FreeFile(pcx);
-}
-
-dx12::Image::Texture2D* dx12::Image::CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw)
-{
-	Texture2D* texture = nullptr;
-
-	if ((*raw) != nullptr)
-	{
-		texture = new Texture2D;
-
-		texture->width = width;
-		texture->height = height;
-		texture->format = DXGI_FORMAT_R8G8B8A8_UINT;
-		texture->size = width * height;
-		texture->data = new unsigned int[texture->size]();
-
-		unsigned int *d8to24table = d_8to24table;	// Hack around the lambda function parameter issue
-
-		//for (unsigned int i = 0; i < (width * height); i++)
-		Concurrency::parallel_for(0u, (width * height), [&raw, &texture, &d8to24table](unsigned int i)
+		if (bpp == BPP_8)
 		{
-			if (*raw[i] == 255)
+			rgba32 = new unsigned int[width * height]();
+			// De-palletize the texture data
+
+			//for (unsigned int i = 0; i < (width * height); i++)
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32, &palette](unsigned int i)
 			{
-				// Transparent
-				texture->data[i] = 0;
-			}
-			else
+				if (raw[i] == 255)
+				{
+					// Transparent
+					rgba32[i] = 0x00000000;
+				}
+				else
+				{
+					// Paletted
+					rgba32[i] = palette[raw[i]];
+				}
+			});
+		}
+		else if (bpp == BPP_24)
+		{
+			rgba32 = new unsigned int[width * height]();
+
+			// 24 bpp
+			Concurrency::parallel_for(0u, (width * height), [&raw, &rgba32](unsigned int i)
 			{
-				// Paletted
-				texture->data[i] = d8to24table[*raw[i]];
+				unsigned int index = i * 3;
+				rgba32[i] = (raw[index] << 24u | raw[index + 1] << 16u | raw[index + 2] << 8u | 255u);
+			});
+		}
+		else if (bpp == BPP_32)
+		{
+			//std::memcpy(&rgba32, raw, width * height * (sizeof(unsigned int) / sizeof(byte)));
+			rgba32 = reinterpret_cast<unsigned int*>(raw);
+		}
+
+		data.pSysMem = rgba32;
+
+		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &data, &texture->m_texture2D);
+		if (FAILED(hr))
+		{
+			LOG(error) << "Failed to create texture";
+			delete[] rgba32;
+			rgba32 = nullptr;
+			return nullptr;
+		}
+
+		// Get texture/resource as necessary
+		if ((texture->m_resource) && (!texture->m_texture2D))
+		{
+			hr = texture->m_resource->QueryInterface(IID_ID3D12Texture2D, (void **)&texture->m_texture2D);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
 			}
-		});
+		}
+		else if ((!texture->m_resource) && (texture->m_texture2D))
+		{
+			hr = texture->m_texture2D->QueryInterface(IID_ID3D12Resource, (void **)&texture->m_resource);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
+			}
+		}
+
+		// Get SRV as necessary
+		if ((texture->m_resource) && (!texture->m_shaderResourceView))
+		{
+			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, NULL, &texture->m_shaderResourceView);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
+			}
+		}
+
+		// Overwrite the texture desc with whatever is in memory/on GPU
+		if (texture->m_texture2D)
+		{
+			texture->m_texture2D->GetDesc(&texture->m_textureDesc);
+		}
 	}
 
 	return texture;
 }
 
-void dx12::Image::UploadScratchImage(ScratchImage &image, ID3D12Resource** pResource, bool generateMipMap)
+inline void dx12::ImageManager::UploadScratchImage(ScratchImage &scratch, ID3D12Resource** pResource, bool generateMipMap)
 {
-	DX::ThrowIfFailed(
-		CreateTexture(ref->sys->d3dDevice, image.GetMetadata(), pResource)
-	);
+	LOG_FUNC();
 
-	D3D12_SUBRESOURCE_DATA srData;
-	size_t rowPitch = 0;
-	size_t slicePitch = 0;
-	ComputePitch(image.GetMetadata().format, image.GetMetadata().width, image.GetMetadata().height, rowPitch, slicePitch);
-	srData.RowPitch = rowPitch;
-	srData.SlicePitch = slicePitch;
-	srData.pData = image.GetPixels();
-
-	ref->sys->resourceUpload->Upload(*pResource, 0, &srData, 1);
-
-	ref->sys->resourceUpload->Transition(*pResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	HRESULT hr = E_UNEXPECTED;
+	unsigned int miscFlags = 0;
 
 	if (generateMipMap)
 	{
-		ref->sys->resourceUpload->GenerateMips(*pResource);
+		miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
+	}
+
+	hr = CreateTextureEx(ref->sys->dx->m_d3dDevice, scratch.GetImages(), scratch.GetImageCount(), scratch.GetMetadata(), 
+							D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE, 0, miscFlags, false, pResource);
+
+	if (FAILED(hr))
+	{
+		ref->client->Con_Printf(PRINT_ALL, "Failed to create resource for ScratchImage.");
 	}
 }
 
-std::shared_ptr<image_t> dx12::Image::Load(std::string name, imagetype_t type)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imagetype_t type)
 {
-	if (name.length() < 5)
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+	byte	*buffer = nullptr;
+	int bufferSize = -1;
+	bool generateMipMap = ((type != it_pic) && (type != it_sky));
+	unsigned int	miscFlags = 0;
+
+	if (name.length() < 1)
 	{
-		return nullptr;	//	ri.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
+		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name: " + name);
 	}
 
-	// Create a new image
-	std::shared_ptr<image_t> imgPtr = nullptr;
-
-	Concurrency::parallel_for_each(images.begin(), images.end(), [&](std::shared_ptr<image_t> image)
+	// First, see if the image has already been loaded in the map:
+	if (m_images.count(name) > 0)
 	{
-		if (name.compare(image->name) == 0)
-		{
-			// Found it
-			imgPtr = image;
-		}
-	});
-
-	if (imgPtr == nullptr)
+#ifdef USE_STD_MAP
+		return m_images[name];
+#else
+		return m_images.find(name);
+#endif
+	}
+	else
 	{
+		// Create a new image
 		// We didn't find it already, make a new one
-		imgPtr = std::make_shared<image_t>();
+		m_lastHandle++;
+
+#ifdef USE_STD_MAP
+		m_images[name] = std::make_shared<Texture2D>();
+		m_images[name]->m_handle = m_lastHandle;
+#else
+		auto texture = std::make_shared<Texture2D>();
+		m_images[name]->m_name = name;
+		m_images[name]->m_handle = m_lastHandle;
+		m_images.insert(texture);
+#endif
 
 		// Determine the image type
+		std::string fileName = std::experimental::filesystem::path(name).stem().string();
 		std::string extension = std::experimental::filesystem::path(name).extension().string();
+		std::string path = "";
 
-		bool generateMipMap = ((type != it_pic) && (type != it_sky));
-
-		ref->sys->BeginUpload();
-
-		if (extension.compare(".pcx") == 0)
+		if ((fileName.at(0) != '/') && (fileName.at(0) != '\\'))
 		{
-			// Requesting a .pcx file
+			switch (type)
+			{
+			case it_pic:
+				path = "pics/";
+				break;
+			case it_skin:
+			case it_sprite:
+			case it_wall:
+			case it_sky:
+			default:
+				break;
+			}
 		}
-		else if (extension.compare(".wal") == 0)
+		else
+		{
+			fileName = name.substr(1, name.length() - 1);
+		}
+
+		// Iterate through all possible format extensions until we find the file
+		for (auto & format : m_imageExtensions)
+		{
+			buffer = nullptr;
+			bufferSize = -1;
+
+			// Attempt to load the file
+			bufferSize = ref->client->FS_LoadFile(path + fileName + "." + format, (void **)&buffer);
+
+			if ((bufferSize > 0) && (buffer))
+			{
+				m_images[name]->m_format = format;
+				break;
+			}
+		}
+
+		if (bufferSize <= 0)
+		{
+			ref->client->Con_Printf(PRINT_ALL, "File not found: " + name);
+			return nullptr;
+		}
+
+		if (generateMipMap)
+		{
+			miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
+		}
+
+		if (m_images[name]->m_format.compare("pcx") == 0)
+		{
+			byte	*pic = nullptr, *palette = nullptr;
+			LoadPCX(buffer, bufferSize, &pic, &palette, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height);
+			m_images[name] = CreateTexture2DFromRaw(name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, BPP_8, pic, m_8to32table, D3D12_USAGE_DEFAULT);	// FIXME
+		}
+		else if (m_images[name]->m_format.compare("wal") == 0)
 		{
 			// Requesting a .wal file
 		}
-		else if (extension.compare(".tga") == 0)
+		else if (m_images[name]->m_format.compare("tga") == 0)
 		{
 			// Requesting a .tga file
-			byte	*buffer = nullptr;
-			int bufferSize = ref->client->FS_LoadFile(name, (void **)&buffer);
-			if ((bufferSize < 0) || (!buffer))
+			ScratchImage scratch;
+			TexMetadata info;
+			hr = LoadFromTGAMemory(buffer, static_cast<size_t>(bufferSize), &info, scratch);
+
+			UploadScratchImage(scratch, &m_images[name]->m_resource, generateMipMap);
+
+		}
+		else if (m_images[name]->m_format.compare("dds") == 0)
+		{
+			// .dds file
+			hr = CreateDDSTextureFromMemoryEx(ref->sys->dx->m_d3dDevice,
+												ref->sys->dx->m_immediateContext,
+												static_cast<uint8_t*>(buffer), static_cast<size_t>(bufferSize),
+												0, D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE,
+												NULL, miscFlags,
+												false,
+												&m_images[name]->m_resource, &m_images[name]->m_shaderResourceView,
+												nullptr);
+
+			if (FAILED(hr))
 			{
-				ref->client->Con_Printf(PRINT_ALL, "Bad TGA file " + name + "\n");
-				return;
+				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with DDS loader.");
 			}
 
-			ScratchImage image;
-			TexMetadata info;
-			DX::ThrowIfFailed(
-				LoadFromTGAMemory(buffer, bufferSize, &info, image)
-			);
-
-			UploadScratchImage(image, 
-							images.at(imgPtr).ReleaseAndGetAddressOf(), 
-							generateMipMap);
-
-			ref->client->FS_FreeFile(buffer);
 		}
-		else if (extension.compare(".dds") == 0)
-		{
-			// Requesting a .dds file
-			DX::ThrowIfFailed(
-				CreateDDSTextureFromFile(ref->sys->d3dDevice,
-										*(ref->sys->resourceUpload), 
-										ref->sys->convertUTF.from_bytes(imgPtr->name).c_str(), 
-										images.at(imgPtr).ReleaseAndGetAddressOf(),
-										generateMipMap)
-			);
-
-		}
-		else if (extension.compare(".hdr") == 0)
+		else if (m_images[name]->m_format.compare("hdr") == 0)
 		{
 			// Requesting a .hdr file
-			ScratchImage image;
-			DX::ThrowIfFailed(
-				LoadFromHDRFile(ref->sys->convertUTF.from_bytes(imgPtr->name).c_str(), nullptr, image)
-			);
+			TexMetadata metadata;
+			hr = GetMetadataFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), metadata);
 
-			UploadScratchImage(image,
-				images.at(imgPtr).ReleaseAndGetAddressOf(),
-				generateMipMap);
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to extract HDR metadata from " + name + ".");
+			}
+			else
+			{
+				ScratchImage scratch;
+				hr = LoadFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), &metadata, scratch);
+
+				if (FAILED(hr))
+				{
+					ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with HDR loader.");
+				}
+				else
+				{
+					// Upload scratch
+					UploadScratchImage(scratch, &m_images[name]->m_resource, generateMipMap);
+				}
+			}
 		}
-		else if (extension.compare(".exr") == 0)
+		else if (m_images[name]->m_format.compare("exr") == 0)
 		{
 			// Requesting a .exr file
 		}
 		else
 		{
 			// Assume a WIC compatible format (.bmp, .jpg, .png, .tif, .gif, .ico, .wdp, .jxr)
-			DX::ThrowIfFailed(
-				CreateWICTextureFromFile(ref->sys->d3dDevice,
-										*(ref->sys->resourceUpload),
-										convertToWide.from_bytes(imgPtr->name).c_str(),
-										images.at(imgPtr).ReleaseAndGetAddressOf(),
-										generateMipMap)
-			);
+			hr = CreateWICTextureFromMemoryEx(ref->sys->dx->m_d3dDevice, 
+												ref->sys->dx->m_immediateContext, 
+												static_cast<uint8_t*>(buffer), static_cast<size_t>(bufferSize),
+												0, D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE,
+												NULL, miscFlags,
+												WIC_LOADER_DEFAULT, 
+												&m_images[name]->m_resource, &m_images[name]->m_shaderResourceView);
+
+			if (FAILED(hr))
+			{
+				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with WIC loader.");
+			}
 		}
 
-		ref->sys->EndUpload();
+		LOG(info) << "Successfully uploaded " << name << " to GPU.";
 	}
 
+	if(buffer)
+	{
+		ref->client->FS_FreeFile(buffer);
+	}
+
+#ifdef USE_STD_MAP
+	std::shared_ptr<Texture2D> texture = m_images[name];
+#else
+	std::shared_ptr<Texture2D> texture = m_images.find(name);
+#endif
+
+	// Get texture/resource as necessary
+	if ((m_images[name]->m_resource) && (!m_images[name]->m_texture2D))
+	{
+		hr = m_images[name]->m_resource->QueryInterface(IID_ID3D12Texture2D, (void **)&m_images[name]->m_texture2D);
+		if (FAILED(hr))
+		{
+			ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
+		}
+	}
+	else if ((!m_images[name]->m_resource) && (m_images[name]->m_texture2D))
+	{
+		hr = m_images[name]->m_texture2D->QueryInterface(IID_ID3D12Resource, (void **)&m_images[name]->m_resource);
+		if (FAILED(hr))
+		{
+			ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
+		}
+	}
+
+	// Get SRV as necessary
+	if ((m_images[name]->m_resource) && (!m_images[name]->m_shaderResourceView))
+	{
+		hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(m_images[name]->m_resource, NULL, &m_images[name]->m_shaderResourceView);
+		if (FAILED(hr))
+		{
+			ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
+		}
+	}
+
+	// Overwrite the texture desc with whatever is in memory/on GPU
+	if (m_images[name]->m_texture2D)
+	{
+		m_images[name]->m_texture2D->GetDesc(&m_images[name]->m_textureDesc);
+	}
+
+	m_images[name]->m_imageType = type;
+
 	// Return the pointer
-	return imgPtr;
+	return texture;
+}
+
+void dx12::ImageManager::SetRawPalette(const unsigned char *palette)
+{
+	LOG_FUNC();
+
+	if (palette)
+	{
+		// Overwrite with provided palette
+
+		/*for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = palette[i * 3 + 0];
+			rp[i * 4 + 1] = palette[i * 3 + 1];
+			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 3] = 0xff;
+		}*/
+
+		//for (unsigned int i = 0; i < 256; i++)
+		Concurrency::parallel_for(0u, 256u, [&m_rawPalette = m_rawPalette, &palette](unsigned int i)
+		{
+			// Supplied palette is BGR
+			m_rawPalette[i].r = palette[i * 3 + 2];
+			m_rawPalette[i].g = palette[i * 3 + 1];
+			m_rawPalette[i].b = palette[i * 3 + 0];
+			m_rawPalette[i].a = 255;
+		});
+	}
+	else
+	{
+		// Copy back default palette
+
+		/*for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = d_8to24table[i] & 0xff;
+			rp[i * 4 + 1] = (d_8to24table[i] >> 8) & 0xff;
+			rp[i * 4 + 2] = (d_8to24table[i] >> 16) & 0xff;
+			rp[i * 4 + 3] = 0xff;
+		}*/
+
+		//for (unsigned int i = 0; i < 256; i++)
+		Concurrency::parallel_for(0u, 256u, [&m_rawPalette = m_rawPalette, &m_8to32table = m_8to32table](unsigned int i)
+		{
+			m_rawPalette[i] = m_8to32table[i];
+			m_rawPalette[i].a = 255;			// Ensure we set alpha to 1
+		});
+	}
 }

@@ -20,31 +20,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
-
-#ifndef __DX12_REF_HPP__
-#define __DX12_REF_HPP__
-#pragma once
 
 #include "dx12_local.hpp"
 
-namespace dx12
+dx12::ModelManager::ModelManager()
 {
-	class Ref {
-	private:
-
-	public:
-		void					Init(refimport_t rimp);
-
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Media>	media;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
-	};
-
-	extern std::unique_ptr<Ref> ref;
+	LOG_FUNC();
 }
 
-#endif // !__DX12_REF_HPP__
+bool dx12::ModelManager::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
+}
+
+void dx12::ModelManager::Shutdown()
+{
+	LOG_FUNC();
+}
+
+std::shared_ptr<model_t> dx12::ModelManager::Load(std::string name)
+{
+	LOG_FUNC();
+
+	return nullptr;
+}

@@ -36,15 +36,20 @@ namespace dx12
 
 	public:
 		class Cvar {
-			std::atomic<std::unique_ptr<cvar_t>> atomicSharedPtr;
+			cvar_t*					m_clientMemPtr;
 
-			std::mutex ptrAccessMutex;
+			std::mutex				m_ptrAccessMutex;
+
+			std::string				CvarFlagsToString(unsigned int flags);
 
 			static	bool			InfoValidate(std::string value);
 
 		public:
 									Cvar(std::string name, std::string defaultString, unsigned int flags);
 									Cvar(std::string name, float defaultValue, unsigned int flags);
+									Cvar(std::string name, double defaultValue, unsigned int flags);
+									Cvar(std::string name, int defaultValue, unsigned int flags);
+									~Cvar();
 
 					bool			Bool();
 					signed int		Int();
@@ -58,22 +63,52 @@ namespace dx12
 					bool			Modified();
 
 					void			Set(std::string string);
-			inline	void			Set(bool value);
-			inline	void			Set(signed int value);
-			inline	void			Set(unsigned int value);
-			inline	void			Set(float value);
-			inline	void			Set(double value);
+					void			Set(bool value);
+					void			Set(signed int value);
+					void			Set(unsigned int value);
+					void			Set(float value);
+					void			Set(double value);
+					void			SetModified(bool value);
 		};
 
 		Cvars();
-		~Cvars();
 
-		std::shared_ptr<Cvar>  forceScreenRes;
+		std::shared_ptr<Cvar>  vid_ref;
+		std::shared_ptr<Cvar>  vid_xPos;
+		std::shared_ptr<Cvar>  vid_yPos;
+		std::shared_ptr<Cvar>  vid_fullscreen;
+		std::shared_ptr<Cvar>  vid_gamma;
+
+		std::shared_ptr<Cvar>  r_mode;
+		std::shared_ptr<Cvar>  r_customWidth;
+		std::shared_ptr<Cvar>  r_customHeight;
+
+		std::shared_ptr<Cvar>  flushmap;
+
+		// DX Specific
+
 		std::shared_ptr<Cvar>  featureLevel;
 		std::shared_ptr<Cvar>  bufferCount;
 		std::shared_ptr<Cvar>  backBufferFormat;
 		std::shared_ptr<Cvar>  Vsync;
 		std::shared_ptr<Cvar>  samplesPerPixel;
+
+		std::shared_ptr<Cvar>  zNear2D;
+		std::shared_ptr<Cvar>  zNear3D;
+		std::shared_ptr<Cvar>  zFar2D;
+		std::shared_ptr<Cvar>  zFar3D;
+
+		std::shared_ptr<Cvar>  overlayScale;
+		std::shared_ptr<Cvar>  overlayBrightness;
+		std::shared_ptr<Cvar>  overlayContrast;
+
+		std::shared_ptr<Cvar>  xpLitDownloadEnable;
+		std::shared_ptr<Cvar>  xpLitDownloadPath;
+		std::shared_ptr<Cvar>  xpLitPathBaseQ2;
+		std::shared_ptr<Cvar>  xpLitPathRogue;
+		std::shared_ptr<Cvar>  xpLitPathXatrix;
+
+		std::shared_ptr<Cvar>  font;
 	};
 };
 

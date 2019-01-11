@@ -23,25 +23,39 @@ ref_dx12
 2019 Bleeding Eye Studios
 */
 
-#ifndef __DX12_DRAW_HPP__
-#define __DX12_DRAW_HPP__
-#pragma once
-
 #include "dx12_local.hpp"
 
-namespace dx12
+unsigned int dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length)
 {
-	class Draw {
-	public:
-		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
-		void		Pic			(int x, int y, std::string name);
-		void		StretchPic	(int x, int y, int w, int h, std::string name);
-		void		Char		(int x, int y, unsigned char c);
-		void		TileClear	(int x, int y, int w, int h, std::string name);
-		void		Fill		(int x, int y, int w, int h, int c);
-		void		FadeScreen	(void);
-		void		StretchRaw	(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte *data);
-	};
-}
+	// inputs are float[3]
+	float*			inputArray	= reinterpret_cast<float*>(*(&data + offset));
+	unsigned int	i			= 0, 
+					count		= length / sizeof(float[3]);
 
-#endif // !__DX12_DRAW_HPP__
+	// Clear any existing data
+	if (m_vertices != nullptr)
+	{
+		delete[] m_vertices;
+		m_vertices = nullptr;
+	}
+	m_numVertices = 0;
+
+	if (length % sizeof(float[3]))
+	{
+		ref->client->Sys_Error(ERR_DROP, "Unexpected lump size.");
+		return 0;
+	}
+
+	m_vertices = new dxVertex[count];
+
+	for (i = 0; i < count; i += 3)
+	{
+		m_vertices[i].position.x = LittleFloat(inputArray[i + 0]);
+		m_vertices[i].position.y = LittleFloat(inputArray[i + 1]);
+		m_vertices[i].position.z = LittleFloat(inputArray[i + 2]);
+	}
+
+	m_numVertices = count;
+
+	return count;
+}

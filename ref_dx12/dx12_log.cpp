@@ -19,18 +19,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 /*
-ref_dx11
-2017 Bleeding Eye Studios
+ref_dx12
+2019 Bleeding Eye Studios
 */
 
-#include "dx11_local.hpp"
+#include "dx12_local.hpp"
 
-namespace dx11
+namespace dx12
 {
 	std::unique_ptr<Log> log = nullptr;
 }
 
-dx11::Log::Log()
+dx12::Log::Log()
 {
 	LOG_FUNC();
 

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_MODEL_HPP__
@@ -28,6 +28,131 @@ ref_dx12
 #pragma once
 
 #include "dx12_local.hpp"
+
+typedef struct dxVertex_s {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT4 tangent;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT2 textureCoordinate0;
+	DirectX::XMFLOAT2 textureCoordinate1;
+} dxVertex;
+
+/*
+
+d*_t structures are on-disk representations
+m*_t structures are in-memory
+
+*/
+
+
+/*
+==============================================================================
+
+BRUSH MODELS
+
+==============================================================================
+*/
+
+
+//
+// in memory representation
+//
+// !!! if this is changed, it must be changed in asm_draw.h too !!!
+typedef struct mvertex_s
+{
+	vec3_t		position;
+} mvertex_t;
+
+// !!! if this is changed, it must be changed in asm_draw.h too !!!
+typedef struct medge_s
+{
+	unsigned short	v[2];
+	unsigned int	cachededgeoffset;
+} medge_t;
+
+typedef struct mmodel_s
+{
+	vec3_t		mins, maxs;
+	vec3_t		origin;		// for sounds or lights
+	float		radius;
+	int			headnode;
+	int			visleafs;		// not including the solid leaf 0
+	int			firstface, numfaces;
+} mmodel_t;
+
+typedef struct mtexinfo_s
+{
+	float		vecs[2][4];
+	int			flags;
+	int			numframes;
+	struct mtexinfo_s	*next;		// animation chain
+	image_t		*image;
+} mtexinfo_t;
+
+typedef struct msurface_s
+{
+	int			visframe;		// should be drawn when node is crossed
+
+	int			dlightframe;
+	int			dlightbits;
+
+	cplane_t	*plane;
+	int			flags;
+
+	int			firstedge;	// look up in model->surfedges[], negative numbers
+	int			numedges;	// are backwards edges
+
+							// surface generation data
+	struct surfcache_s	*cachespots[MIPLEVELS];
+
+	short		texturemins[2];
+	short		extents[2];
+
+	mtexinfo_t	*texinfo;
+
+	// lighting info
+	byte		styles[MAXLIGHTMAPS];
+	byte		*samples;		// [numstyles*surfsize]
+
+	struct msurface_s *nextalphasurface;
+} msurface_t;
+
+typedef struct mnode_s
+{
+	// common with leaf
+	int			contents;		// -1, to differentiate from leafs
+	int			visframe;		// node needs to be traversed if current
+
+	float		minmaxs[6];		// for bounding box culling
+
+	struct mnode_s	*parent;
+
+	// node specific
+	cplane_t	*plane;
+	struct mnode_s	*children[2];
+
+	unsigned short		firstsurface;
+	unsigned short		numsurfaces;
+} mnode_t;
+
+typedef struct mleaf_s
+{
+	// common with node
+	int			contents;		// wil be a negative contents number
+	int			visframe;		// node needs to be traversed if current
+
+	float		minmaxs[6];		// for bounding box culling
+
+	struct mnode_s	*parent;
+
+	// leaf specific
+	int			cluster;
+	int			area;
+
+	msurface_t	**firstmarksurface;
+	int			nummarksurfaces;
+} mleaf_t;
 
 //
 // Whole model
@@ -56,6 +181,7 @@ typedef struct model_s
 	// solid volume for clipping 
 	//
 	qboolean	clipbox;
+	byte		padding[3];
 	vec3_t		clipmins, clipmaxs;
 
 	//
@@ -65,35 +191,35 @@ typedef struct model_s
 	int			lightmap;		// only for submodels
 
 	int			numsubmodels;
-	//mmodel_t	*submodels;
+	mmodel_t	*submodels;
 
 	int			numplanes;
 	cplane_t	*planes;
 
 	int			numleafs;		// number of visible leafs, not counting 0
-	//mleaf_t		*leafs;
+	mleaf_t		*leafs;
 
 	int			numvertexes;
-	//mvertex_t	*vertexes;
+	mvertex_t	*vertexes;
 
 	int			numedges;
-	//medge_t		*edges;
+	medge_t		*edges;
 
 	int			numnodes;
 	int			firstnode;
-	//mnode_t		*nodes;
+	mnode_t		*nodes;
 
 	int			numtexinfo;
-	//mtexinfo_t	*texinfo;
+	mtexinfo_t	*texinfo;
 
 	int			numsurfaces;
-	//msurface_t	*surfaces;
+	msurface_t	*surfaces;
 
 	int			numsurfedges;
 	int			*surfedges;
 
 	int			nummarksurfaces;
-	//msurface_t	**marksurfaces;
+	msurface_t	**marksurfaces;
 
 	dvis_t		*vis;
 
@@ -108,12 +234,15 @@ typedef struct model_s
 
 namespace dx12
 {
-	class Model {
-	private:
-
+	class ModelManager
+	{
 	public:
-		std::shared_ptr<model_t>	LoadMap(std::string name);
-		std::shared_ptr<model_t>	LoadModel(std::string name);
+		ModelManager();
+
+		bool						Initialize();
+		void						Shutdown();
+
+		std::shared_ptr<model_t>	Load(std::string modelName);
 	};
 }
 
