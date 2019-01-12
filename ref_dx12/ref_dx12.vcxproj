@@ -146,6 +146,7 @@
     <ClInclude Include="dx12_subsystem3D.hpp" />
     <ClInclude Include="dx12_subsystemText.hpp" />
     <ClInclude Include="dx12_system.hpp" />
+    <ClInclude Include="dx12_texture2D.hpp" />
     <ClInclude Include="dx12_web.hpp" />
     <ClInclude Include="dx12_xplit.hpp" />
     <ClInclude Include="stdafx.h" />

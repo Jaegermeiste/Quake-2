@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "dx12_local.hpp"
 
-using namespace DirectX;
-
 // Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
 bool dx12::xpLit::DownloadXPLitForMap(std::string mapName)
 {

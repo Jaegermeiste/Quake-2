@@ -133,6 +133,7 @@ namespace dx12 {
 #include "dx12_dx.hpp"
 #include "dx12_system.hpp"
 #include "dx12_client.hpp"
+#include "dx12_texture2D.hpp"
 #include "dx12_image.hpp"
 #include "dx12_model.hpp"
 #include "dx12_light.hpp"

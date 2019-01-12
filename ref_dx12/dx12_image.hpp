@@ -37,24 +37,6 @@ ref_dx12
 
 namespace dx12
 {
-	class Texture2D
-	{
-		friend class ImageManager;
-	public:
-		D3D12_RESOURCE_DESC		m_textureDesc;
-		//ID3D12ShaderResourceView*	m_shaderResourceView = nullptr;
-		ID3D12Resource*				m_resource = nullptr;
-		ID3D12Resource*			m_texture2D = nullptr;
-		imagetype_t					m_imageType;
-		std::string					m_format;
-
-		qhandle_t					m_handle;
-		std::string					m_name;
-		unsigned int				m_registrationSequence = 0;
-	};
-
-
-
 	class ImageManager
 	{
 		friend class Draw;
