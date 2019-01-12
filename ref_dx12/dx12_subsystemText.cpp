@@ -97,7 +97,7 @@ bool dx12::SubsystemText::InitializeBuffers()
 
 	HRESULT					hr = E_UNEXPECTED;
 
-	D3D12_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
+	//D3D12_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
 	D3D12_SUBRESOURCE_DATA	vertexData, indexData;
 
 	m_vertices = new Vertex2D[MAX_VERTICES]();
@@ -117,13 +117,13 @@ bool dx12::SubsystemText::InitializeBuffers()
 	}
 
 	// Wipe Structs
-	ZeroMemory(&vertexBufferDesc, sizeof(D3D12_BUFFER_DESC));
-	ZeroMemory(&indexBufferDesc, sizeof(D3D12_BUFFER_DESC));
+	//ZeroMemory(&vertexBufferDesc, sizeof(D3D12_BUFFER_DESC));
+	//ZeroMemory(&indexBufferDesc, sizeof(D3D12_BUFFER_DESC));
 	ZeroMemory(&vertexData, sizeof(D3D12_SUBRESOURCE_DATA));
 	ZeroMemory(&indexData, sizeof(D3D12_SUBRESOURCE_DATA));
 
 	// Set up the description of the vertex buffer.
-	vertexBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
+	/*vertexBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
 	vertexBufferDesc.ByteWidth = sizeof(Vertex2D) * MAX_VERTICES;
 	vertexBufferDesc.BindFlags = D3D12_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
@@ -173,7 +173,7 @@ bool dx12::SubsystemText::InitializeBuffers()
 	}
 
 	LOG(info) << "Successfully initialized buffers.";
-
+	*/
 	return true;
 }
 
@@ -201,7 +201,7 @@ void dx12::SubsystemText::Flush()
 {
 	LOG_FUNC();
 
-	if ((m_vertexCount > 0) && (m_indexCount > 0) && (m_context))
+	/*if ((m_vertexCount > 0) && (m_indexCount > 0) && (m_context))
 	{
 		static UINT stride = sizeof(Vertex2D);
 		static UINT offset = 0;
@@ -227,6 +227,7 @@ void dx12::SubsystemText::Flush()
 		DumpD3DDebugMessagesToLog();
 #endif
 	}
+	*/
 }
 
 #ifdef USE_DIRECT2D

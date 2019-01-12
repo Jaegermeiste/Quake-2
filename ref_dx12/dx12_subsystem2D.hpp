@@ -49,12 +49,12 @@ namespace dx12
 		UINT						m_renderTargetWidth = 0;
 		UINT						m_renderTargetHeight = 0;
 
-		ID3D12DeviceContext*		m_2DdeferredContext = nullptr;
+		//ID3D12DeviceContext*		m_2DdeferredContext = nullptr;
 		ID3D12CommandList*			m_2DcommandList = nullptr;
-		ID3D12Texture2D*			m_2DrenderTargetTexture = nullptr;
-		ID3D12RenderTargetView*		m_2DoverlayRTV = nullptr;
-		ID3D12ShaderResourceView*	m_2DshaderResourceView = nullptr;
-		ID3D12DepthStencilState*	m_depthDisabledStencilState = nullptr;
+		ID3D12Resource*				m_2DrenderTargetTexture = nullptr;
+		//ID3D12RenderTargetView*		m_2DoverlayRTV = nullptr;
+		//ID3D12ShaderResourceView*	m_2DshaderResourceView = nullptr;
+		//ID3D12DepthStencilState*	m_depthDisabledStencilState = nullptr;
 		IDXGISurface*				m_dxgiSurface = nullptr;
 		ID2D1RenderTarget*			m_d2dRenderTarget = nullptr;
 		ID2D1SolidColorBrush*		fadeColor = nullptr;
@@ -68,9 +68,9 @@ namespace dx12
 		Shader						m_2DshaderVertexColor;
 		Shader						m_2DshaderTexture;
 
-		ID3D12UnorderedAccessView*	m_2DunorderedAccessView = nullptr;
+		//ID3D12UnorderedAccessView*	m_2DunorderedAccessView = nullptr;
 		
-		ID3D12BlendState*			m_alphaBlendState = nullptr;
+		//ID3D12BlendState*			m_alphaBlendState = nullptr;
 
 		Quad2D						m_renderTargetQuad;
 		Quad2D						m_generalPurposeQuad;
@@ -86,7 +86,7 @@ namespace dx12
 		ID2D1SolidColorBrush*		colorBlue = nullptr;
 
 	private:
-		ID3D12Buffer*				m_constantBuffer = nullptr;
+		//ID3D12Buffer*				m_constantBuffer = nullptr;
 		byte						m_padding2[4];
 
 	public:

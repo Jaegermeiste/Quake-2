@@ -31,13 +31,13 @@ dx12::Quad2D::Quad2D()
 
 	LOG(info) << "Initializing";
 	
-	m_context = nullptr;
-	m_vertexBuffer = nullptr;
-	m_indexBuffer = nullptr;
+	//m_context = nullptr;
+	//m_vertexBuffer = nullptr;
+	//m_indexBuffer = nullptr;
 	m_vertexCount = 0;
 	m_indexCount = 0;
 }
-
+/*
 bool dx12::Quad2D::Initialize(ID3D12DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color = DirectX::Colors::White)
 {
 	LOG_FUNC();
@@ -60,7 +60,7 @@ bool dx12::Quad2D::Initialize(ID3D12DeviceContext* context, int x, int y, int wi
 
 	return UpdateBuffers(x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, color);
 }
-
+*/
 bool dx12::Quad2D::InitializeBuffers()
 {
 	// Courtesy http://www.rastertek.com/dx12tut11.html
@@ -70,7 +70,7 @@ bool dx12::Quad2D::InitializeBuffers()
 	m_vertexCount = m_indexCount = 6;
 	Vertex2D*				vertices = new Vertex2D[m_vertexCount];
 	unsigned long*			indices = new unsigned long[m_indexCount];
-	D3D12_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
+	//D3D12_BUFFER_DESC		vertexBufferDesc, indexBufferDesc;
 	D3D12_SUBRESOURCE_DATA	vertexData, indexData;
 
 	if (!vertices)
@@ -86,10 +86,10 @@ bool dx12::Quad2D::InitializeBuffers()
 	}
 
 	// Wipe Structs
-	ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
-	ZeroMemory(&indexBufferDesc, sizeof(D3D11_BUFFER_DESC));
-	ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
-	ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+	//ZeroMemory(&vertexBufferDesc, sizeof(D3D12_BUFFER_DESC));
+	//ZeroMemory(&indexBufferDesc, sizeof(D3D12_BUFFER_DESC));
+	ZeroMemory(&vertexData, sizeof(D3D12_SUBRESOURCE_DATA));
+	ZeroMemory(&indexData, sizeof(D3D12_SUBRESOURCE_DATA));
 	ZeroMemory(vertices, sizeof(Vertex2D) * m_vertexCount);
 	ZeroMemory(indices, sizeof(unsigned long) * m_indexCount);
 
@@ -100,10 +100,10 @@ bool dx12::Quad2D::InitializeBuffers()
 	}
 
 	// Set up the description of the vertex buffer.
-	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	/*vertexBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
 	vertexBufferDesc.ByteWidth = sizeof(Vertex2D) * m_vertexCount;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexBufferDesc.BindFlags = D3D12_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
@@ -125,9 +125,9 @@ bool dx12::Quad2D::InitializeBuffers()
 	}
 
 	// Set up the description of the static index buffer.
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.Usage = D3D12_USAGE_DEFAULT;
 	indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.BindFlags = D3D12_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
@@ -148,6 +148,7 @@ bool dx12::Quad2D::InitializeBuffers()
 	{
 		LOG(info) << "Successfully created index buffer.";
 	}
+	*/
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
 	if (vertices)
@@ -177,15 +178,17 @@ bool dx12::Quad2D::UpdateBuffers(int x, int y, int width, int height, float u1, 
 								bottom = 0.0;
 	Vertex2D*					vertices = nullptr;
 	Vertex2D*					verticesPtr = nullptr;
-	D3D11_MAPPED_SUBRESOURCE	mappedResource;
-	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	//D3D12_MAPPED_SUBRESOURCE	mappedResource;
+	//ZeroMemory(&mappedResource, sizeof(D3D12_MAPPED_SUBRESOURCE));
 	HRESULT						hr = E_UNEXPECTED;
-
+	/*
 	if (!m_context)
 	{
 		LOG(error) << "Invalid context.";
 		return false;
-	}
+	}*/
+
+
 
 	// If the parameters have not changed then don't update the vertex buffer since it is currently correct.
 	if ((x == m_xPrev) && 
@@ -261,8 +264,9 @@ bool dx12::Quad2D::UpdateBuffers(int x, int y, int width, int height, float u1, 
 	vertices[5].color	 = color;
 	vertices[5].texCoord = DirectX::XMFLOAT2A(u2, v2);
 
+	/*
 	// Lock the vertex buffer so it can be written to.
-	hr = m_context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	hr = m_context->Map(m_vertexBuffer, 0, D3D12_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Failed to lock vertex buffer.";
@@ -277,7 +281,7 @@ bool dx12::Quad2D::UpdateBuffers(int x, int y, int width, int height, float u1, 
 
 	// Unlock the vertex buffer.
 	m_context->Unmap(m_vertexBuffer, 0);
-
+	*/
 	// Release the vertex array as it is no longer needed.
 	if (vertices)
 	{
@@ -295,7 +299,7 @@ bool dx12::Quad2D::UpdateBuffers(int x, int y, int width, int height, float u1, 
 void dx12::Quad2D::RenderBuffers() const
 {
 	LOG_FUNC();
-
+	/*
 	if (m_context)
 	{
 		UINT stride = sizeof(Vertex2D);
@@ -308,18 +312,19 @@ void dx12::Quad2D::RenderBuffers() const
 		m_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-		m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_context->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 #ifdef _DEBUG
 		DumpD3DDebugMessagesToLog();
 #endif
 	}
+	*/
 }
 
 void dx12::Quad2D::Render(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color = DirectX::Colors::White)
 {
 	LOG_FUNC();
-
+	/*
 	if (m_context)
 	{
 		// Render 2D overlay to back buffer
@@ -332,6 +337,7 @@ void dx12::Quad2D::Render(int x, int y, int width, int height, float u1, float v
 			LOG(error) << "Failed to update buffers.";
 		}
 	}
+	*/
 }
 
 void dx12::Quad2D::Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color = DirectX::Colors::White)
@@ -345,9 +351,9 @@ void dx12::Quad2D::Shutdown()
 
 	LOG(info) << "Shutting down.";
 
-	SAFE_RELEASE(m_indexBuffer);
+	//SAFE_RELEASE(m_indexBuffer);
 
-	SAFE_RELEASE(m_vertexBuffer);
+	//SAFE_RELEASE(m_vertexBuffer);
 
 	LOG(info) << "Shutdown complete.";
 }

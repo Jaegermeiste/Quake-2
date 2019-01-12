@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_IMAGE_HPP__
@@ -29,16 +29,22 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
+#define BPP_8	8
+#define BPP_24	24
+#define BPP_32	32
+
+#define USE_STD_MAP	true
+
 namespace dx12
 {
 	class Texture2D
 	{
 		friend class ImageManager;
 	public:
-		D3D12_RESOURCE_DESC			m_textureDesc;
-		ID3D12ShaderResourceView*	m_shaderResourceView = nullptr;
+		D3D12_RESOURCE_DESC		m_textureDesc;
+		//ID3D12ShaderResourceView*	m_shaderResourceView = nullptr;
 		ID3D12Resource*				m_resource = nullptr;
-		ID3D12Texture2D*			m_texture2D = nullptr;
+		ID3D12Resource*			m_texture2D = nullptr;
 		imagetype_t					m_imageType;
 		std::string					m_format;
 
@@ -114,7 +120,7 @@ namespace dx12
 
 		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
 
-		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage);
+		//std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage);
 	};
 
 

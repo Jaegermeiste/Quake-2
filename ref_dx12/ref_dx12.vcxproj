@@ -83,6 +83,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;d3d12.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -148,8 +151,6 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\game\q_shared.c" />
-    <ClCompile Include="..\win32\q_shwin.c" />
     <ClCompile Include="dx12_api.cpp" />
     <ClCompile Include="dx12_bsp.cpp" />
     <ClCompile Include="dx12_client.cpp" />
@@ -177,6 +178,8 @@
     <ClCompile Include="dx12_system.cpp" />
     <ClCompile Include="dx12_web.cpp" />
     <ClCompile Include="dx12_xplit.cpp" />
+    <ClCompile Include="q_shared.cpp" />
+    <ClCompile Include="q_shwin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -72,7 +72,7 @@ void dx12::Map::Load(std::string mapName)
 	// call the apropriate loader
 	if (LittleULong(*fileBuffer) == IDBSPHEADER)
 	{
-		disk_bsp_header_t* header = reinterpret_cast<disk_bsp_header_t *>(fileBuffer);
+		disk_bsp_header_s* header = reinterpret_cast<disk_bsp_header_s *>(fileBuffer);
 
 		int bspVersion = LittleLong(header->version);
 
@@ -80,7 +80,7 @@ void dx12::Map::Load(std::string mapName)
 		{
 		case BSP38_VERSION:
 			// Quake 2
-			m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
+			//m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
 
 			// Lighting
 			m_lights = xpLit::Load(mapName);

@@ -20,18 +20,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_SYSTEM_HPP__
 #define __DX12_SYSTEM_HPP__
 #pragma once
 
+#define	WINDOW_CLASS_NAME	"Quake 2"
+
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	class System 
+	class System
 	{
 		friend class Dx;
 	private:

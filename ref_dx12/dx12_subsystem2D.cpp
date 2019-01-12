@@ -33,19 +33,19 @@ dx12::Subsystem2D::Subsystem2D()
 
 	LOG(info) << "Initializing";
 
-	m_2DdeferredContext = nullptr;
+	//m_2DdeferredContext = nullptr;
 	m_2DcommandList = nullptr;
 	m_2DrenderTargetTexture = nullptr;
-	m_2DoverlayRTV = nullptr;
-	m_2DshaderResourceView = nullptr;
+	//m_2DoverlayRTV = nullptr;
+	//m_2DshaderResourceView = nullptr;
 	ZeroMemory(&m_2DorthographicMatrix, sizeof(DirectX::XMMATRIX));
-	m_depthDisabledStencilState = nullptr;
+	//m_depthDisabledStencilState = nullptr;
 	m_dxgiSurface = nullptr;
 	m_d2dRenderTarget = nullptr;
 	m_d2dDrawingActive = false;
-	m_2DunorderedAccessView = nullptr;
-	m_alphaBlendState = nullptr;
-	m_constantBuffer = nullptr;
+	//m_2DunorderedAccessView = nullptr;
+	//m_alphaBlendState = nullptr;
+	//m_constantBuffer = nullptr;
 
 	fadeColor = nullptr;
 	colorBlack = nullptr;
@@ -60,7 +60,7 @@ bool dx12::Subsystem2D::Initialize()
 {
 	LOG_FUNC();
 
-	D3D12_TEXTURE2D_DESC textureDesc;
+	D3D12_RESOURCE_DESC textureDesc;
 	HRESULT hr = E_UNEXPECTED;
 	D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
 	D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
@@ -68,7 +68,7 @@ bool dx12::Subsystem2D::Initialize()
 	D3D12_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDesc;
 
 	// Wipe Structs
-	ZeroMemory(&textureDesc, sizeof(D3D12_TEXTURE2D_DESC));
+	ZeroMemory(&textureDesc, sizeof(D3D12_RESOURCE_DESC));
 	ZeroMemory(&renderTargetViewDesc, sizeof(D3D12_RENDER_TARGET_VIEW_DESC));
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC));
 	ZeroMemory(&depthDisabledStencilDesc, sizeof(D3D12_DEPTH_STENCIL_DESC));
@@ -83,7 +83,7 @@ bool dx12::Subsystem2D::Initialize()
 
 #ifdef DEFERRED
 	// Create deferred context
-	hr = ref->sys->dx->m_d3dDevice->CreateCommandList(0, &m_2DdeferredContext);
+	//hr = ref->sys->dx->m_d3dDevice->CreateCommandList(0, &m_2DdeferredContext);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create 2D deferred context.";
@@ -97,12 +97,12 @@ bool dx12::Subsystem2D::Initialize()
 	textureDesc.Width = m_renderTargetWidth;
 	textureDesc.Height = m_renderTargetHeight;
 	textureDesc.MipLevels = 1;
-	textureDesc.ArraySize = 1;
+	//textureDesc.ArraySize = 1;
 	textureDesc.SampleDesc.Count = 1;
-	textureDesc.Usage = D3D12_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D12_BIND_RENDER_TARGET | D3D12_BIND_SHADER_RESOURCE;
-	textureDesc.CPUAccessFlags = 0;
-	textureDesc.MiscFlags = 0;
+	//textureDesc.Usage = D3D12_USAGE_DEFAULT;
+	//textureDesc.BindFlags = D3D12_BIND_RENDER_TARGET | D3D12_BIND_SHADER_RESOURCE;
+	//textureDesc.CPUAccessFlags = 0;
+	//textureDesc.MiscFlags = 0;
 	/*
 	// Find a format that D2D is happy with
 	if (ref->sys->dx->m_d2dContext->IsDxgiFormatSupported(DXGI_FORMAT_R32G32B32A32_FLOAT))
@@ -133,7 +133,7 @@ bool dx12::Subsystem2D::Initialize()
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 	// Create the render target texture.
-	hr = ref->sys->dx->m_d3dDevice->CreateCommittedResource(&textureDesc, nullptr, &m_2DrenderTargetTexture);
+	//hr = ref->sys->dx->m_d3dDevice->CreateCommittedResource(&textureDesc, nullptr, &m_2DrenderTargetTexture);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create Texture2D.";
@@ -176,7 +176,7 @@ bool dx12::Subsystem2D::Initialize()
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	hr = ref->sys->dx->m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
+	//hr = ref->sys->dx->m_d3dDevice->CreateRenderTargetView(m_2DrenderTargetTexture, &renderTargetViewDesc, &m_2DoverlayRTV);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create overlay RenderTargetView.";
@@ -194,7 +194,7 @@ bool dx12::Subsystem2D::Initialize()
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
 	// Create the shader resource view.
-	hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
+	//hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(m_2DrenderTargetTexture, &shaderResourceViewDesc, &m_2DshaderResourceView);
 	if (FAILED(hr))
 	{
 		LOG(error) << "Unable to create ShaderResourceView.";
@@ -223,7 +223,7 @@ bool dx12::Subsystem2D::Initialize()
 	}*/
 
 	// Set the overlay RTV as the current render target
-	m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
+	//m_2DdeferredContext->OMSetRenderTargets(1, &m_2DoverlayRTV, nullptr);
 
 	//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMGetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, &m_2DunorderedAccessView);
 
@@ -237,21 +237,21 @@ bool dx12::Subsystem2D::Initialize()
 	// that DepthEnable is set to false, all other parameters are the same as the other depth stencil state.
 	depthDisabledStencilDesc.DepthEnable = false;
 	depthDisabledStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	depthDisabledStencilDesc.DepthFunc = D3D12_COMPARISON_LESS;
+	//depthDisabledStencilDesc.DepthFunc = D3D12_COMPARISON_LESS;
 	depthDisabledStencilDesc.StencilEnable = true;
 	depthDisabledStencilDesc.StencilReadMask = 0xFF;
 	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
 	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_INCR;
 	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
+	//depthDisabledStencilDesc.FrontFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
 	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_DECR;
 	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-	depthDisabledStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
+	//depthDisabledStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
 
 	// Create the state using the device.
-	hr = ref->sys->dx->m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
+	//hr = ref->sys->dx->m_d3dDevice->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
 
 	if (FAILED(hr))
 	{
@@ -280,7 +280,7 @@ bool dx12::Subsystem2D::Initialize()
 	}
 	blendStateDescription.IndependentBlendEnable = TRUE;
 
-	hr = ref->sys->dx->m_d3dDevice->CreateBlendState(&blendStateDescription, &m_alphaBlendState);
+	//hr = ref->sys->dx->m_d3dDevice->CreateBlendState(&blendStateDescription, &m_alphaBlendState);
 
 	if (FAILED(hr))
 	{
@@ -292,7 +292,7 @@ bool dx12::Subsystem2D::Initialize()
 		LOG(info) << "Successfully created BlendState.";
 	}
 
-	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetBlendState(m_alphaBlendState, NULL, 1u);
+	//ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetBlendState(m_alphaBlendState, NULL, 1u);
 
 	// Setup the viewport
 	D3D12_VIEWPORT viewport;
@@ -306,33 +306,33 @@ bool dx12::Subsystem2D::Initialize()
 
 	LOG(info) << "Setting viewport.";
 
-	m_2DdeferredContext->RSSetViewports(1, &viewport);
+	//m_2DdeferredContext->RSSetViewports(1, &viewport);
 
 	UINT viewportCount = 0;
-	m_2DdeferredContext->RSGetViewports(&viewportCount, nullptr);
+	//m_2DdeferredContext->RSGetViewports(&viewportCount, nullptr);
 	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
 
-	D3D12_BUFFER_DESC		constantBufferDesc;
+	//D3D12_BUFFER_DESC		constantBufferDesc;
 	D3D12_SUBRESOURCE_DATA	constantData;
 	ShaderConstants2D		constants;
-	ZeroMemory(&constantBufferDesc, sizeof(D3D12_BUFFER_DESC));
+	//ZeroMemory(&constantBufferDesc, sizeof(D3D12_BUFFER_DESC));
 	ZeroMemory(&constantData, sizeof(D3D12_SUBRESOURCE_DATA));
 
 	// Set up the description of the dynamic constant buffer.
-	constantBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
+	/*constantBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
 	constantBufferDesc.ByteWidth = sizeof(ShaderConstants2D);
 	constantBufferDesc.BindFlags = D3D12_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
 	constantBufferDesc.MiscFlags = 0;
 	constantBufferDesc.StructureByteStride = 0;
-
+	*/
 	constants.brightness = ref->cvars->overlayBrightness->Float();
 	constants.contrast = ref->cvars->overlayContrast->Float();
 	constants.unused1 = -1.0f;
 	constants.unused2 = -2.0f;
 
 	// Give the subresource structure a pointer to the constant data.
-	constantData.pSysMem = &constants;
+	/*constantData.pSysMem = &constants;
 	constantData.SysMemPitch = 0;
 	constantData.SysMemSlicePitch = 0;
 
@@ -347,7 +347,7 @@ bool dx12::Subsystem2D::Initialize()
 	{
 		LOG(info) << "Successfully created constant buffer.";
 	}
-
+	*/
 	// Calculate the width of the overlay.
 	int width = static_cast<int>(static_cast<float>(m_renderTargetWidth) * ref->cvars->overlayScale->Float());
 
@@ -359,7 +359,7 @@ bool dx12::Subsystem2D::Initialize()
 
 	// Calculate the screen coordinates of the top of the overlay.
 	int y = ((msl::utilities::SafeInt<int>(ref->sys->dx->m_windowHeight) - height) / 2);
-
+	/*
 	if (!m_renderTargetQuad.Initialize(ref->sys->dx->m_immediateContext, x, y, width, height, DirectX::Colors::White))
 	{
 		LOG(error) << "Failed to properly initialize render target quad.";
@@ -371,7 +371,7 @@ bool dx12::Subsystem2D::Initialize()
 		LOG(error) << "Failed to properly initialize general purpose quad.";
 		return false;
 	}
-
+	*/
 	if (!m_2DshaderVertexColor.Initialize(ref->sys->dx->m_d3dDevice, "vertexColor2D.hlsl", "pixelVertexColor2D.hlsl"))
 	{
 		LOG(error) << "Failed to properly create shaders.";
@@ -462,7 +462,7 @@ void dx12::Subsystem2D::EndD2DDrawing()
 void dx12::Subsystem2D::Clear()
 {
 	LOG_FUNC();
-
+	/*
 	// Clear 2D deferred
 	if (ref->sys->dx->m_immediateContext)
 	{
@@ -476,10 +476,12 @@ void dx12::Subsystem2D::Clear()
 		m_2DdeferredContext->ClearRenderTargetView(m_2DoverlayRTV, ClearColor);
 #endif
 	}
+	*/
 }
 
 void dx12::Subsystem2D::Update()
 {
+	/*
 	HRESULT hr = E_UNEXPECTED;
 	ShaderConstants2D*			constantsPtr = nullptr;
 	D3D12_MAPPED_SUBRESOURCE	mappedResource;
@@ -510,12 +512,13 @@ void dx12::Subsystem2D::Update()
 		ref->cvars->overlayBrightness->SetModified(false);
 		ref->cvars->overlayContrast->SetModified(false);
 	}
+	*/
 }
 
 void dx12::Subsystem2D::Render()
 {
 	LOG_FUNC();
-
+	/*
 	HRESULT hr = E_UNEXPECTED;
 
 	if (ref->sys->dx->m_immediateContext)
@@ -541,7 +544,7 @@ void dx12::Subsystem2D::Render()
 		}
 #endif
 
-/*		EndD2DDrawing();
+		EndD2DDrawing();
 		ref->sys->dx->subsystem2D->m_d2dRenderTarget->BeginDraw();
 		ref->sys->dx->m_d2dContext->DrawImage(ref->sys->dx->m_d2dCommandList);
 		hr = ref->sys->dx->subsystem2D->m_d2dRenderTarget->EndDraw();
@@ -550,7 +553,7 @@ void dx12::Subsystem2D::Render()
 			hr = S_OK;
 			LOG(error) << "m_d2dRenderTarget->EndDraw() returned D2DERR_RECREATE_TARGET";
 		}
-*/
+
 		//ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 		// Set the back buffer as the current render target
@@ -587,6 +590,7 @@ void dx12::Subsystem2D::Render()
 #ifdef _DEBUG
 	DumpD3DDebugMessagesToLog();
 #endif
+	*/
 }
 
 void dx12::Subsystem2D::FadeScreen()
@@ -618,7 +622,7 @@ void dx12::Subsystem2D::Shutdown()
 
 	m_renderTargetQuad.Shutdown();
 
-	SAFE_RELEASE(m_constantBuffer);
+	//SAFE_RELEASE(m_constantBuffer);
 
 	SAFE_RELEASE(colorYellowGreen);
 
@@ -628,21 +632,21 @@ void dx12::Subsystem2D::Shutdown()
 
 	SAFE_RELEASE(fadeColor);
 
-	SAFE_RELEASE(m_alphaBlendState);
+	//SAFE_RELEASE(m_alphaBlendState);
 
 	SAFE_RELEASE(m_d2dRenderTarget);
 
 	SAFE_RELEASE(m_dxgiSurface);
 
-	SAFE_RELEASE(m_depthDisabledStencilState);
+	//SAFE_RELEASE(m_depthDisabledStencilState);
 
 #ifdef DEFERRED
-	SAFE_RELEASE(m_2DdeferredContext);
+	//SAFE_RELEASE(m_2DdeferredContext);
 #endif
 
-	SAFE_RELEASE(m_2DshaderResourceView);
+	//SAFE_RELEASE(m_2DshaderResourceView);
 
-	SAFE_RELEASE(m_2DoverlayRTV);
+	//SAFE_RELEASE(m_2DoverlayRTV);
 
 	SAFE_RELEASE(m_2DrenderTargetTexture);
 

@@ -59,11 +59,11 @@ namespace dx12
 			DirectX::XMMATRIX projection;
 		};
 
-		ID3D12VertexShader*			m_vertexShader = nullptr;
-		ID3D12PixelShader*			m_pixelShader = nullptr;
-		ID3D12InputLayout*			m_layout = nullptr;
-		ID3D12Buffer*				m_matrixBuffer = nullptr;
-		ID3D12SamplerState*			m_sampleState = nullptr;
+		//ID3D12VertexShader*			m_vertexShader = nullptr;
+		//ID3D12PixelShader*			m_pixelShader = nullptr;
+		//ID3D12InputLayout*			m_layout = nullptr;
+		//ID3D12Buffer*				m_matrixBuffer = nullptr;
+		//ID3D12SamplerState*			m_sampleState = nullptr;
 
 		void						OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string shaderFilename);
 
@@ -74,9 +74,9 @@ namespace dx12
 
 		bool						Initialize(ID3D12Device* device, std::string vsFileName, std::string psFileName);
 
-		bool						SetShaderParameters(ID3D12DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
+		//bool						SetShaderParameters(ID3D12DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
 
-		bool						Render(ID3D12DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
+		//bool						Render(ID3D12DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
 
 		void						Shutdown();
 	};

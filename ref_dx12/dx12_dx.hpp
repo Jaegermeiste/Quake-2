@@ -63,16 +63,16 @@ namespace dx12
 		ID2D1CommandList*				m_d2dCommandList = nullptr;
 		ID3D12Device*					m_d3dDevice = nullptr;
 		ID3D12Device1*					m_d3dDevice1 = nullptr;
-		ID3D12DeviceContext*			m_immediateContext = nullptr;
-		ID3D12DeviceContext1*			m_immediateContext1 = nullptr;
+		//ID3D12DeviceContext*			m_immediateContext = nullptr;
+		//ID3D12DeviceContext1*			m_immediateContext1 = nullptr;
 
 		IDXGISwapChain*					m_swapChain = nullptr;
 		IDXGISwapChain1*				m_swapChain1 = nullptr;
 
-		ID3D12DepthStencilView*			m_depthStencilView;
+		//ID3D12DepthStencilView*			m_depthStencilView;
 
-		ID3D12RenderTargetView*			m_backBufferRTV = nullptr;
-		ID3D12DepthStencilState*		m_depthStencilState = nullptr;
+		//ID3D12RenderTargetView*			m_backBufferRTV = nullptr;
+		//ID3D12DepthStencilState*		m_depthStencilState = nullptr;
 
 		bool							m_d3dInitialized;
 

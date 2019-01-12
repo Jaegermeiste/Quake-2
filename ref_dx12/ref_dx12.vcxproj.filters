@@ -122,12 +122,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\game\q_shared.c">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\win32\q_shwin.c">
-      <Filter>Source Files\win32</Filter>
-    </ClCompile>
     <ClCompile Include="dx12_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -207,6 +201,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx12_image_wal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shared.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shwin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

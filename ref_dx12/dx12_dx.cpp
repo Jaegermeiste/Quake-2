@@ -103,11 +103,11 @@ dx12::Dx::Dx()
 	m_d2dCommandList = nullptr;
 	m_d3dDevice = nullptr;
 	m_d3dDevice1 = nullptr;
-	m_immediateContext = nullptr;
-	m_immediateContext1 = nullptr;
+	//m_immediateContext = nullptr;
+	//m_immediateContext1 = nullptr;
 	m_swapChain = nullptr;
 	m_swapChain1 = nullptr;
-	m_backBufferRTV = nullptr;
+	//m_backBufferRTV = nullptr;
 
 	subsystem3D = std::make_unique<Subsystem3D>();
 	subsystem2D = std::make_unique<Subsystem2D>();
@@ -129,7 +129,7 @@ void dx12::Dx::BeginFrame(void)
 	{
 		m_clockRunning = false;
 	}
-
+	/*
 	// Clear immediate context
 	if (m_immediateContext)
 	{
@@ -150,7 +150,7 @@ void dx12::Dx::BeginFrame(void)
 			m_immediateContext->ClearDepthStencilView(m_depthStencilView, D3D12_CLEAR_DEPTH | D3D12_CLEAR_STENCIL, 1.0f, 0);
 		}
 	}
-
+	*/
 	if (subsystem2D)
 	{
 		subsystem2D->Update();
@@ -193,23 +193,23 @@ void dx12::Dx::EndFrame(void)
 		// Draw 2D
 		subsystem2D->Render();
 	}
-
+/*
 	// Clear the PS binding
 	ID3D12ShaderResourceView* clearSRV = { NULL };
 	ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, m_depthStencilView);
-
+*/
 	if (m_swapChain)
 	{
 		// Switch the back buffer and the front buffer
 		m_swapChain->Present(ref->cvars->Vsync->UInt(), 0);
 	}
-
+	/*
 	// Set the overlay RTV as the current render target
 	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &ref->sys->dx->subsystem2D->m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
-
+	*/
 	// Timing
 	if ((m_clockRunning) && (QueryPerformanceCounter(&m_clockFrameEndCurrent) == TRUE))
 	{
@@ -342,7 +342,7 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	HRESULT hr = E_UNEXPECTED;
 	RECT rc = {};
-	UINT createDeviceFlags = D3D12_CREATE_DEVICE_BGRA_SUPPORT; // This flag adds support for surfaces with a different color channel ordering than the API default for compatibility with Direct2D.
+	UINT createDeviceFlags = 0; // D3D12_CREATE_DEVICE_BGRA_SUPPORT; // This flag adds support for surfaces with a different color channel ordering than the API default for compatibility with Direct2D.
 
 	GetClientRect(hWnd, &rc);
 	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
@@ -374,6 +374,7 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 	{
 		m_driverType = driverTypes[driverTypeIndex];
 
+		/*
 		hr = D3D12CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, m_featureLevelArray, numFeatureLevels, D3D12_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 
 		if (hr == E_INVALIDARG)
@@ -387,6 +388,7 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 				hr = D3D12CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, &m_featureLevelArray[3], numFeatureLevels - 3, D3D12_SDK_VERSION, &m_d3dDevice, &m_featureLevel, &m_immediateContext);
 			}
 		}
+		*/
 
 		if (SUCCEEDED(hr))
 		{
@@ -538,7 +540,9 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 		{
 			LOG(info) << "Successfully obtained D3D Device1. Obtaining immediate DeviceContext1.";
 
+			/*
 			(void)m_immediateContext->QueryInterface(__uuidof(ID3D12DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
+			*/
 		}
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
@@ -610,8 +614,8 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 	}
 
 	// Create a render target view
-	ID3D12Texture2D* pBackBuffer = nullptr;
-	hr = m_swapChain->GetBuffer(0, __uuidof(ID3D12Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+	ID3D12Resource* pBackBuffer = nullptr;
+	hr = m_swapChain->GetBuffer(0, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&pBackBuffer));
 
 	if (FAILED(hr))
 	{
@@ -623,7 +627,9 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 		LOG(info) << "Successfully created BackBuffer.";
 	}
 
+	/*
 	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_backBufferRTV);
+	*/
 
 	pBackBuffer->Release();
 
@@ -639,10 +645,9 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	LOG(info) << "Setting immediate context render target to BackBuffer RenderTargetView.";
 
+	/*
 	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
-
-	//m_d2dContext->SetTarget(m_d2dCommandList);
-
+	*/
 
 	// Setup the viewport
 	D3D12_VIEWPORT viewport;
@@ -656,10 +661,16 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	LOG(info) << "Setting viewport.";
 
+	/*
 	m_immediateContext->RSSetViewports(1, &viewport);
+	*/
 
 	UINT viewportCount = 0;
+
+	/*
 	m_immediateContext->RSGetViewports(&viewportCount, nullptr);
+	*/
+
 	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
 
 	m_d3dInitialized = true;
@@ -679,11 +690,13 @@ void dx12::Dx::D3D_Shutdown()
 		m_swapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
+	/*
 	SAFE_RELEASE(m_backBufferRTV);
 
 	SAFE_RELEASE(m_depthStencilState);
 
 	SAFE_RELEASE(m_depthStencilView);
+	*/
 
 	SAFE_RELEASE(m_swapChain1);
 
@@ -710,6 +723,7 @@ void dx12::Dx::D3D_Shutdown()
 
 	SAFE_RELEASE(m_d2dFactory);
 
+	/*
 	if (m_immediateContext)
 	{
 		// https://blogs.msdn.microsoft.com/chuckw/2012/11/30/direct3d-sdk-debug-layer-tricks/
@@ -727,13 +741,16 @@ void dx12::Dx::D3D_Shutdown()
 
 		SAFE_RELEASE(m_immediateContext);
 	}
+	*/
 
 #ifdef _DEBUG
-	if (d3dDebug)
+	if (d3dDebugDev)
 	{
-		d3dDebug->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
+		d3dDebugDev->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
 
 		SAFE_RELEASE(d3dInfoQueue);
+
+		SAFE_RELEASE(d3dDebugDev);
 
 		SAFE_RELEASE(d3dDebug);
 	}

@@ -36,14 +36,14 @@ dx12::Shader::Shader()
 {
 	LOG_FUNC();
 
-	m_vertexShader = nullptr;
-	m_pixelShader = nullptr;
-	m_layout = nullptr;
-	m_matrixBuffer = nullptr;
-	m_sampleState = nullptr;
+	//m_vertexShader = nullptr;
+	//m_pixelShader = nullptr;
+	//m_layout = nullptr;
+	//m_matrixBuffer = nullptr;
+	//m_sampleState = nullptr;
 }
 
-bool dx12::Shader::CompileShader(ID3D11Device* device, std::string fileName, shaderTarget target, D3D11_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
+bool dx12::Shader::CompileShader(ID3D12Device* device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
 {
 	LOG_FUNC();
 
@@ -92,7 +92,8 @@ bool dx12::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 	}
 
 	// Build appropriate targets for feature level
-	switch (device->GetFeatureLevel())
+	//switch (device->GetFeatureLevel())
+	switch (D3D_FEATURE_LEVEL_12_1)		// FIXME
 	{
 	case D3D_FEATURE_LEVEL_12_1:
 	case D3D_FEATURE_LEVEL_12_0:
@@ -189,7 +190,7 @@ bool dx12::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 		LOG(error) << "Failed to obtain shader buffer";
 		return false;
 	}
-
+	/*
 	if (entryPoint == SHADER_ENTRY_POINT_VERTEX)
 	{
 		// Create the vertex shader from the buffer.
@@ -217,25 +218,25 @@ bool dx12::Shader::CompileShader(ID3D11Device* device, std::string fileName, sha
 			LOG(error) << "Failed to create Pixel Shader";
 			return false;
 		}
-	}
+	}*/
 
 	return true;
 }
 
-bool dx12::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName)
+bool dx12::Shader::Initialize(ID3D12Device* device, std::string vsFileName, std::string psFileName)
 {
 	LOG_FUNC();
-
+	/*
 	if (device)
 	{
 		HRESULT hr = E_UNEXPECTED;
-		D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
-		ZeroMemory(&polygonLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * 3);
+		D3D12_INPUT_ELEMENT_DESC polygonLayout[3];
+		ZeroMemory(&polygonLayout, sizeof(D3D12_INPUT_ELEMENT_DESC) * 3);
 		UINT numElements = 0;
-		D3D11_BUFFER_DESC matrixBufferDesc;
-		ZeroMemory(&matrixBufferDesc, sizeof(D3D11_BUFFER_DESC));
-		D3D11_SAMPLER_DESC samplerDesc;
-		ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		D3D12_BUFFER_DESC matrixBufferDesc;
+		ZeroMemory(&matrixBufferDesc, sizeof(D3D12_BUFFER_DESC));
+		D3D12_SAMPLER_DESC samplerDesc;
+		ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
 
 		// Create the vertex input layout description.
 		// This setup needs to match the Vertex stucture
@@ -244,23 +245,23 @@ bool dx12::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 		polygonLayout[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		polygonLayout[0].InputSlot = 0;
 		polygonLayout[0].AlignedByteOffset = 0;
-		polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[0].InputSlotClass = D3D12_INPUT_PER_VERTEX_DATA;
 		polygonLayout[0].InstanceDataStepRate = 0;
 
 		polygonLayout[1].SemanticName = "COLOR";
 		polygonLayout[1].SemanticIndex = 0;
 		polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		polygonLayout[1].InputSlot = 0;
-		polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		polygonLayout[1].InputSlotClass = D3D12_INPUT_PER_VERTEX_DATA;
 		polygonLayout[1].InstanceDataStepRate = 0;
 
 		polygonLayout[2].SemanticName = "TEXCOORD";
 		polygonLayout[2].SemanticIndex = 0;
 		polygonLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
 		polygonLayout[2].InputSlot = 0;
-		polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		polygonLayout[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		polygonLayout[2].InputSlotClass = D3D12_INPUT_PER_VERTEX_DATA;
 		polygonLayout[2].InstanceDataStepRate = 0;
 
 		// Get a count of the elements in the layout.
@@ -281,10 +282,10 @@ bool dx12::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 		}
 
 		// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-		matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		matrixBufferDesc.Usage = D3D12_USAGE_DYNAMIC;
 		matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-		matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		matrixBufferDesc.BindFlags = D3D12_BIND_CONSTANT_BUFFER;
+		matrixBufferDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
 		matrixBufferDesc.MiscFlags = 0;
 		matrixBufferDesc.StructureByteStride = 0;
 
@@ -297,19 +298,19 @@ bool dx12::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 		}
 
 		// Create a texture sampler state description.
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP; //D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP; // D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; // D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_CLAMP; //D3D12_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_CLAMP; // D3D12_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_CLAMP; // D3D12_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.MipLODBias = 0.0f;
 		samplerDesc.MaxAnisotropy = 1;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.ComparisonFunc = D3D12_COMPARISON_ALWAYS;
 		samplerDesc.BorderColor[0] = 0;
 		samplerDesc.BorderColor[1] = 0;
 		samplerDesc.BorderColor[2] = 0;
 		samplerDesc.BorderColor[3] = 0;
 		samplerDesc.MinLOD = 0;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 
 		// Create the texture sampler state.
 		hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
@@ -325,7 +326,7 @@ bool dx12::Shader::Initialize(ID3D11Device* device, std::string vsFileName, std:
 	{
 		LOG(error) << "Bad device.";
 	}
-
+	*/
 	return false;
 }
 
@@ -335,7 +336,7 @@ void dx12::Shader::Shutdown()
 	LOG_FUNC();
 
 	LOG(info) << "Shutting down.";
-
+	/*/
 	SAFE_RELEASE(m_sampleState);
 
 	SAFE_RELEASE(m_matrixBuffer);
@@ -345,7 +346,7 @@ void dx12::Shader::Shutdown()
 	SAFE_RELEASE(m_pixelShader);
 
 	SAFE_RELEASE(m_vertexShader);
-
+	*/
 	LOG(info) << "Shutdown complete.";
 }
 
@@ -378,16 +379,16 @@ void dx12::Shader::OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string 
 	}
 }
 
-
-bool dx12::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants)
+/*
+bool dx12::Shader::SetShaderParameters(ID3D12DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants)
 {
 	LOG_FUNC();
 
 	if (deviceContext)
 	{
 		HRESULT hr = E_UNEXPECTED;
-		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+		D3D12_MAPPED_SUBRESOURCE mappedResource;
+		ZeroMemory(&mappedResource, sizeof(D3D12_MAPPED_SUBRESOURCE));
 		MatrixBufferType* dataPtr = nullptr;
 		unsigned int bufferNumber = 0;
 
@@ -397,7 +398,7 @@ bool dx12::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 		projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
 		// Lock the constant buffer so it can be written to.
-		hr = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		hr = deviceContext->Map(m_matrixBuffer, 0, D3D12_MAP_WRITE_DISCARD, 0, &mappedResource);
 
 		if (FAILED(hr))
 		{
@@ -443,9 +444,10 @@ bool dx12::Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, Direc
 
 	return false;
 }
+*/
 
-
-bool dx12::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants)
+/*
+bool dx12::Shader::Render(ID3D12DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants)
 {
 	LOG_FUNC();
 
@@ -463,13 +465,13 @@ bool dx12::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 		{
 			LOG(warning) << std::to_string(viewportCount) << " viewports bound.";
 
-			/*D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-			ZeroMemory(&desc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-			shaderResource->GetDesc(&desc);*/
+			D3D12_SHADER_RESOURCE_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC));
+			shaderResource->GetDesc(&desc);
 
 			// Setup the viewport
-			D3D11_VIEWPORT viewport;
-			ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+			D3D12_VIEWPORT viewport;
+			ZeroMemory(&viewport, sizeof(D3D12_VIEWPORT));
 			viewport.Width = 1600.0f;
 			viewport.Height = 900.0f;
 			viewport.MinDepth = 0.0f;
@@ -512,3 +514,4 @@ bool dx12::Shader::Render(ID3D11DeviceContext* deviceContext, UINT indexCount, D
 
 	return false;
 }
+*/

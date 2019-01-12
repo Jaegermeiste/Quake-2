@@ -37,9 +37,9 @@ namespace dx12
 		friend class Subsystem2D;
 		friend class Draw;
 	private:
-		ID3D12DeviceContext*		m_context = nullptr;
-		ID3D12Buffer*				m_vertexBuffer = nullptr;
-		ID3D12Buffer*				m_indexBuffer = nullptr;
+		//ID3D12DeviceContext*		m_context = nullptr;
+		//ID3D12Buffer*				m_vertexBuffer = nullptr;
+		//ID3D12Buffer*				m_indexBuffer = nullptr;
 		
 		unsigned int				m_vertexCount = 0,
 									m_indexCount = 0;
@@ -67,7 +67,7 @@ namespace dx12
 	public:
 									Quad2D();
 
-		bool						Initialize(ID3D12DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
+		//bool						Initialize(ID3D12DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
 		void						Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 

@@ -48,9 +48,9 @@ namespace dx12
 		IDWriteFactory*					m_writeFactory = nullptr;
 		IDWriteTextFormat*				m_textFormat = nullptr;
 #endif
-		ID3D12DeviceContext*			m_context = nullptr;
-		ID3D12Buffer*					m_vertexBuffer = nullptr;
-		ID3D12Buffer*					m_indexBuffer = nullptr;
+		//ID3D12DeviceContext*			m_context = nullptr;
+		//ID3D12Buffer*					m_vertexBuffer = nullptr;
+		//ID3D12Buffer*					m_indexBuffer = nullptr;
 
 		dx12::Vertex2D*					m_vertices = nullptr;
 		unsigned long*					m_indices = nullptr;
