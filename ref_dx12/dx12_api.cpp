@@ -29,7 +29,7 @@ inline void	SHIM_R_BeginRegistration(char *map)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr))
 	{
-		//dx12::ref->media->BeginRegistration(map);
+		dx12::ref->media->BeginRegistration(map);
 	}
 }
 
@@ -83,7 +83,7 @@ inline void	SHIM_R_EndRegistration(void)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr))
 	{
-		//dx12::ref->media->EndRegistration();
+		dx12::ref->media->EndRegistration();
 	}
 }
 
@@ -196,7 +196,7 @@ inline qboolean SHIM_R_Init(void *hinstance, void *wndproc)
 		bool retVal = dx12::ref->sys->Initialize(hInstance, wndProc);
 		if (retVal == true)
 		{
-			//retVal = dx12::ref->media->Initialize();
+			retVal = dx12::ref->media->Initialize();
 
 			if (retVal == true)
 			{
@@ -211,7 +211,7 @@ inline void SHIM_R_Shutdown()
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr))
 	{
-		//dx12::ref->media->Shutdown();
+		dx12::ref->media->Shutdown();
 	}
 
 	if ((dx12::ref != nullptr) && (dx12::ref->sys != nullptr))

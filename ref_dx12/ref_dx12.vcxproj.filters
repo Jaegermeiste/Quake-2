@@ -209,6 +209,9 @@
     <ClCompile Include="q_shwin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx12_media.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

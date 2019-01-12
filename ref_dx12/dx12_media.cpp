@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 /*
-ref_dx11
-2017 Bleeding Eye Studios
+ref_dx12
+2019 Bleeding Eye Studios
 */
 
-#include "dx11_local.hpp"
+#include "dx12_local.hpp"
 
-dx11::Media::Media()
+dx12::Media::Media()
 {
 	m_inRegistration = false;
 
@@ -34,7 +34,7 @@ dx11::Media::Media()
 	map = std::make_unique<Map>();
 }
 
-bool dx11::Media::Initialize()
+bool dx12::Media::Initialize()
 {
 	if ((!img) || (!img->Initialize()))
 	{
@@ -57,7 +57,7 @@ bool dx11::Media::Initialize()
 	return true;
 }
 
-void dx11::Media::Shutdown()
+void dx12::Media::Shutdown()
 {
 	LOG_FUNC();
 
@@ -77,7 +77,7 @@ void dx11::Media::Shutdown()
 	}
 }
 
-void dx11::Media::BeginRegistration(std::string mapname)
+void dx12::Media::BeginRegistration(std::string mapname)
 {
 	LOG_FUNC();
 
@@ -87,7 +87,7 @@ void dx11::Media::BeginRegistration(std::string mapname)
 	}
 }
 
-void dx11::Media::EndRegistration()
+void dx12::Media::EndRegistration()
 {
 	LOG_FUNC();
 

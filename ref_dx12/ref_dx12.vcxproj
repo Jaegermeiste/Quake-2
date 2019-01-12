@@ -163,6 +163,7 @@
     <ClCompile Include="dx12_log.cpp" />
     <ClCompile Include="dx12_main.cpp" />
     <ClCompile Include="dx12_map.cpp" />
+    <ClCompile Include="dx12_media.cpp" />
     <ClCompile Include="dx12_model.cpp" />
     <ClCompile Include="dx12_model_md2.cpp" />
     <ClCompile Include="dx12_model_md3.cpp" />
