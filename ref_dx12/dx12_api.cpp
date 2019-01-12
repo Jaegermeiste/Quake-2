@@ -101,7 +101,7 @@ inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
 	{
 		unsigned int	width = 0,
 			height = 0;
-		//dx12::ref->draw->GetPicSize(width, height, name);
+		dx12::ref->draw->GetPicSize(width, height, name);
 		*w = msl::utilities::SafeInt<int>(width);
 		*h = msl::utilities::SafeInt<int>(height);
 	}
@@ -111,7 +111,7 @@ inline void	SHIM_Draw_Pic(int x, int y, char *name)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		//dx12::ref->draw->Pic(x, y, name);
+		dx12::ref->draw->Pic(x, y, name);
 	}
 }
 
@@ -119,11 +119,11 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		/*dx12::ref->draw->StretchPic(msl::utilities::SafeInt<int>(x),
+		dx12::ref->draw->StretchPic(msl::utilities::SafeInt<int>(x),
 			msl::utilities::SafeInt<int>(y),
 			msl::utilities::SafeInt<int>(w),
 			msl::utilities::SafeInt<int>(h),
-			name);*/
+			name);
 	}
 }
 
@@ -137,7 +137,7 @@ inline void	SHIM_Draw_Char(int x, int y, int c)
 
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		//dx12::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned char>(c));
+		dx12::ref->draw->Char(x, y, msl::utilities::SafeInt<unsigned char>(c));
 	}
 }
 
@@ -145,11 +145,11 @@ inline void	SHIM_Draw_TileClear(int x, int y, int w, int h, char *name)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		/*dx12::ref->draw->TileClear(msl::utilities::SafeInt<unsigned int>(x),
+		dx12::ref->draw->TileClear(msl::utilities::SafeInt<unsigned int>(x),
 			msl::utilities::SafeInt<unsigned int>(y),
 			msl::utilities::SafeInt<unsigned int>(w),
 			msl::utilities::SafeInt<unsigned int>(h),
-			name);*/
+			name);
 	}
 }
 
@@ -157,11 +157,11 @@ inline void	SHIM_Draw_Fill(int x, int y, int w, int h, int c)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		/*dx12::ref->draw->Fill(msl::utilities::SafeInt<unsigned int>(x),
+		dx12::ref->draw->Fill(msl::utilities::SafeInt<unsigned int>(x),
 			msl::utilities::SafeInt<unsigned int>(y),
 			msl::utilities::SafeInt<unsigned int>(w),
 			msl::utilities::SafeInt<unsigned int>(h),
-			c);*/
+			c);
 	}
 }
 
@@ -169,7 +169,7 @@ inline void	SHIM_Draw_FadeScreen(void)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		//dx12::ref->draw->FadeScreen();
+		dx12::ref->draw->FadeScreen();
 	}
 }
 
@@ -177,13 +177,13 @@ inline void	SHIM_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows,
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		/*dx12::ref->draw->StretchRaw(msl::utilities::SafeInt<unsigned int>(x),
+		dx12::ref->draw->StretchRaw(msl::utilities::SafeInt<unsigned int>(x),
 			msl::utilities::SafeInt<unsigned int>(y),
 			msl::utilities::SafeInt<unsigned int>(w),
 			msl::utilities::SafeInt<unsigned int>(h),
 			msl::utilities::SafeInt<unsigned int>(cols),
 			msl::utilities::SafeInt<unsigned int>(rows),
-			data);*/
+			data);
 	}
 }
 
