@@ -40,8 +40,8 @@ dx12::Cvars::Cvars()
 	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1920,													CVAR_ARCHIVE);
 	r_customHeight			= std::make_shared<Cvar>("r_customheight",					1080,													CVAR_ARCHIVE);
 #else
-	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1600,													CVAR_ARCHIVE);
-	r_customHeight			= std::make_shared<Cvar>("r_customheight",					900,													CVAR_ARCHIVE);
+	r_customWidth			= std::make_shared<Cvar>("r_customwidth",					1280,													CVAR_ARCHIVE);
+	r_customHeight			= std::make_shared<Cvar>("r_customheight",					720,													CVAR_ARCHIVE);
 #endif
 	flushmap				= std::make_shared<Cvar>("flushmap",						0,														0);
 
