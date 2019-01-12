@@ -57,10 +57,14 @@ namespace dx12
 		LARGE_INTEGER					m_clockFrameEndCurrent;
 		LARGE_INTEGER					m_clockFrameEndPrevious;
 
-		ID2D1Factory1*					m_d2dFactory = nullptr;
+	/*	ID2D1Factory1*					m_d2dFactory = nullptr;
 		ID2D1Device*					m_d2dDevice = nullptr;
 		ID2D1DeviceContext*				m_d2dContext = nullptr;
 		ID2D1CommandList*				m_d2dCommandList = nullptr;
+		*/
+
+		IDXGIFactory6*					m_dxgiFactory = nullptr;
+
 		ID3D12Device*					m_d3dDevice = nullptr;
 		ID3D12Device1*					m_d3dDevice1 = nullptr;
 		//ID3D12DeviceContext*			m_immediateContext = nullptr;
@@ -88,7 +92,15 @@ namespace dx12
 
 		void							FillFeatureLevelArray(void);
 
+		bool							InitDebug();
+
+		bool							GetAdapter(IDXGIFactory6* pFactory, IDXGIAdapter1** ppAdapter);
+
 		bool							InitDevice(HWND hWnd);
+		bool							InitFactory(HWND hWnd);
+		bool							InitCommandObjects();
+		bool							InitSwapChain(HWND hWnd);
+		bool							InitDescriptorHeaps();
 
 		void							D3D_Shutdown();
 

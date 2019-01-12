@@ -28,10 +28,10 @@ ref_dx12
 // Global variable (per MS documentation)
 CRITICAL_SECTION CriticalSection;
 
-#ifdef _DEBUG
-ID3D12Debug* d3dDebug = nullptr;
-ID3D12DebugDevice* d3dDebugDev = nullptr;
-ID3D12InfoQueue *d3dInfoQueue = nullptr;
+#if defined(DEBUG) || defined (_DEBUG)
+ID3D12Debug*		d3dDebug		= nullptr;
+ID3D12DebugDevice*	d3dDebugDev		= nullptr;
+ID3D12InfoQueue*	d3dInfoQueue	= nullptr;
 #endif
 
 /*
@@ -54,13 +54,22 @@ bool dx12::Initialize()
 		return false;
 	}
 
+#if defined(DEBUG) || defined (_DEBUG)
+	D3D12GetDebugInterface(__uuidof(ID3D12Debug), reinterpret_cast<void**>(&d3dDebug));
+
+	if (d3dDebug != nullptr)
+	{
+		d3dDebug->EnableDebugLayer();
+	}
+#endif//DEBUG
+
 
 	return true;
 }
 
 void dx12::DumpD3DDebugMessagesToLog()
 {
-#ifdef _DEBUG
+#if defined(DEBUG) || defined (_DEBUG)
 	if (d3dInfoQueue)
 	{
 		UINT64 numDebugMsgs = d3dInfoQueue->GetNumStoredMessages();
@@ -96,13 +105,17 @@ void dx12::Shutdown()
 	// Release resources used by the critical section object.
 	DeleteCriticalSection(&CriticalSection);
 
-#ifdef _DEBUG
+#if defined(DEBUG) || defined (_DEBUG)
 	if (d3dDebugDev != nullptr)
 	{
 		d3dDebugDev->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
-
-		SAFE_RELEASE(d3dDebug);
 	}
+
+	SAFE_RELEASE(d3dInfoQueue);
+
+	SAFE_RELEASE(d3dDebugDev);
+
+	SAFE_RELEASE(d3dDebug);
 #endif
 
 }

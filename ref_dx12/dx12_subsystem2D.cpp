@@ -428,19 +428,19 @@ void dx12::Subsystem2D::ActivateD2DDrawing()
 {
 	LOG_FUNC();
 
-	if ((ref->sys->dx->m_d2dContext) && (!m_d2dDrawingActive))
+/*	if ((ref->sys->dx->m_d2dContext) && (!m_d2dDrawingActive))
 	{
 		//LOG(trace) << "Beginning D2D Draw";
 
 		ref->sys->dx->m_d2dContext->BeginDraw();
 		m_d2dDrawingActive = true;
-	}
+	}*/
 }
 
 void dx12::Subsystem2D::EndD2DDrawing()
 {
 	LOG_FUNC();
-
+/*
 	if ((ref->sys->dx->m_d2dContext) && (m_d2dDrawingActive))
 	{
 		HRESULT hr = E_UNEXPECTED;
@@ -454,7 +454,7 @@ void dx12::Subsystem2D::EndD2DDrawing()
 			LOG(error) << "m_d2dContext->EndDraw() returned D2DERR_RECREATE_TARGET";
 		}
 		m_d2dDrawingActive = false;
-	}
+	}*/
 }
 
 

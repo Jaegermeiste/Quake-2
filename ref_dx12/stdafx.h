@@ -94,6 +94,7 @@ struct registration {};
 #pragma comment(lib, "Urlmon.lib")
 #pragma comment(lib, "D2d1.lib")
 #pragma comment(lib, "Dwrite.lib")
+#pragma comment(lib, "DXGI.lib")
 
 // DirectXTK12
 #include "CommonStates.h"

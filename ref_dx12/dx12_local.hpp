@@ -42,7 +42,7 @@ extern	unsigned short	LittleUShort(unsigned short l);
 extern	unsigned int	BigULong(unsigned int l);
 extern	unsigned int	LittleULong(unsigned int l);
 
-#define	REF_VERSION	"DX12 0.02"
+#define	REF_VERSION	"DX12 " __DATE__ " " __TIME__
 
 // up / down
 #define	PITCH	0
