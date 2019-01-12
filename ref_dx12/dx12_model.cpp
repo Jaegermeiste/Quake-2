@@ -24,27 +24,3 @@ ref_dx12
 */
 
 #include "dx12_local.hpp"
-
-dx12::ModelManager::ModelManager()
-{
-	LOG_FUNC();
-}
-
-bool dx12::ModelManager::Initialize()
-{
-	LOG_FUNC();
-
-	return true;
-}
-
-void dx12::ModelManager::Shutdown()
-{
-	LOG_FUNC();
-}
-
-std::shared_ptr<model_t> dx12::ModelManager::Load(std::string name)
-{
-	LOG_FUNC();
-
-	return nullptr;
-}

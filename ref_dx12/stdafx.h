@@ -122,6 +122,11 @@ struct registration {};
 #include "DirectXTex.h"
 //#include "DirectXTexEXR.h"
 
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+
+using Microsoft::WRL::ComPtr;
+
 //https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16	
 #define ALIGNED_16_MEMORY_OPERATORS										\
 void*	operator new	(size_t i)	{	return _mm_malloc(i, 16);	}	\

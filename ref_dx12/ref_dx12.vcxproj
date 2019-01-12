@@ -158,6 +158,7 @@
     <ClCompile Include="dx12_draw.cpp" />
     <ClCompile Include="dx12_dx.cpp" />
     <ClCompile Include="dx12_image.cpp" />
+    <ClCompile Include="dx12_image_manager.cpp" />
     <ClCompile Include="dx12_image_pcx.cpp" />
     <ClCompile Include="dx12_image_wal.cpp" />
     <ClCompile Include="dx12_log.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="dx12_map.cpp" />
     <ClCompile Include="dx12_media.cpp" />
     <ClCompile Include="dx12_model.cpp" />
+    <ClCompile Include="dx12_model_manager.cpp" />
     <ClCompile Include="dx12_model_md2.cpp" />
     <ClCompile Include="dx12_model_md3.cpp" />
     <ClCompile Include="dx12_model_md4.cpp" />
