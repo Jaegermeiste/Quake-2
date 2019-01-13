@@ -181,11 +181,14 @@ void dx12::Dx::BeginFrame(void)
 	{
 		float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 
+		/*
+		// Induce Seizures to visualize back buffer flip
 		if (m_backBufferIndex % 2)
 		{
 			clearColor[0] = 0.4f;
 			clearColor[2] = 0.0f;
 		}
+		*/
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_descriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_backBufferIndex, m_descriptorSizeRTV);
 		m_commandListGfx->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
@@ -277,10 +280,35 @@ void dx12::Dx::EndFrame(void)
 
 		m_frameTimeEMA = EMA_ALPHA * m_frameTimeEMA + (1.0 - EMA_ALPHA) * m_frameTime;
 
-		m_frameRateEMA = EMA_ALPHA * m_frameRateEMA + (1.0 - EMA_ALPHA) * (m_clockFrameEndCurrent.QuadPart - m_clockFrameEndPrevious.QuadPart);
+		m_frameRateEMA = EMA_ALPHA * m_frameRateEMA + (1.0 - EMA_ALPHA) * (1 / (m_frameTime + 0.000000000001));
 		m_clockFrameEndPrevious = m_clockFrameEndCurrent;
 
-		//LOG(trace) << "Frame <rate> " << m_frameRateEMA << " fps <time> " << (m_frameTime * 1000) << " ms";
+		//LOG(trace) << "Frame <rate> " << m_frameRateEMA << " fps <time> " << m_frameTime << " ms";
+#ifdef _DEBUG
+		// https://github.com/d3dcoder/d3d12book/blob/master/Common/d3dApp.cpp
+		static unsigned int frameCount = 0;
+		static double timeElapsed = 0.0f;
+		static double totalTime = 0.0f;
+		static unsigned int fps = 0;
+
+		frameCount++;
+		totalTime += m_frameTime;
+
+		// Compute averages over one second period.
+		if ((totalTime - timeElapsed) >= 1.0f)
+		{
+			fps = frameCount; // fps = frameCnt / 1
+
+			// Reset for next average.
+			frameCount = 0;
+			timeElapsed += 1.0f;
+		}
+
+		std::string debugTitleBarText = WINDOW_CLASS_NAME;
+		debugTitleBarText += "      DEBUG       Frame Stats:     Rate (FPS [Actual]): " + std::to_string(fps) + "     Rate (FPS [EMA]): " + std::to_string(m_frameRateEMA) + "     Rate (FPS [Instant]): " + std::to_string(1 / (m_frameTime + 0.000000000001)) + "     Time [EMA]: " + std::to_string(m_frameTime * 1000) + " ms" + "     Time [Mean]: " + std::to_string(1000.0f / fps) + " ms";
+
+		SetWindowText(ref->sys->m_hWnd, debugTitleBarText.c_str());
+#endif
 	}
 
 	m_clockRunning = false;
