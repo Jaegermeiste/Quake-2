@@ -51,6 +51,9 @@ namespace dx12
 {
 	class Log 
 	{
+	private:
+		bool	m_initialized = false;
+
 	public:
 		Log();
 	};

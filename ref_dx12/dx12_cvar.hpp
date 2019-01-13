@@ -109,6 +109,8 @@ namespace dx12
 		std::shared_ptr<Cvar>  xpLitPathXatrix;
 
 		std::shared_ptr<Cvar>  font;
+
+		std::shared_ptr<Cvar>  clear;
 	};
 };
 

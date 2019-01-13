@@ -56,7 +56,9 @@ ref_dx12
 #include <boost/log/sources/severity_feature.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/setup/console.hpp>
+#include <boost/log/sinks/debug_output_backend.hpp>
 #include <boost/log/expressions/keyword_fwd.hpp>
 #include <boost/log/expressions/keyword.hpp>
 #include <boost/multi_index_container.hpp>
@@ -77,6 +79,7 @@ struct registration {};
 #include <windows.h>
 #include <mmsystem.h>
 #include <d3d12.h>
+#include "d3dx12.h"
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>

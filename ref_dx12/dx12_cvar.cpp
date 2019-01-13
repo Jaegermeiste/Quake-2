@@ -73,6 +73,8 @@ dx12::Cvars::Cvars()
 	xpLitPathXatrix			= std::make_shared<Cvar>("dx12_xpLitPathXatrix",			"mapsx/",												CVAR_ARCHIVE);
 
 	font					= std::make_shared<Cvar>("dx12_font",						"Courier New",											CVAR_ARCHIVE);
+
+	clear					= std::make_shared<Cvar>("dx12_clear",						true,													CVAR_ARCHIVE);
 }
 
 dx12::Cvars::Cvar::Cvar(std::string name, std::string defaultString, unsigned int flags)

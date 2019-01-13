@@ -27,7 +27,7 @@ ref_dx12
 
 D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 {
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_9_1;
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_1;
 
 	std::map<std::string, D3D_FEATURE_LEVEL> featureLevelMap;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_1)] = D3D_FEATURE_LEVEL_12_1;
@@ -51,7 +51,7 @@ D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 
 std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
 {
-	std::string featureLevelString = "";
+	std::string featureLevelString = "D3D_FEATURE_LEVEL_12_1";
 
 	std::map<D3D_FEATURE_LEVEL, std::string> featureLevelMap;
 	featureLevelMap[D3D_FEATURE_LEVEL_12_1] = STR(D3D_FEATURE_LEVEL_12_1);
@@ -95,7 +95,7 @@ dx12::Dx::Dx()
 	FillFeatureLevelArray();
 
 	m_driverType = D3D_DRIVER_TYPE_NULL;
-	m_featureLevel = D3D_FEATURE_LEVEL_12_1;
+	m_featureLevel = FeatureLevelForString(ref->cvars->featureLevel->String());
 
 	m_dxgiFactory = nullptr;
 	m_dxgiAdapter = nullptr;
@@ -103,12 +103,20 @@ dx12::Dx::Dx()
 	m_d3dDevice = nullptr;
 
 	m_fence = nullptr;
-	m_currentFence = 0;
+	m_fenceEvent = nullptr;
+	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
+	{
+		m_fenceValues[i] = 0;
+	}
 
 	m_commandQueue = nullptr;
-	m_directCmdListAlloc = nullptr;
+	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
+	{
+		m_directCmdListAllocs[i] = nullptr;
+	}
 	m_commandListGfx = nullptr;
 
+	m_multisampleCount = ref->cvars->samplesPerPixel->UInt();
 	m_swapChain = nullptr;
 
 	m_descriptorHeap = nullptr;
@@ -116,6 +124,26 @@ dx12::Dx::Dx()
 	m_descriptorSizeRTV = 0;
 	m_descriptorSizeDSV = 0;
 	m_descriptorSizeCBVSRVUAV = 0;
+
+	m_backBufferCount = ref->cvars->bufferCount->Int();
+	if (m_backBufferCount < MIN_BACK_BUFFERS)
+	{
+		m_backBufferCount = MIN_BACK_BUFFERS;
+		ref->cvars->bufferCount->Set(MIN_BACK_BUFFERS);
+	}
+	else if (m_backBufferCount > MAX_BACK_BUFFERS)
+	{
+		m_backBufferCount = MAX_BACK_BUFFERS;
+		ref->cvars->bufferCount->Set(MAX_BACK_BUFFERS);
+	}
+	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
+	{
+		m_backBufferRenderTargets[i] = nullptr;
+	}
+	m_backBufferIndex = 0;
+
+	ZeroMemory(&m_viewport, sizeof(D3D12_VIEWPORT));
+	ZeroMemory(&m_scissorRect, sizeof(D3D12_RECT));
 
 	subsystem3D = std::make_unique<Subsystem3D>();
 	subsystem2D = std::make_unique<Subsystem2D>();
@@ -137,28 +165,32 @@ void dx12::Dx::BeginFrame(void)
 	{
 		m_clockRunning = false;
 	}
-	/*
-	// Clear immediate context
-	if (m_immediateContext)
+
+	DX::ThrowIfFailed(m_directCmdListAllocs[m_backBufferIndex]->Reset());
+
+	DX::ThrowIfFailed(m_commandListGfx->Reset(m_directCmdListAllocs[m_backBufferIndex], nullptr));
+
+	//m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+	m_commandListGfx->RSSetViewports(1, &m_viewport);
+	m_commandListGfx->RSSetScissorRects(1, &m_scissorRect);
+
+	// Indicate that the back buffer will be used as a render target.
+	m_commandListGfx->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	if (ref->cvars->clear->Bool())
 	{
-		if (m_backBufferRTV)
+		float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+
+		if (m_backBufferIndex % 2)
 		{
-#ifndef _DEBUG
-			// clear the back buffer to black
-			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Black);
-#else
-			// clear the back buffer to a deep blue
-			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
-#endif
+			clearColor[0] = 0.4f;
+			clearColor[2] = 0.0f;
 		}
 
-		if (m_depthStencilView)
-		{
-			// Clear the depth buffer
-			m_immediateContext->ClearDepthStencilView(m_depthStencilView, D3D12_CLEAR_DEPTH | D3D12_CLEAR_STENCIL, 1.0f, 0);
-		}
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_descriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_backBufferIndex, m_descriptorSizeRTV);
+		m_commandListGfx->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	}
-	*/
+
 	if (subsystem2D)
 	{
 		subsystem2D->Update();
@@ -201,23 +233,43 @@ void dx12::Dx::EndFrame(void)
 		// Draw 2D
 		subsystem2D->Render();
 	}
-/*
-	// Clear the PS binding
-	ID3D12ShaderResourceView* clearSRV = { NULL };
-	ref->sys->dx->m_immediateContext->PSSetShaderResources(0, 1, &clearSRV);
 
-	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, m_depthStencilView);
-*/
+	// Indicate that the back buffer will now be used to present.
+	m_commandListGfx->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+	// Cloase the command list
+	m_commandListGfx->Close();
+
+	if (m_commandQueue)
+	{
+		// Execute the command list.
+		ID3D12CommandList* ppCommandLists[] = { m_commandListGfx };
+		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
 	if (m_swapChain)
 	{
 		// Switch the back buffer and the front buffer
 		m_swapChain->Present(ref->cvars->Vsync->UInt(), 0);
+
+		// Schedule a Signal command in the queue.
+		const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
+		DX::ThrowIfFailed(m_commandQueue->Signal(m_fence, currentFenceValue));
+
+		// Update the frame index.
+		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+		// If the next frame is not ready to be rendered yet, wait until it is ready.
+		if (m_fence->GetCompletedValue() < m_fenceValues[m_backBufferIndex])
+		{
+			DX::ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent));
+			WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+		}
+
+		// Set the fence value for the next frame.
+		m_fenceValues[m_backBufferIndex] = currentFenceValue + 1;
 	}
-	/*
-	// Set the overlay RTV as the current render target
-	ref->sys->dx->subsystem2D->m_2DdeferredContext->OMSetRenderTargets(1, &ref->sys->dx->subsystem2D->m_2DoverlayRTV, ref->sys->dx->m_depthStencilView);
-	*/
+
 	// Timing
 	if ((m_clockRunning) && (QueryPerformanceCounter(&m_clockFrameEndCurrent) == TRUE))
 	{
@@ -340,6 +392,30 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		return false;
 	}
 
+	if (!InitDescriptorHeaps())
+	{
+		LOG(error) << "Failed to create descriptor heap.";
+		return false;
+	}
+
+	if (!InitBackBufferRenderTargets())
+	{
+		LOG(error) << "Failed to create back buffers.";
+		return false;
+	}
+
+	if (!InitViewport())
+	{
+		LOG(error) << "Failed to initialize viewport.";
+		return false;
+	}
+
+	if (!InitScissorRect())
+	{
+		LOG(error) << "Failed to initialize scissor rectangle.";
+		return false;
+	}
+
 	if ((!subsystem2D) || (!subsystem2D->Initialize()))
 	{
 		LOG(error) << "Failed to create 2D overlay subsystem (GUI)";
@@ -357,6 +433,8 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		LOG(error) << "Failed to create 3D subsystem";
 		return false;
 	}
+
+	WaitForGPU();
 
 	return true;
 }
@@ -549,74 +627,6 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 	InitDeviceDebug();
 #endif
 
-#if 0
-	InitCommandObjects();
-
-
-	InitSwapChain(hWnd);
-
-	// Create a render target view
-	ID3D12Resource* pBackBuffer = nullptr;
-	hr = m_swapChain->GetBuffer(0, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&pBackBuffer));
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to get BackBuffer.";
-		return false;
-	}
-	else
-	{
-		LOG(info) << "Successfully created BackBuffer.";
-	}
-
-	/*
-	hr = m_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_backBufferRTV);
-	*/
-
-	pBackBuffer->Release();
-
-	if (FAILED(hr))
-	{
-		LOG(error) << "Unable to create BackBuffer RenderTargetView.";
-		return false;
-	}
-	else
-	{
-		LOG(info) << "Successfully created BackBuffer RenderTargetView.";
-	}
-
-	LOG(info) << "Setting immediate context render target to BackBuffer RenderTargetView.";
-
-	/*
-	m_immediateContext->OMSetRenderTargets(1, &m_backBufferRTV, nullptr);
-	*/
-
-	// Setup the viewport
-	D3D12_VIEWPORT viewport;
-	ZeroMemory(&viewport, sizeof(D3D12_VIEWPORT));
-	viewport.Width = (FLOAT)m_windowWidth;
-	viewport.Height = (FLOAT)m_windowHeight;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-
-	LOG(info) << "Setting viewport.";
-
-	/*
-	m_immediateContext->RSSetViewports(1, &viewport);
-	*/
-
-	UINT viewportCount = 0;
-
-	/*
-	m_immediateContext->RSGetViewports(&viewportCount, nullptr);
-	*/
-
-	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
-
-#endif
-
 	m_d3dInitialized = true;
 
 	return m_d3dInitialized;
@@ -637,7 +647,17 @@ bool dx12::Dx::InitFences()
 
 	if (SUCCEEDED(hr))
 	{
-		LOG(info) << "Successfully created fence.";
+		LOG(info) << "Successfully created fences.";
+
+		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+		if (m_fenceEvent == nullptr)
+		{
+			LOG(error) << "Failed to create fence event.";
+			DX::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+		}
+
+		LOG(info) << "Successfully created fence event.";
 
 		return true;
 	}
@@ -667,9 +687,16 @@ bool dx12::Dx::InitCommandObjects()
 
 		if (SUCCEEDED(hr))
 		{
-			LOG(info) << "Creating Command Allocator";
+			LOG(info) << "Creating Command Allocators";
 
-			hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&m_directCmdListAlloc));
+			for (unsigned int i = 0; i < m_backBufferCount; i++)
+			{
+				hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&m_directCmdListAllocs[i]));
+				if (FAILED(hr))
+				{
+					LOG(error) << "Failed to create Command Allocator " << i + 1 << ".";
+				}
+			}
 
 			if (SUCCEEDED(hr))
 			{
@@ -678,7 +705,7 @@ bool dx12::Dx::InitCommandObjects()
 				hr = m_d3dDevice->CreateCommandList(
 					0,
 					D3D12_COMMAND_LIST_TYPE_DIRECT,
-					m_directCmdListAlloc, // Associated command allocator
+					m_directCmdListAllocs[0], // Associated command allocator
 					nullptr,                   // Initial PipelineStateObject
 					__uuidof(ID3D12GraphicsCommandList), reinterpret_cast<void**>(&m_commandListGfx));
 
@@ -698,7 +725,7 @@ bool dx12::Dx::InitCommandObjects()
 			}
 			else
 			{
-				LOG(error) << "Failed to create Command Allocator.";
+				LOG(error) << "Failed to create Command Allocators.";
 			}
 		}
 		else
@@ -732,13 +759,13 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
-		swapChainDesc.BufferCount = ref->cvars->bufferCount->Int();
+		swapChainDesc.BufferCount = m_backBufferCount;
 		swapChainDesc.Width = m_windowWidth;
 		swapChainDesc.Height = m_windowHeight;
 		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.SampleDesc.Count = ref->cvars->samplesPerPixel->Int();
+		swapChainDesc.SampleDesc.Count = m_multisampleCount;
 
 		IDXGISwapChain1* pSwapChain = nullptr;
 		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue, hWnd, &swapChainDesc, nullptr, nullptr, &pSwapChain);
@@ -746,6 +773,8 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 		if (SUCCEEDED(hr))
 		{
 			hr = pSwapChain->QueryInterface(IID_PPV_ARGS(&m_swapChain));
+
+			m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 		}
 	}
 
@@ -781,17 +810,13 @@ bool dx12::Dx::InitDescriptorHeaps()
 		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: " << m_descriptorSizeCBVSRVUAV;
 
 		// Create descriptor heaps
-		LOG(info) << "Creating descriptor heaps...";
+		LOG(info) << "Creating descriptor heap for back buffer RTVs...";
 
 		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
 
-		LOG(info) << "Allocating heap for 3 descriptors:";
-		LOG(info) << " 2 - bottom and top level acceleration structures";
-		LOG(info) << " 1 - raytracing output texture SRV";
-
-		descriptorHeapDesc.NumDescriptors = 3;
-		descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		descriptorHeapDesc.NumDescriptors = m_backBufferCount;
+		descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		descriptorHeapDesc.NodeMask = 0;
 
 		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
@@ -809,6 +834,93 @@ bool dx12::Dx::InitDescriptorHeaps()
 	return false;
 }
 
+bool dx12::Dx::InitBackBufferRenderTargets()
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	if (m_d3dDevice)
+	{
+		// Create descriptor heaps
+		LOG(info) << "Creating back buffer render targets...";
+
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		rtvDesc.Texture2D.MipSlice = 0;
+
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+		// Create a RTV for each back buffer.
+		for (UINT i = 0; i < m_backBufferCount; i++)
+		{
+			hr = m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_backBufferRenderTargets[i]));
+			if (FAILED(hr))
+			{
+				return false;
+			}
+
+			m_d3dDevice->CreateRenderTargetView(m_backBufferRenderTargets[i], &rtvDesc, rtvHandle);
+			rtvHandle.ptr += m_descriptorSizeRTV;
+		}
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		LOG(info) << "Successfully created back buffers.";
+
+		return true;
+	}
+
+	LOG(error) << "Unable to create back buffers.";
+
+	return false;
+}
+
+bool dx12::Dx::InitViewport()
+{
+	LOG(info) << "Setting viewport.";
+
+	// Setup the viewport
+	ZeroMemory(&m_viewport, sizeof(D3D12_VIEWPORT));
+	m_viewport.Width = (FLOAT)m_windowWidth;
+	m_viewport.Height = (FLOAT)m_windowHeight;
+	m_viewport.MinDepth = 0.0f;
+	m_viewport.MaxDepth = 1.0f;
+	m_viewport.TopLeftX = 0;
+	m_viewport.TopLeftY = 0;
+
+	return true;
+}
+
+bool dx12::Dx::InitScissorRect()
+{
+	LOG(info) << "Setting scissor rectangle.";
+
+	// Setup the viewport
+	ZeroMemory(&m_scissorRect, sizeof(D3D12_RECT));
+	m_scissorRect.left = 0;
+	m_scissorRect.top = 0;
+	m_scissorRect.right = static_cast<LONG>(m_windowWidth);
+	m_scissorRect.bottom = static_cast<LONG>(m_windowHeight);
+
+	return true;
+}
+
+void dx12::Dx::WaitForGPU()
+{
+	// Schedule a Signal command in the queue.
+	DX::ThrowIfFailed(m_commandQueue->Signal(m_fence, m_fenceValues[m_backBufferIndex]));
+
+	// Wait until the fence has been processed.
+	DX::ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent));
+	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+
+	// Increment the fence value for the current frame.
+	m_fenceValues[m_backBufferIndex]++;
+}
+
 void dx12::Dx::D3D_Shutdown()
 {
 	LOG_FUNC();
@@ -819,6 +931,15 @@ void dx12::Dx::D3D_Shutdown()
 	{
 		LOG(info) << "Switching to windowed mode to allow proper cleanup.";
 		m_swapChain->SetFullscreenState(FALSE, nullptr);
+	}
+
+	WaitForGPU();
+
+	CloseHandle(m_fenceEvent);
+
+	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
+	{
+		SAFE_RELEASE(m_backBufferRenderTargets[i]);
 	}
 
 	SAFE_RELEASE(m_descriptorHeap);
@@ -842,7 +963,10 @@ void dx12::Dx::D3D_Shutdown()
 
 	SAFE_RELEASE(m_commandListGfx);
 
-	SAFE_RELEASE(m_directCmdListAlloc);
+	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
+	{
+		SAFE_RELEASE(m_directCmdListAllocs[i]);
+	}
 
 	SAFE_RELEASE(m_commandQueue);
 

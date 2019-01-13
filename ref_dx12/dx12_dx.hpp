@@ -29,6 +29,9 @@ ref_dx12
 
 #define NUM_D3D_FEATURE_LEVELS	9
 
+#define MIN_BACK_BUFFERS	1
+#define MAX_BACK_BUFFERS	3
+
 #include "dx12_local.hpp"
 
 namespace dx12
@@ -63,12 +66,14 @@ namespace dx12
 		ID3D12Device*					m_d3dDevice = nullptr;
 
 		ID3D12Fence*					m_fence = nullptr;
-		UINT64							m_currentFence = 0;
+		HANDLE							m_fenceEvent;
+		UINT64							m_fenceValues[MAX_BACK_BUFFERS]{};
 
 		ID3D12CommandQueue*				m_commandQueue = nullptr;
-		ID3D12CommandAllocator*			m_directCmdListAlloc = nullptr;
+		ID3D12CommandAllocator*			m_directCmdListAllocs[MAX_BACK_BUFFERS]{};
 		ID3D12GraphicsCommandList*		m_commandListGfx = nullptr;
 
+		UINT							m_multisampleCount = 0;
 		IDXGISwapChain3*				m_swapChain = nullptr;
 
 		ID3D12DescriptorHeap*			m_descriptorHeap = nullptr;
@@ -76,6 +81,13 @@ namespace dx12
 		UINT							m_descriptorSizeRTV = 0;
 		UINT							m_descriptorSizeDSV = 0;
 		UINT							m_descriptorSizeCBVSRVUAV = 0;
+
+		UINT							m_backBufferCount = 0;
+		ID3D12Resource*					m_backBufferRenderTargets[MAX_BACK_BUFFERS]{};
+		UINT							m_backBufferIndex = 0;
+
+		D3D12_VIEWPORT					m_viewport{};
+		D3D12_RECT						m_scissorRect{};
 
 		bool							m_d3dInitialized;
 
@@ -98,6 +110,11 @@ namespace dx12
 		bool							InitCommandObjects();
 		bool							InitSwapChain(HWND hWnd);
 		bool							InitDescriptorHeaps();
+		bool							InitBackBufferRenderTargets();
+		bool							InitViewport();
+		bool							InitScissorRect();
+
+		void							WaitForGPU();
 
 		void							D3D_Shutdown();
 
