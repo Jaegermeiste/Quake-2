@@ -97,18 +97,25 @@ dx12::Dx::Dx()
 	m_driverType = D3D_DRIVER_TYPE_NULL;
 	m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 
-/*	m_d2dFactory = nullptr;
-	m_d2dDevice = nullptr;
-	m_d2dContext = nullptr;
-	m_d2dCommandList = nullptr;
-	*/
+	m_dxgiFactory = nullptr;
+	m_dxgiAdapter = nullptr;
+
 	m_d3dDevice = nullptr;
-	m_d3dDevice1 = nullptr;
-	//m_immediateContext = nullptr;
-	//m_immediateContext1 = nullptr;
+
+	m_fence = nullptr;
+	m_currentFence = 0;
+
+	m_commandQueue = nullptr;
+	m_directCmdListAlloc = nullptr;
+	m_commandListGfx = nullptr;
+
 	m_swapChain = nullptr;
-	m_swapChain1 = nullptr;
-	//m_backBufferRTV = nullptr;
+
+	m_descriptorHeap = nullptr;
+	m_descriptorsAllocated = 0;
+	m_descriptorSizeRTV = 0;
+	m_descriptorSizeDSV = 0;
+	m_descriptorSizeCBVSRVUAV = 0;
 
 	subsystem3D = std::make_unique<Subsystem3D>();
 	subsystem2D = std::make_unique<Subsystem2D>();
@@ -285,13 +292,51 @@ bool dx12::Dx::Initialize(HWND hWnd)
 {
 	LOG_FUNC();
 
-	LOG(info) << "Starting up.";
+	LOG(info) << "Starting up...";
 
+	// Make sure everything is clear
+	LOG(info) << "Preemptively shutdown any running subsystems.";
 	Shutdown();
+
+	// Get window dimensions
+	RECT rc = {};
+	GetClientRect(hWnd, &rc);
+	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
+	m_windowHeight = msl::utilities::SafeInt<unsigned int>(rc.bottom - rc.top);
+
+	if (!InitFactory(hWnd))
+	{
+		LOG(error) << "Failed to create DXGI factory.";
+		return false;
+	}
+
+	if (!InitAdapter())
+	{
+		LOG(error) << "Failed to create DXGI adapter.";
+		return false;
+	}
 
 	if (!InitDevice(hWnd))
 	{
-		LOG(error) << "Failed to create D3D device";
+		LOG(error) << "Failed to create D3D device.";
+		return false;
+	}
+
+	if (!InitFences())
+	{
+		LOG(error) << "Failed to create fences.";
+		return false;
+	}
+
+	if (!InitCommandObjects())
+	{
+		LOG(error) << "Failed to create command objects.";
+		return false;
+	}
+
+	if (!InitSwapChain(hWnd))
+	{
+		LOG(error) << "Failed to create Swap Chain.";
 		return false;
 	}
 
@@ -336,46 +381,95 @@ void dx12::Dx::Shutdown()
 	}
 }
 
-bool dx12::Dx::GetAdapter(IDXGIFactory6* pFactory, IDXGIAdapter1** ppAdapter)
+bool dx12::Dx::InitFactory(HWND hWnd)
 {
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
-	ComPtr<IDXGIAdapter1> adapter;
-	*ppAdapter = nullptr;
 
-	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
+	LOG(info) << "Creating DXGI factory...";
+
+	hr = CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory));
+
+	if (SUCCEEDED(hr))
 	{
-		DXGI_ADAPTER_DESC1 desc;
-		adapter->GetDesc1(&desc);
+		LOG(info) << "Successfully created DXGI factory.";
 
-		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+		// Block the ALT+ENTER shortcut
+		m_dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+		return true;
+	}
+
+	LOG(error) << "Unable to create DGXI factory.";
+
+	return false;
+}
+
+bool dx12::Dx::InitAdapter()
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	if (m_dxgiFactory)
+	{
+		LOG(info) << "Obtaining DXGI adapter...";
+
+		ComPtr<IDXGIAdapter4> adapter;
+
+		for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != m_dxgiFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, __uuidof(IDXGIAdapter4), reinterpret_cast<void**>(adapter.ReleaseAndGetAddressOf())); ++adapterIndex)
 		{
-			// Don't select the Basic Render Driver adapter.
-			// If you want a software adapter, pass in "/warp" on the command line.
-			continue;
+			DXGI_ADAPTER_DESC1 desc;
+			adapter->GetDesc1(&desc);
+
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				// Don't select the Basic Render Driver adapter.
+				continue;
+			}
+
+			// Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
+			if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device), nullptr)))
+			{
+				break;
+			}
 		}
 
-		// Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
-		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+		m_dxgiAdapter = adapter.Detach();
+
+		LOG(info) << "Successfully obtained DXGI adapter.";
+
+		ZeroMemory(&m_adapterDesc, sizeof(DXGI_ADAPTER_DESC));
+		hr = m_dxgiAdapter->GetDesc(&m_adapterDesc);
+
+		if (SUCCEEDED(hr))
 		{
-			break;
+			D3D_Strings_f();
+
+			// Create command
+			ref->client->Cmd_AddCommand("dx12_strings", SHIM_D3D_Strings_f);
 		}
 	}
 
-	*ppAdapter = adapter.Detach();
+	if (SUCCEEDED(hr))
+	{
+		return true;
+	}
 
-	return true;
+	LOG(error) << "Unable to create DGXI adapter.";
+
+	return false;
 }
 
-bool dx12::Dx::InitDebug()
+bool dx12::Dx::InitDeviceDebug()
 {
 #if defined(DEBUG) || defined (_DEBUG)
 
 	if (m_d3dDevice)
 	{
 		// Obtain global debug device
-		if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D12DebugDevice), reinterpret_cast<void**>(&d3dDebug))))
+		if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D12DebugDevice), reinterpret_cast<void**>(&d3dDebugDev))))
 		{
 			LOG(info) << "DEBUG: Successfully created D3D Debug Device.";
 
@@ -402,6 +496,8 @@ bool dx12::Dx::InitDebug()
 			}
 		}
 	}
+
+	LOG(error) << "Unable to create D3D device debug objects.";
 #endif
 	return false;
 }
@@ -411,25 +507,19 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
-	RECT rc = {};
-	UINT createDeviceFlags = 0; // D3D12_CREATE_DEVICE_BGRA_SUPPORT; // This flag adds support for surfaces with a different color channel ordering than the API default for compatibility with Direct2D.
 
-	GetClientRect(hWnd, &rc);
-	m_windowWidth = msl::utilities::SafeInt<unsigned int>(rc.right - rc.left);
-	m_windowHeight = msl::utilities::SafeInt<unsigned int>(rc.bottom - rc.top);
+	LOG(info) << "Creating DirectX 12 device...";
 
-	LOG(info) << "Creating DirectX devices.";
-
-	hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+	hr = D3D12CreateDevice(m_dxgiAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
 
 	if (FAILED(hr))
 	{
 		LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so trying D3D_FEATURE_LEVEL_12_0.";
-		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+		hr = D3D12CreateDevice(m_dxgiAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_d3dDevice));
 
 		if (FAILED(hr))
 		{
-			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so creating WARP device.";
+			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so attempt to create WARP device.";
 
 			ComPtr<IDXGIFactory6> dxgiFactory;
 			CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
@@ -438,28 +528,30 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 			dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter));
 
 			hr = D3D12CreateDevice(pWarpAdapter.Get(),	D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+			if (FAILED(hr))
+			{
+				LOG(warning) << "Failed to create WARP device!";
+			}
 		}
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		LOG(info) << "Created D3D12 device.";
-		return true;
+		LOG(info) << "Successfully created DirectX 12 device.";
 	}
-
-	if (FAILED(hr))
+	else
 	{
-		LOG(error) << "Unable to create D3D device.";
+		LOG(error) << "Unable to create D3D12 device.";
 		return false;
 	}
 
 #ifdef _DEBUG
-	InitDebug();
+	InitDeviceDebug();
 #endif
 
-	InitFactory(hWnd);
-	
+#if 0
 	InitCommandObjects();
+
 
 	InitSwapChain(hWnd);
 
@@ -523,12 +615,14 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	LOG(info) << std::to_string(viewportCount) << " viewports bound.";
 
+#endif
+
 	m_d3dInitialized = true;
 
 	return m_d3dInitialized;
 }
 
-bool dx12::Dx::InitFactory(HWND hWnd)
+bool dx12::Dx::InitFences()
 {
 	LOG_FUNC();
 
@@ -536,57 +630,19 @@ bool dx12::Dx::InitFactory(HWND hWnd)
 
 	if (m_d3dDevice)
 	{
-		LOG(info) << "Creating DXGI Factory 6.";
+		LOG(info) << "Creating fences...";
 
-		// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-		IDXGIDevice* dxgiDevice = nullptr;
-
-		hr = m_d3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
-
-		if (SUCCEEDED(hr))
-		{
-			LOG(info) << "Successfully created DXGI device.";
-
-			IDXGIAdapter* adapter = nullptr;
-
-			hr = dxgiDevice->GetAdapter(&adapter);
-
-			if (SUCCEEDED(hr))
-			{
-				LOG(info) << "Successfully obtained DXGI adapter.";
-
-				ZeroMemory(&m_adapterDesc, sizeof(DXGI_ADAPTER_DESC));
-				hr = adapter->GetDesc(&m_adapterDesc);
-
-				if (SUCCEEDED(hr))
-				{
-					D3D_Strings_f();
-
-					// Create command
-					ref->client->Cmd_AddCommand("dx12_strings", SHIM_D3D_Strings_f);
-				}
-
-				hr = adapter->GetParent(__uuidof(IDXGIFactory6), reinterpret_cast<void**>(&m_dxgiFactory));
-				if (SUCCEEDED(hr))
-				{
-					LOG(info) << "Successfully obtained DXGI Factory 6.";
-
-					// Block the ALT+ENTER shortcut
-					m_dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
-				}
-
-				adapter->Release();
-			}
-
-			dxgiDevice->Release();
-
-			return true;
-		}
-		else if (FAILED(hr))
-		{
-			LOG(error) << "Unable to create DGXI Factory.";
-		}
+		hr = m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, __uuidof(ID3D12Fence), reinterpret_cast<void**>(&m_fence));
 	}
+
+	if (SUCCEEDED(hr))
+	{
+		LOG(info) << "Successfully created fence.";
+
+		return true;
+	}
+	
+	LOG(error) << "Failed to create fences.";
 
 	return false;
 }
@@ -594,6 +650,71 @@ bool dx12::Dx::InitFactory(HWND hWnd)
 bool dx12::Dx::InitCommandObjects()
 {
 	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	if (m_d3dDevice)
+	{
+		// Create swap chain
+		LOG(info) << "Creating command objects...";
+
+		LOG(info) << "Creating Command Queue";
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+		hr = m_d3dDevice->CreateCommandQueue(&queueDesc, __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&m_commandQueue));
+
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Creating Command Allocator";
+
+			hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&m_directCmdListAlloc));
+
+			if (SUCCEEDED(hr))
+			{
+				LOG(info) << "Creating Graphics Command List";
+
+				hr = m_d3dDevice->CreateCommandList(
+					0,
+					D3D12_COMMAND_LIST_TYPE_DIRECT,
+					m_directCmdListAlloc, // Associated command allocator
+					nullptr,                   // Initial PipelineStateObject
+					__uuidof(ID3D12GraphicsCommandList), reinterpret_cast<void**>(&m_commandListGfx));
+
+				if (SUCCEEDED(hr))
+				{
+					LOG(info) << "Closing Graphics Command List";
+
+					// Start off in a closed state.  This is because the first time we refer 
+					// to the command list we will Reset it, and it needs to be closed before
+					// calling Reset.
+					m_commandListGfx->Close();
+				}
+				else
+				{
+					LOG(error) << "Failed to create Graphics Command List.";
+				}
+			}
+			else
+			{
+				LOG(error) << "Failed to create Command Allocator.";
+			}
+		}
+		else
+		{
+			LOG(error) << "Failed to create Command Queue.";
+		}
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		LOG(info) << "Successfully created command objects.";
+
+		return true;
+	}
+
+	LOG(error) << "Failed to create command objects.";
 
 	return false;
 }
@@ -607,76 +728,83 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 	if (m_dxgiFactory)
 	{
 		// Create swap chain
-		LOG(info) << "Successfully obtained DXGI Factory2. System is DirectX 11.1 or greater.";
+		LOG(info) << "Creating swap chain...";
 
-		// DirectX 11.1 or later
-		hr = m_d3dDevice->QueryInterface(__uuidof(ID3D12Device1), reinterpret_cast<void**>(&m_d3dDevice1));
-
-		if (SUCCEEDED(hr))
-		{
-			LOG(info) << "Successfully obtained D3D Device1. Obtaining immediate DeviceContext1.";
-
-			/*
-			(void)m_immediateContext->QueryInterface(__uuidof(ID3D12DeviceContext1), reinterpret_cast<void**>(&m_immediateContext1));
-			*/
-		}
-
-		DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
+		swapChainDesc.BufferCount = ref->cvars->bufferCount->Int();
 		swapChainDesc.Width = m_windowWidth;
 		swapChainDesc.Height = m_windowHeight;
-		swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;			// BGRA for D2D support (also 5% faster, supposedly)
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
+		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 1;
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		swapChainDesc.Stereo = FALSE;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.SampleDesc.Count = ref->cvars->samplesPerPixel->Int();
 
-		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_d3dDevice, hWnd, &swapChainDesc, nullptr, nullptr, &m_swapChain1);
+		IDXGISwapChain1* pSwapChain = nullptr;
+		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue, hWnd, &swapChainDesc, nullptr, nullptr, &pSwapChain);
 
 		if (SUCCEEDED(hr))
 		{
-			LOG(info) << "Successfully created SwapChain1. Obtaining SwapChain.";
-
-			hr = m_swapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&m_swapChain));
-
-			return true;
+			hr = pSwapChain->QueryInterface(IID_PPV_ARGS(&m_swapChain));
 		}
 	}
-	else
+
+	if (SUCCEEDED(hr))
 	{
-		LOG(warning) << "Failed to obtain DXGI Factory2. System is DirectX 11 or less.";
+		LOG(info) << "Successfully created Swap Chain.";
 
-		// DirectX 11.0 systems
-		DXGI_SWAP_CHAIN_DESC swapChainDesc;
-		ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
-		swapChainDesc.BufferCount = 1;
-		swapChainDesc.BufferDesc.Width = m_windowWidth;
-		swapChainDesc.BufferDesc.Height = m_windowHeight;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;			// BGRA for D2D support (also 5% faster, supposedly)
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.OutputWindow = hWnd;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.Windowed = TRUE;
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		hr = m_dxgiFactory->CreateSwapChain(m_d3dDevice, &swapChainDesc, &m_swapChain);
-
-		if (SUCCEEDED(hr))
-		{
-			LOG(info) << "Successfully created SwapChain.";
-
-			return true;
-		}
-		else
-		{
-			LOG(error) << "Unable to create SwapChain.";
-		}
+		return true;
 	}
+
+	LOG(error) << "Unable to create Swap Chain.";
+
+	return false;
+}
+
+bool dx12::Dx::InitDescriptorHeaps()
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	if (m_d3dDevice)
+	{
+		// Get descriptor sizes
+		LOG(info) << "Obtaining descriptor heap element sizes...";
+		m_descriptorSizeRTV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_RTV: " << m_descriptorSizeRTV;
+
+		m_descriptorSizeDSV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_DSV: " << m_descriptorSizeDSV;
+
+		m_descriptorSizeCBVSRVUAV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: " << m_descriptorSizeCBVSRVUAV;
+
+		// Create descriptor heaps
+		LOG(info) << "Creating descriptor heaps...";
+
+		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+
+		LOG(info) << "Allocating heap for 3 descriptors:";
+		LOG(info) << " 2 - bottom and top level acceleration structures";
+		LOG(info) << " 1 - raytracing output texture SRV";
+
+		descriptorHeapDesc.NumDescriptors = 3;
+		descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		descriptorHeapDesc.NodeMask = 0;
+
+		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		LOG(info) << "Successfully created descriptor heap.";
+
+		return true;
+	}
+
+	LOG(error) << "Unable to create descriptor heap.";
 
 	return false;
 }
@@ -693,15 +821,7 @@ void dx12::Dx::D3D_Shutdown()
 		m_swapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
-	/*
-	SAFE_RELEASE(m_backBufferRTV);
-
-	SAFE_RELEASE(m_depthStencilState);
-
-	SAFE_RELEASE(m_depthStencilView);
-	*/
-
-	SAFE_RELEASE(m_swapChain1);
+	SAFE_RELEASE(m_descriptorHeap);
 
 	SAFE_RELEASE(m_swapChain);
 
@@ -720,35 +840,19 @@ void dx12::Dx::D3D_Shutdown()
 		subsystem3D->Shutdown();
 	}
 
-/*	SAFE_RELEASE(m_d2dContext);
+	SAFE_RELEASE(m_commandListGfx);
 
-	SAFE_RELEASE(m_d2dDevice);
+	SAFE_RELEASE(m_directCmdListAlloc);
 
-	SAFE_RELEASE(m_d2dFactory);*/
+	SAFE_RELEASE(m_commandQueue);
 
-	/*
-	if (m_immediateContext)
-	{
-		// https://blogs.msdn.microsoft.com/chuckw/2012/11/30/direct3d-sdk-debug-layer-tricks/
-		// It can also help to call ClearState and then Flush on the immediate context just before doing the report to ensure nothing is being kept alive by being bound to the render pipeline or because of lazy destruction.
-		m_immediateContext->ClearState();
-		m_immediateContext->Flush();
-
-		if (m_immediateContext1)
-		{
-			m_immediateContext1->ClearState();
-			m_immediateContext1->Flush();
-
-			SAFE_RELEASE(m_immediateContext1);
-		}
-
-		SAFE_RELEASE(m_immediateContext);
-	}
-	*/
-
-	SAFE_RELEASE(m_d3dDevice1);
+	SAFE_RELEASE(m_fence);
 
 	SAFE_RELEASE(m_d3dDevice);
+
+	SAFE_RELEASE(m_dxgiAdapter);
+
+	SAFE_RELEASE(m_dxgiFactory);
 
 	m_d3dInitialized = false;
 }

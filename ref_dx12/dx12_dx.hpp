@@ -57,26 +57,25 @@ namespace dx12
 		LARGE_INTEGER					m_clockFrameEndCurrent;
 		LARGE_INTEGER					m_clockFrameEndPrevious;
 
-	/*	ID2D1Factory1*					m_d2dFactory = nullptr;
-		ID2D1Device*					m_d2dDevice = nullptr;
-		ID2D1DeviceContext*				m_d2dContext = nullptr;
-		ID2D1CommandList*				m_d2dCommandList = nullptr;
-		*/
-
 		IDXGIFactory6*					m_dxgiFactory = nullptr;
+		IDXGIAdapter4*					m_dxgiAdapter = nullptr;
 
 		ID3D12Device*					m_d3dDevice = nullptr;
-		ID3D12Device1*					m_d3dDevice1 = nullptr;
-		//ID3D12DeviceContext*			m_immediateContext = nullptr;
-		//ID3D12DeviceContext1*			m_immediateContext1 = nullptr;
 
-		IDXGISwapChain*					m_swapChain = nullptr;
-		IDXGISwapChain1*				m_swapChain1 = nullptr;
+		ID3D12Fence*					m_fence = nullptr;
+		UINT64							m_currentFence = 0;
 
-		//ID3D12DepthStencilView*			m_depthStencilView;
+		ID3D12CommandQueue*				m_commandQueue = nullptr;
+		ID3D12CommandAllocator*			m_directCmdListAlloc = nullptr;
+		ID3D12GraphicsCommandList*		m_commandListGfx = nullptr;
 
-		//ID3D12RenderTargetView*			m_backBufferRTV = nullptr;
-		//ID3D12DepthStencilState*		m_depthStencilState = nullptr;
+		IDXGISwapChain3*				m_swapChain = nullptr;
+
+		ID3D12DescriptorHeap*			m_descriptorHeap = nullptr;
+		UINT							m_descriptorsAllocated = 0;
+		UINT							m_descriptorSizeRTV = 0;
+		UINT							m_descriptorSizeDSV = 0;
+		UINT							m_descriptorSizeCBVSRVUAV = 0;
 
 		bool							m_d3dInitialized;
 
@@ -85,19 +84,17 @@ namespace dx12
 
 		bool							m_clockRunning;
 
-	
 		double							m_frameTime;
 		double							m_frameTimeEMA;
 		double							m_frameRateEMA;
 
 		void							FillFeatureLevelArray(void);
 
-		bool							InitDebug();
-
-		bool							GetAdapter(IDXGIFactory6* pFactory, IDXGIAdapter1** ppAdapter);
-
-		bool							InitDevice(HWND hWnd);
 		bool							InitFactory(HWND hWnd);
+		bool							InitAdapter();
+		bool							InitDeviceDebug();
+		bool							InitDevice(HWND hWnd);
+		bool							InitFences();
 		bool							InitCommandObjects();
 		bool							InitSwapChain(HWND hWnd);
 		bool							InitDescriptorHeaps();

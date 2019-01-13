@@ -62,5 +62,7 @@ dx12::Log::Log()
 
 	BOOST_LOG_TRIVIAL(info) << "Log Created Successfully.";
 
+	LOG(info) << "nullptr address: " << static_cast<void*>(nullptr);
+
 	logSink->flush();
 }

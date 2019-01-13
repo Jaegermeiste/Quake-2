@@ -50,7 +50,7 @@ dx12::Cvars::Cvars()
 	bufferCount				= std::make_shared<Cvar>("dx12_bufferCount",				2,														CVAR_ARCHIVE);
 	backBufferFormat		= std::make_shared<Cvar>("dx12_backBufferFormat",			"DXGI_FORMAT_R8G8B8A8_UNORM",							CVAR_ARCHIVE);
 	Vsync					= std::make_shared<Cvar>("dx12_Vsync",						1,														CVAR_ARCHIVE);
-	samplesPerPixel			= std::make_shared<Cvar>("dx12_samplesPerPixel",			2,														CVAR_ARCHIVE);	// 1 disables multisampling
+	samplesPerPixel			= std::make_shared<Cvar>("dx12_samplesPerPixel",			1,														CVAR_ARCHIVE);	// 1 disables multisampling
 
 	zNear2D					= std::make_shared<Cvar>("dx12_zNear2D",					0,														CVAR_ARCHIVE);
 	zNear3D					= std::make_shared<Cvar>("dx12_zNear3D",					4,														CVAR_ARCHIVE);
