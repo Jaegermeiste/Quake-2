@@ -123,6 +123,9 @@
     <ClInclude Include="dx12_texture2D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dx12_resource.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx12_main.cpp">
@@ -219,6 +222,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx12_model_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_resource_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

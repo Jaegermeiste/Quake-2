@@ -57,7 +57,9 @@ extern	unsigned int	LittleULong(unsigned int l);
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
-typedef int	qhandle_t;
+// Handles
+typedef int			qhandle_t;
+typedef std::size_t handle_t;
 
 typedef enum rserr_e
 {
@@ -123,6 +125,7 @@ namespace dx12 {
 
 #include "dx12_log.hpp"
 #include "dx12_cvar.hpp"
+#include "dx12_resource.hpp"
 #include "dx12_shader.hpp"
 #include "dx12_web.hpp"
 #include "dx12_draw.hpp"

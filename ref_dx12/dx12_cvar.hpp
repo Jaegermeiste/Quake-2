@@ -31,7 +31,8 @@ ref_dx12
 
 namespace dx12
 {
-	class Cvars {
+	class Cvars : public std::enable_shared_from_this<Cvars> 
+	{
 	private:
 
 	public:

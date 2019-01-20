@@ -31,8 +31,9 @@ ref_dx12
 
 namespace dx12
 {
-	class Texture2D
+	class Texture2D : public Resource
 	{
+		friend class ResourceManager;
 		friend class ImageManager;
 	public:
 		D3D12_RESOURCE_DESC		m_textureDesc;

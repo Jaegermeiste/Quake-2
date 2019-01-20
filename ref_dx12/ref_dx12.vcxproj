@@ -141,6 +141,7 @@
     <ClInclude Include="dx12_model.hpp" />
     <ClInclude Include="dx12_quad2D.hpp" />
     <ClInclude Include="dx12_ref.hpp" />
+    <ClInclude Include="dx12_resource.hpp" />
     <ClInclude Include="dx12_shader.hpp" />
     <ClInclude Include="dx12_subsystem2D.hpp" />
     <ClInclude Include="dx12_subsystem3D.hpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="dx12_model_mdl.cpp" />
     <ClCompile Include="dx12_quad2D.cpp" />
     <ClCompile Include="dx12_ref.cpp" />
+    <ClCompile Include="dx12_resource_manager.cpp" />
     <ClCompile Include="dx12_shader.cpp" />
     <ClCompile Include="dx12_subsystem2D.cpp" />
     <ClCompile Include="dx12_subsystem3D.cpp" />
