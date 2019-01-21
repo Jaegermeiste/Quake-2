@@ -25,11 +25,10 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-handle_t dx12::ResourceManager::GenerateHandleForString(std::string string)
+inline handle_t dx12::ResourceManager::GenerateHandleForString(std::string string)
 {
-	handle_t handle = std::hash<std::string>{}(string);
-
-	return handle;
+	// Resources should never have the same name and path, so hashes should (almost) never collide
+	return std::hash<std::string>{}(string);
 }
 
 std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::string name, resourceType_t type)
@@ -40,10 +39,10 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::strin
 	handle_t handle = GenerateHandleForString(name);
 
 	// At this point, assume the handle is good and create the asset
-	resources.insert({ handle, std::make_shared<Resource>(name, handle) });
+	m_resources.insert({ handle, std::make_shared<Resource>(name, handle) });
 
 	// Retrieve a pointer to the flyweight
-	resource = resources.at(handle);
+	resource = m_resources.at(handle);
 
 	return resource;
 }
@@ -52,11 +51,11 @@ void dx12::ResourceManager::Shutdown()
 {
 	LOG_FUNC();
 
-	// Destroy flyweights
-	flyweights.clear();
+	// Destroy m_handlesQ2
+	m_handlesQ2.clear();
 
 	// Destroy resources
-	resources.clear();
+	m_resources.clear();
 }
 
 std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(handle_t handle)
@@ -65,10 +64,10 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(handle_t hand
 
 	std::shared_ptr<Resource> resource = nullptr;
 
-	if (resources.count(handle) > 0)
+	if (m_resources.count(handle) > 0)
 	{
 		// Found the resource
-		resource = resources.at(handle);
+		resource = m_resources.at(handle);
 	}
 	else
 	{
@@ -108,7 +107,7 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(handle_t hand
 {
 	LOG_FUNC();
 
-	resourceHandleQ2_t* fly = nullptr;
+	resourceHandleQ2_t* q2handle = nullptr;
 
 	if (validate)
 	{
@@ -134,13 +133,13 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(handle_t hand
 	}
 	
 	// At this point, assume the handle is good and create the flyweight struct
-	flyweights.insert({ handle, std::make_shared<resourceHandleQ2_t>()});
+	m_handlesQ2.insert({ handle, std::make_shared<resourceHandleQ2_t>()});
 
 	// Set the handle
-	flyweights.at(handle)->m_handle = handle;
+	m_handlesQ2.at(handle)->m_handle = handle;
 
 	// Retrieve a raw pointer to the flyweight
-	fly = flyweights.at(handle).get();
+	q2handle = m_handlesQ2.at(handle).get();
 
-	return fly;
+	return q2handle;
 }

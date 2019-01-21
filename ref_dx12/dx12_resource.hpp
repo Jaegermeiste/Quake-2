@@ -60,11 +60,10 @@ namespace dx12
 	class ResourceManager		// Factory
 	{
 	private:
-		std::unordered_map<handle_t, std::shared_ptr<Resource>>				resources;
-		std::unordered_map<handle_t, std::shared_ptr<resourceHandleQ2_t>>	flyweights;
+		std::unordered_map<handle_t, std::shared_ptr<Resource>>				m_resources;
+		std::unordered_map<handle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
 
 		handle_t															GenerateHandleForString	(std::string string);
-		handle_t															GenerateHandleForStringAndType(std::string string, resourceType_t type);
 
 		std::shared_ptr<Resource>											CreateResource			(std::string name, resourceType_t type);
 
