@@ -46,6 +46,8 @@ namespace dx12
 		qhandle_t					m_handle;
 		std::string					m_name;
 		unsigned int				m_registrationSequence = 0;
+
+		Texture2D(std::string name) : Resource(name, RESOURCE_TEXTURE2D) {};
 	};
 }
 

@@ -29,12 +29,12 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-typedef struct resourceHandleQ2_s {
-	handle_t m_handle;
-} resourceHandleQ2_t;
+using boost::multi_index_container;
+using namespace boost::multi_index;
 
-typedef resourceHandleQ2_t image_t;
-typedef resourceHandleQ2_t model_t;
+typedef struct resourceHandleQ2_s {
+	dxhandle_t m_handle;
+} resourceHandleQ2_t;
 
 namespace dx12
 {
@@ -46,38 +46,68 @@ namespace dx12
 
 	class Resource : public std::enable_shared_from_this<Resource>
 	{
-	private:
+		friend class ResourceManager;
+	public:
+		dxhandle_t		m_handle;
 		std::string		m_name;
-		handle_t		m_handle;
 		resourceType_t	m_type;
 
 	public:
-		Resource(std::string name, resourceType_t type) { m_name = name; m_type = type; };
+		Resource(std::string name, resourceType_t type) {
+			m_name = name; 
+			m_type = type; 
+			m_handle = std::hash<std::string>{}(name);
+		};
 
-		const	handle_t					GetHandle() { return m_handle; };
+		const	dxhandle_t					GetHandle()		const { return m_handle; };
+		const	std::string					GetName()		const { return m_name; };
+		const	std::string_view			GetNameView()	const { return m_name; };
+		const	resourceType_t				GetType()		const { return m_type; };
 	};
+
+	struct tag_handle {};
+	struct tag_name {};
+	struct tag_type {};
+
+	typedef multi_index_container<
+		std::shared_ptr<Resource>,
+		indexed_by<
+			//random_access<>,
+			hashed_unique<
+				tag<tag_handle>, const_mem_fun< Resource, const dxhandle_t, &Resource::GetHandle > 
+			>,
+			hashed_unique<
+				tag<tag_name>, const_mem_fun< Resource, const std::string_view, &Resource::GetNameView > 
+			>,
+			hashed_non_unique<
+				tag<tag_type>, const_mem_fun< Resource, const resourceType_t, &Resource::GetType > 
+			>
+		>
+	> ResourceSet;
 
 	class ResourceManager		// Factory
 	{
+		friend class Resource;
 	private:
-		std::unordered_map<handle_t, std::shared_ptr<Resource>>				m_resources;
-		std::unordered_map<handle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
-
-		handle_t															GenerateHandleForString	(std::string string);
+		ResourceSet															m_resources;
+		std::unordered_map<dxhandle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
 
 		std::shared_ptr<Resource>											CreateResource			(std::string name, resourceType_t type);
+
+	protected:
+		static dxhandle_t													GenerateHandleForString(std::string string);
 
 	public:
 		bool																Initialize();
 		void																Shutdown();
 
 
-		std::shared_ptr<Resource>											GetResource				(handle_t handle);
+		std::shared_ptr<Resource>											GetResource				(dxhandle_t handle);
 		std::shared_ptr<Resource>											GetResource				(std::string name, resourceType_t type);
 		std::shared_ptr<Resource>											GetOrCreateResource		(std::string name, resourceType_t type);
 
 
-		resourceHandleQ2_t*													GetResourceHandleQuake2	(handle_t handle, bool validate = false);
+		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle, bool validate = false);
 	};
 }
 

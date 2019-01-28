@@ -25,7 +25,7 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-inline handle_t dx12::ResourceManager::GenerateHandleForString(std::string string)
+inline dxhandle_t dx12::ResourceManager::GenerateHandleForString(std::string string)
 {
 	// Resources should never have the same name and path, so hashes should (almost) never collide
 	return std::hash<std::string>{}(string);
@@ -36,13 +36,12 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::strin
 	LOG_FUNC();
 
 	std::shared_ptr<Resource> resource = nullptr;
-	handle_t handle = GenerateHandleForString(name);
 
-	// At this point, assume the handle is good and create the asset
-	m_resources.insert({ handle, std::make_shared<Resource>(name, handle) });
+	// At this point, assume the handle is good and create the asset		
+	m_resources.emplace(std::make_shared<Resource>(name, type));
 
-	// Retrieve a pointer to the flyweight
-	resource = m_resources.at(handle);
+	// Retrieve a pointer to the resource
+	resource = *m_resources.get<tag_name>().find(name);
 
 	return resource;
 }
@@ -58,7 +57,7 @@ void dx12::ResourceManager::Shutdown()
 	m_resources.clear();
 }
 
-std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(handle_t handle)
+std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(dxhandle_t handle)
 {
 	LOG_FUNC();
 
@@ -67,7 +66,7 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(handle_t hand
 	if (m_resources.count(handle) > 0)
 	{
 		// Found the resource
-		resource = m_resources.at(handle);
+		resource = *m_resources.get<tag_handle>().find(handle);
 	}
 	else
 	{
@@ -81,7 +80,7 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(std::string n
 {
 	LOG_FUNC();
 
-	handle_t handle = GenerateHandleForStringAndType(name, type);
+	dxhandle_t handle = GenerateHandleForString(name);
 
 	return GetResource(handle);
 }
@@ -103,7 +102,7 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetOrCreateResource(std::
 	return resource;
 }
 
-resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(handle_t handle, bool validate)
+resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t handle, bool validate)
 {
 	LOG_FUNC();
 

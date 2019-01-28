@@ -38,10 +38,6 @@ typedef struct dxVertex_s {
 	DirectX::XMFLOAT2 textureCoordinate1;
 } dxVertex;
 
-typedef struct flyweightResourceHandle_s {
-	std::size_t m_handle;
-} flyweightResourceHandle_t;
-
 namespace dx12
 {
 	class ModelManager
@@ -52,7 +48,7 @@ namespace dx12
 		bool						Initialize();
 		void						Shutdown();
 
-		std::shared_ptr<model_t>	Load(std::string modelName);
+		std::shared_ptr<Resource>	Load(std::string modelName);
 	};
 }
 

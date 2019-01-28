@@ -41,7 +41,8 @@ inline model_s* SHIM_R_RegisterModel(char *name)
 	{
 		std::string modelName(name);
 
-		model = dx12::ref->media->model->Load(modelName).get();
+		// In the client, the addresses of the returned values are compared in equality tests (etc.), so can't return nullptr. Still an opaque type.
+		model = reinterpret_cast<struct model_s *>(dx12::ref->res->GetResourceHandleQuake2(dx12::ref->media->model->Load(modelName).get()->GetHandle()));
 	}
 
 	return model;
@@ -59,7 +60,7 @@ inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 	return image;
 }
 
-inline image_t	*SHIM_R_RegisterPic(char *name)
+inline image_s	*SHIM_R_RegisterPic(char *name)
 {
 	image_s *image = nullptr;
 

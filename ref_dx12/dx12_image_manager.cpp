@@ -340,7 +340,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 		m_lastHandle++;
 
 #ifdef USE_STD_MAP
-		m_images[name] = std::make_shared<Texture2D>();
+		m_images[name] = std::make_shared<Texture2D>(name);
 		m_images[name]->m_handle = m_lastHandle;
 #else
 		auto texture = std::make_shared<Texture2D>();

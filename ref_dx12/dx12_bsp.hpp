@@ -97,7 +97,7 @@ namespace dx12
 		//
 		// brush model
 		//
-		unsigned int		m_firstModelSurface, 
+		/*unsigned int		m_firstModelSurface, 
 							m_numModelSurfaces;
 		unsigned int		m_lightmap;		// only for submodels
 
@@ -127,7 +127,7 @@ namespace dx12
 		int*				m_surfEdges;
 
 		unsigned int		m_numMarkSurfaces;
-		msurface_t**		m_markSurfaces;
+		msurface_t**		m_markSurfaces;*/
 
 		dvis_t*				m_vis;
 	public:

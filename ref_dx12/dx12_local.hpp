@@ -59,7 +59,7 @@ extern	unsigned int	LittleULong(unsigned int l);
 
 // Handles
 typedef int			qhandle_t;
-typedef std::size_t handle_t;
+typedef std::size_t dxhandle_t;
 
 typedef enum rserr_e
 {
@@ -85,7 +85,7 @@ typedef enum imagetype_e
 	it_sky
 } imagetype_t;
 
-typedef struct image_s
+/*typedef struct image_s
 {
 	char				name[MAX_QPATH];				// game path, including extension
 	imagetype_t			type;
@@ -101,7 +101,7 @@ typedef struct image_s
 	qboolean			paletted;
 
 	byte				padding[1];
-} image_t;
+} image_t;*/
 
 #define EMA_ALPHA	0.9
 
