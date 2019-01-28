@@ -142,3 +142,15 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 
 	return q2handle;
 }
+
+void dx12::ResourceManager::AddResource(std::shared_ptr<Resource> resource)
+{
+	if (resource != nullptr)
+	{
+		if (GetResource(resource->GetHandle()) == nullptr)
+		{
+			// Resource not found already
+			m_resources.insert(resource);
+		}
+	}
+}

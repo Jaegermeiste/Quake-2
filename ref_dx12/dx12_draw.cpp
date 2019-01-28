@@ -31,8 +31,8 @@ void dx12::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name
 
 	if (image)
 	{
-		w = image->m_textureDesc.Width;
-		h = image->m_textureDesc.Height;
+		w = image->GetWidth();
+		h = image->GetHeight();
 	}
 }
 
@@ -44,7 +44,7 @@ void dx12::Draw::Pic(int x, int y, std::string name)
 
 	if (image)
 	{
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->m_textureDesc.Width), msl::utilities::SafeInt<int>(image->m_textureDesc.Height), DirectX::Colors::White);
+		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->GetWidth()), msl::utilities::SafeInt<int>(image->GetHeight()), DirectX::Colors::White);
 
 		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 	}

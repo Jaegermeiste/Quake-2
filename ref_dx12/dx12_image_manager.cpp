@@ -42,45 +42,11 @@ void dx12::ImageManager::Shutdown()
 
 	LOG(info) << "Shutting down.";
 
-	// Destroy all the loaded images
-
-
-#ifdef USE_STD_MAP
-	for (auto & image : m_images)
-	{
-		//SAFE_RELEASE(image.second->m_shaderResourceView);
-		SAFE_RELEASE(image.second->m_texture2D);
-		SAFE_RELEASE(image.second->m_resource);
-		ZeroMemory(&image.second->m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
-		image.second->m_registrationSequence = 0;
-		image.second->m_name.clear();
-		image.second->m_format.clear();
-#else
-	for (unsigned int i = 0; i < m_images.size(); i++)
-	{
-		/*if (m_images[i].m_data)
-		{
-			SAFE_RELEASE(image.m_shaderResourceView);
-			SAFE_RELEASE(image.m_texture2D);
-			SAFE_RELEASE(image.m_resource);
-			ZeroMemory(&image.m_textureDesc, sizeof(D3D12_TEXTURE2D_DESC));
-			image.m_format.clear();
-			m_images.modify(image.m_data.reset();
-		}
-		image.m_registrationSequence = 0;*/
-
-#endif
-	}
-
 	if (m_rawTexture)
 	{
-		//SAFE_RELEASE(m_rawTexture->m_shaderResourceView);
-		SAFE_RELEASE(m_rawTexture->m_texture2D);
 		SAFE_RELEASE(m_rawTexture->m_resource);
-		ZeroMemory(&m_rawTexture->m_textureDesc, sizeof(D3D12_RESOURCE_DESC));
+		ZeroMemory(&m_rawTexture->m_resourceDesc, sizeof(D3D12_RESOURCE_DESC));
 		m_rawTexture->m_format.clear();
-		m_rawTexture->m_name.clear();
-		m_rawTexture->m_handle = -1;
 		m_rawTexture->m_registrationSequence = 0;
 		m_rawTexture = nullptr;
 	}
@@ -324,34 +290,24 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name: " + name);
 	}
 
-	// First, see if the image has already been loaded in the map:
-	if (m_images.count(name) > 0)
+	// First, see if the image has already been loaded:
+	std::shared_ptr<Texture2D> image = std::static_pointer_cast<Texture2D>(ref->res->GetResource(name, RESOURCE_TEXTURE2D));
+
+	if (image)
 	{
-#ifdef USE_STD_MAP
-		return m_images[name];
-#else
-		return m_images.find(name);
-#endif
+		return image;
 	}
 	else
 	{
 		// Create a new image
-		// We didn't find it already, make a new one
-		m_lastHandle++;
+		auto texture = std::make_shared<Texture2D>(name);
 
-#ifdef USE_STD_MAP
-		m_images[name] = std::make_shared<Texture2D>(name);
-		m_images[name]->m_handle = m_lastHandle;
-#else
-		auto texture = std::make_shared<Texture2D>();
-		m_images[name]->m_name = name;
-		m_images[name]->m_handle = m_lastHandle;
-		m_images.insert(texture);
-#endif
+		// Add it to the resource manager
+		ref->res->AddResource(texture);
 
 		// Determine the image type
-		std::string fileName = std::experimental::filesystem::path(name).stem().string();
-		std::string extension = std::experimental::filesystem::path(name).extension().string();
+		std::string fileName = std::filesystem::path(name).stem().string();
+		std::string extension = std::filesystem::path(name).extension().string();
 		std::string path = "";
 
 		if ((fileName.at(0) != '/') && (fileName.at(0) != '\\'))
@@ -385,7 +341,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 
 			if ((bufferSize > 0) && (buffer))
 			{
-				m_images[name]->m_format = format;
+				texture->m_format = format;
 				break;
 			}
 		}
@@ -494,11 +450,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 		ref->client->FS_FreeFile(buffer);
 	}
 
-#ifdef USE_STD_MAP
-	std::shared_ptr<Texture2D> texture = m_images[name];
-#else
-	std::shared_ptr<Texture2D> texture = m_images.find(name);
-#endif
+	std::shared_ptr<Texture2D> texture = std::static_pointer_cast<Texture2D>(ref->res->GetResource(name, RESOURCE_TEXTURE2D));
 
 	// Get texture/resource as necessary
 	/*if ((m_images[name]->m_resource) && (!m_images[name]->m_texture2D))
@@ -529,12 +481,9 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 	}*/
 
 	// Overwrite the texture desc with whatever is in memory/on GPU
-	if (m_images[name]->m_texture2D)
-	{
-		//m_images[name]->m_texture2D->GetDesc(&m_images[name]->m_textureDesc);
-	}
+	texture->UpdateDesc();
 
-	m_images[name]->m_imageType = type;
+	texture->m_imageType = type;
 
 	// Return the pointer
 	return texture;

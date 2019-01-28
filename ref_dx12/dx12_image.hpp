@@ -33,8 +33,6 @@ ref_dx12
 #define BPP_24	24
 #define BPP_32	32
 
-#define USE_STD_MAP	true
-
 namespace dx12
 {
 	class ImageManager
@@ -47,39 +45,6 @@ namespace dx12
 		};
 
 		qhandle_t				m_lastHandle = 0;
-
-#ifdef USE_STD_MAP
-		std::map<std::string, std::shared_ptr<Texture2D>> m_images;
-#else
-		typedef boost::multi_index_container<
-			Texture2D,
-
-			boost::multi_index::indexed_by<
-			// Self
-			boost::multi_index::ordered_unique< boost::multi_index::identity<Texture2D>	>,
-
-			// Enable random access
-			boost::multi_index::random_access<>,
-
-			// sort by handle
-			boost::multi_index::hashed_unique<boost::multi_index::tag<handle>, boost::multi_index::member<Texture2D, qhandle_t, &Texture2D::m_handle> >,
-
-			// sort by name
-			boost::multi_index::hashed_unique<boost::multi_index::tag<name>, boost::multi_index::member<Texture2D, std::string, &Texture2D::m_name> >,
-
-			// sort by registration sequence
-			boost::multi_index::ordered_non_unique<boost::multi_index::tag<registration>, boost::multi_index::member<Texture2D, unsigned int, &Texture2D::m_registrationSequence> >
-			>
-		> ImageContainer;
-		typedef ImageContainer::index<handle>::type			ImagesByHandle;
-		typedef ImageContainer::index<name>::type			ImagesByName;
-		typedef ImageContainer::index<registration>::type	ImagesByRegistrationSequence;
-
-		ImageContainer										m_images;
-		ImagesByHandle										m_imagesByHandle;
-		ImagesByName										m_imagesByName;
-		ImagesByRegistrationSequence						m_imagesbyRegistrationSequence;
-#endif
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);

@@ -36,18 +36,15 @@ namespace dx12
 		friend class ResourceManager;
 		friend class ImageManager;
 	public:
-		D3D12_RESOURCE_DESC		m_textureDesc;
-		//ID3D12ShaderResourceView*	m_shaderResourceView = nullptr;
-		ID3D12Resource*				m_resource = nullptr;
-		ID3D12Resource*			m_texture2D = nullptr;
 		imagetype_t					m_imageType;
 		std::string					m_format;
 
-		qhandle_t					m_handle;
-		std::string					m_name;
 		unsigned int				m_registrationSequence = 0;
 
 		Texture2D(std::string name) : Resource(name, RESOURCE_TEXTURE2D) {};
+
+		unsigned int				GetWidth() { return m_resourceDesc.Width; };
+		unsigned int				GetHeight() { return m_resourceDesc.Height; };
 	};
 }
 

@@ -47,22 +47,30 @@ namespace dx12
 	class Resource : public std::enable_shared_from_this<Resource>
 	{
 		friend class ResourceManager;
-	public:
-		dxhandle_t		m_handle;
-		std::string		m_name;
-		resourceType_t	m_type;
+	private:
+		dxhandle_t				m_handle;
+		std::string				m_name;
+		resourceType_t			m_type;
+
+	protected:
+		D3D12_RESOURCE_DESC		m_resourceDesc;
+		ID3D12Resource*			m_resource = nullptr;
 
 	public:
 		Resource(std::string name, resourceType_t type) {
 			m_name = name; 
 			m_type = type; 
 			m_handle = std::hash<std::string>{}(name);
+			memset(&m_resourceDesc, 0, sizeof(D3D12_RESOURCE_DESC));
+			m_resource = nullptr;
 		};
 
-		const	dxhandle_t					GetHandle()		const { return m_handle; };
-		const	std::string					GetName()		const { return m_name; };
-		const	std::string_view			GetNameView()	const { return m_name; };
-		const	resourceType_t				GetType()		const { return m_type; };
+		const	dxhandle_t					GetHandle()		const	{ return m_handle; };
+		const	std::string					GetName()		const	{ return m_name; };
+		const	std::string_view			GetNameView()	const	{ return m_name; };
+		const	resourceType_t				GetType()		const	{ return m_type; };
+
+		void								UpdateDesc()			{ if (m_resource != nullptr) { memcpy(&m_resourceDesc, &(m_resource->GetDesc()), sizeof(D3D12_RESOURCE_DESC)); } };
 	};
 
 	struct tag_handle {};
@@ -105,6 +113,7 @@ namespace dx12
 		std::shared_ptr<Resource>											GetResource				(dxhandle_t handle);
 		std::shared_ptr<Resource>											GetResource				(std::string name, resourceType_t type);
 		std::shared_ptr<Resource>											GetOrCreateResource		(std::string name, resourceType_t type);
+		void																AddResource				(std::shared_ptr<Resource> resource);
 
 
 		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle, bool validate = false);
