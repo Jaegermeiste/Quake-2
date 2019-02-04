@@ -38,12 +38,27 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::strin
 	std::shared_ptr<Resource> resource = nullptr;
 
 	// At this point, assume the handle is good and create the asset		
-	m_resources.emplace(std::make_shared<Resource>(name, type));
+	auto result = m_resources.push_back(std::make_shared<Resource>(name, type));
 
-	// Retrieve a pointer to the resource
-	resource = *m_resources.get<tag_name>().find(name);
+	if (result.second == true)
+	{
+		// Insertion succeeded. Retrieve a pointer to the resource
+		//resource = *m_resources.get<tag_name>().find(name);
+		resource = *result.first;
+	}
+	else
+	{
+		LOG(warning) << "Resource insertion blocked by existing resource handle: " << std::to_string((*result.first)->GetHandle()) << ", name: " << (*result.first)->GetName() << ".";
+	}
 
 	return resource;
+}
+
+bool dx12::ResourceManager::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
 }
 
 void dx12::ResourceManager::Shutdown()
@@ -63,7 +78,10 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(dxhandle_t ha
 
 	std::shared_ptr<Resource> resource = nullptr;
 
-	if (m_resources.count(handle) > 0)
+	auto result = m_resources.get<tag_handle>().find(handle);
+	auto res2 = *result;
+
+	if ( res2 > 0)
 	{
 		// Found the resource
 		resource = *m_resources.get<tag_handle>().find(handle);
@@ -150,7 +168,18 @@ void dx12::ResourceManager::AddResource(std::shared_ptr<Resource> resource)
 		if (GetResource(resource->GetHandle()) == nullptr)
 		{
 			// Resource not found already
-			m_resources.insert(resource);
+			auto result = m_resources.push_back(resource);
+
+			if (result.second == true)
+			{
+				// Insertion succeeded. Retrieve a pointer to the resource
+				//resource = *m_resources.get<tag_name>().find(name);
+				resource = *result.first;
+			}
+			else
+			{
+				LOG(warning) << "Resource insertion blocked by existing resource handle: " << std::to_string((*result.first)->GetHandle()) << ", name: " << (*result.first)->GetName() << ".";
+			}
 		}
 	}
 }

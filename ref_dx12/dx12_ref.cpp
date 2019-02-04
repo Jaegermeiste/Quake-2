@@ -36,6 +36,7 @@ void	dx12::Ref::Init(refimport_t rimp)
 
 	client	= std::make_unique<Client>(rimp);
 	cvars	= std::make_unique<Cvars>();
+	res		= std::make_unique<ResourceManager>();
 	media	= std::make_unique<Media>();
 	draw	= std::make_unique<Draw>();
 	sys		= std::make_unique<System>();

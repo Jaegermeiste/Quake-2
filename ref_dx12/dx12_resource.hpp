@@ -80,14 +80,14 @@ namespace dx12
 	typedef multi_index_container<
 		std::shared_ptr<Resource>,
 		indexed_by<
-			//random_access<>,
-			hashed_unique<
+			random_access<>,
+			ordered_unique<
 				tag<tag_handle>, const_mem_fun< Resource, const dxhandle_t, &Resource::GetHandle > 
 			>,
-			hashed_unique<
+			ordered_unique<
 				tag<tag_name>, const_mem_fun< Resource, const std::string_view, &Resource::GetNameView > 
 			>,
-			hashed_non_unique<
+			ordered_non_unique<
 				tag<tag_type>, const_mem_fun< Resource, const resourceType_t, &Resource::GetType > 
 			>
 		>
