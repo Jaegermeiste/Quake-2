@@ -54,9 +54,9 @@ namespace dx11
 	private:
 		struct MatrixBufferType
 		{
-			DirectX::XMMATRIX world;
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX projection;
+			XMMATRIX world;
+			XMMATRIX view;
+			XMMATRIX projection;
 		};
 
 		ID3D11VertexShader*			m_vertexShader = nullptr;
@@ -74,9 +74,9 @@ namespace dx11
 
 		bool						Initialize(ID3D11Device* device, std::string vsFileName, std::string psFileName);
 
-		bool						SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants);
+		bool						SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants);
 
-		bool						Render(ID3D11DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants);
+		bool						Render(ID3D11DeviceContext* deviceContext, UINT indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* shaderResource, ID3D11Buffer* constants);
 
 		void						Shutdown();
 	};

@@ -137,10 +137,10 @@ void dx11::Dx::BeginFrame(void)
 		{
 #ifndef _DEBUG
 			// clear the back buffer to black
-			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Black);
+			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, Colors::Black);
 #else
 			// clear the back buffer to a deep blue
-			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, DirectX::Colors::Blue);
+			m_immediateContext->ClearRenderTargetView(m_backBufferRTV, Colors::Blue);
 #endif
 		}
 

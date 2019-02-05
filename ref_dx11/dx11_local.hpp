@@ -27,6 +27,8 @@ ref_dx11
 #define __DX11_LOCAL_HPP__
 #pragma once
 
+#define NOMINMAX		// Disable Win32 overrides
+
 #include "stdafx.h"
 #include <DirectXMath.h>
 
@@ -38,12 +40,35 @@ ref_dx11
 #pragma warning(default:4365)	// Signed/unsigned mismatch
 #pragma warning(default:4820)	// Padding
 
+// A macro to disallow the copy constructor and operator= functions
+// NOTE: The macro contains "private:" so all members defined after it will be private until
+// public: or protected: is specified.
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)	\
+private:									\
+  TypeName(const TypeName&);				\
+  void operator=(const TypeName&);
+
+typedef unsigned char		byte;		// 8 bits
+typedef unsigned short		word;		// 16 bits
+typedef unsigned int		dword;		// 32 bits
+typedef unsigned int		uint;
+typedef unsigned long		ulong;
+
+typedef signed char			int8;
+typedef unsigned char		uint8;
+typedef short int			int16;
+typedef unsigned short int	uint16;
+typedef int					int32;
+typedef unsigned int		uint32;
+typedef long long			int64;
+typedef unsigned long long	uint64;
+
 extern	unsigned short	BigUShort(unsigned short l);
 extern	unsigned short	LittleUShort(unsigned short l);
 extern	unsigned int	BigULong(unsigned int l);
 extern	unsigned int	LittleULong(unsigned int l);
 
-#define	REF_VERSION	"DX11 0.01"
+#define	REF_VERSION	"DX11 0.02"
 
 // up / down
 #define	PITCH	0
@@ -58,7 +83,11 @@ extern	unsigned int	LittleULong(unsigned int l);
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
+#define ID_TIME_T int64 // Signed because -1 means "File not found" and we don't want that to compare > than any other time
+
 typedef int	qhandle_t;
+
+typedef unsigned short triIndex_t;
 
 typedef struct viddef_s
 {
@@ -115,9 +144,9 @@ extern ID3D11InfoQueue *d3dInfoQueue;
 namespace dx11 {
 	typedef __declspec(align(16)) struct Vertex2D_s
 	{
-		DirectX::XMFLOAT4A		position;
-		DirectX::XMVECTORF32	color;
-		DirectX::XMFLOAT2A		texCoord;
+		XMFLOAT4A		position;
+		XMVECTORF32		color;
+		XMFLOAT2A		texCoord;
 	} Vertex2D;
 }
 

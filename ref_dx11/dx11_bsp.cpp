@@ -46,13 +46,13 @@ unsigned int dx11::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset
 		return 0;
 	}
 
-	m_vertices = new DirectX::XMFLOAT3A[count];
+	m_vertices = new dxVertex[count];
 
 	for (i = 0; i < count; i += 3)
 	{
-		m_vertices[i].x = LittleFloat(inputArray[i + 0]);
-		m_vertices[i].y = LittleFloat(inputArray[i + 1]);
-		m_vertices[i].z = LittleFloat(inputArray[i + 2]);
+		m_vertices[i].position.x = LittleFloat(inputArray[i + 0]);
+		m_vertices[i].position.y = LittleFloat(inputArray[i + 1]);
+		m_vertices[i].position.z = LittleFloat(inputArray[i + 2]);
 	}
 
 	m_numVertices = count;
