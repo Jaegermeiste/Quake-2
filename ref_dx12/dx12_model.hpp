@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_MODEL_HPP__
@@ -29,91 +29,26 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-//
-// Whole model
-//
-
-typedef enum { mod_bad, mod_brush, mod_sprite, mod_alias } modtype_t;
-
-typedef struct model_s
-{
-	char		name[MAX_QPATH];
-
-	int			registration_sequence;
-
-	modtype_t	type;
-	int			numframes;
-
-	int			flags;
-
-	//
-	// volume occupied by the model graphics
-	//		
-	vec3_t		mins, maxs;
-	float		radius;
-
-	//
-	// solid volume for clipping 
-	//
-	qboolean	clipbox;
-	vec3_t		clipmins, clipmaxs;
-
-	//
-	// brush model
-	//
-	int			firstmodelsurface, nummodelsurfaces;
-	int			lightmap;		// only for submodels
-
-	int			numsubmodels;
-	//mmodel_t	*submodels;
-
-	int			numplanes;
-	cplane_t	*planes;
-
-	int			numleafs;		// number of visible leafs, not counting 0
-	//mleaf_t		*leafs;
-
-	int			numvertexes;
-	//mvertex_t	*vertexes;
-
-	int			numedges;
-	//medge_t		*edges;
-
-	int			numnodes;
-	int			firstnode;
-	//mnode_t		*nodes;
-
-	int			numtexinfo;
-	//mtexinfo_t	*texinfo;
-
-	int			numsurfaces;
-	//msurface_t	*surfaces;
-
-	int			numsurfedges;
-	int			*surfedges;
-
-	int			nummarksurfaces;
-	//msurface_t	**marksurfaces;
-
-	dvis_t		*vis;
-
-	byte		*lightdata;
-
-	// for alias models and skins
-	image_t		*skins[MAX_MD2SKINS];
-
-	int			extradatasize;
-	void		*extradata;
-} model_t;
+typedef struct dxVertex_s {
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT4 tangent;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT2 textureCoordinate0;
+	DirectX::XMFLOAT2 textureCoordinate1;
+} dxVertex;
 
 namespace dx12
 {
-	class Model {
-	private:
-
+	class ModelManager
+	{
 	public:
-		std::shared_ptr<model_t>	LoadMap(std::string name);
-		std::shared_ptr<model_t>	LoadModel(std::string name);
+		ModelManager();
+
+		bool						Initialize();
+		void						Shutdown();
+
+		std::shared_ptr<Resource>	Load(std::string modelName);
 	};
 }
 

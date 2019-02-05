@@ -23,21 +23,34 @@ ref_dx12
 2019 Bleeding Eye Studios
 */
 
+#ifndef __DX12_MEDIA_HPP__
+#define __DX12_MEDIA_HPP__
+#pragma once
+
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	std::unique_ptr<Ref> ref = nullptr;
+	class Media
+	{
+	private:
+		bool							m_inRegistration;
+
+		byte							mPadding[3];
+
+	public:
+										Media();
+
+		std::unique_ptr<ImageManager>	img;
+		std::unique_ptr<ModelManager>	model;
+		std::unique_ptr<Map>			map;
+
+		bool							Initialize();
+		void							Shutdown();
+
+		void							BeginRegistration(std::string mapName);
+		void							EndRegistration();
+	};
 }
 
-void	dx12::Ref::Init(refimport_t rimp)
-{
-	LOG_FUNC();
-
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
-}
+#endif // !__DX12_MEDIA_HPP__

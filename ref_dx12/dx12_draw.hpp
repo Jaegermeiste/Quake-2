@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_DRAW_HPP__
@@ -34,13 +34,13 @@ namespace dx12
 	class Draw {
 	public:
 		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
-		void		Pic			(unsigned int x, unsigned int y, std::string name);
-		void		StretchPic	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
-		void		Char		(unsigned int x, unsigned int y, unsigned int c);
-		void		TileClear	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, std::string name);
-		void		Fill		(unsigned int x, unsigned int y, unsigned int w, unsigned int h, int c);
+		void		Pic			(int x, int y, std::string name);
+		void		StretchPic	(int x, int y, int w, int h, std::string name);
+		void		Char		(int x, int y, unsigned char c);
+		void		TileClear	(int x, int y, int w, int h, std::string name);
+		void		Fill		(int x, int y, int w, int h, int c);
 		void		FadeScreen	(void);
-		void		StretchRaw	(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int cols, unsigned int rows, byte *data);
+		void		StretchRaw	(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte *data);
 	};
 }
 

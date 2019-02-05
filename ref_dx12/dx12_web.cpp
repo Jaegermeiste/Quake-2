@@ -25,19 +25,50 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-namespace dx12
-{
-	std::unique_ptr<Ref> ref = nullptr;
-}
-
-void	dx12::Ref::Init(refimport_t rimp)
+dx12::Web::Web()
 {
 	LOG_FUNC();
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	LOG(info) << "Initializing";
+
+}
+
+bool dx12::Web::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
+}
+
+bool dx12::Web::DownloadFile(std::string downloadURL, std::string destinationPath)
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	hr = URLDownloadToFile(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
+
+	if (hr == E_OUTOFMEMORY) {
+		LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";
+		return false;
+	}
+	else if (hr == INET_E_DOWNLOAD_FAILURE) {
+		LOG(error) << "Download Failed: URL is invalid";
+		return false;
+	}
+	else if (FAILED(hr)) {
+		LOG(error) << "Other error: " << hr;
+		return false;
+	}
+
+	return true;
+}
+
+void dx12::Web::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	LOG(info) << "Shutdown complete.";
 }

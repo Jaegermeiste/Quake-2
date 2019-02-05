@@ -30,8 +30,19 @@ ref_dx12
 #include "stdafx.h"
 
 #include "../client/ref.h"
+#include "../win32/winquake.h"
 
-#define	REF_VERSION	"DX12 0.01"
+#pragma warning(default:4100)	// Unreferenced formal parameter
+#pragma warning(default:4242)	// Possible loss of data
+#pragma warning(default:4365)	// Signed/unsigned mismatch
+#pragma warning(default:4820)	// Padding
+
+extern	unsigned short	BigUShort(unsigned short l);
+extern	unsigned short	LittleUShort(unsigned short l);
+extern	unsigned int	BigULong(unsigned int l);
+extern	unsigned int	LittleULong(unsigned int l);
+
+#define	REF_VERSION	"DX12 " __DATE__ " " __TIME__
 
 // up / down
 #define	PITCH	0
@@ -41,6 +52,24 @@ ref_dx12
 
 // fall over
 #define	ROLL	2
+
+// Courtesy https://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value
+#define QUOTE(name) #name
+#define STR(macro) QUOTE(macro)
+
+// Handles
+typedef int			qhandle_t;
+typedef std::size_t dxhandle_t;
+
+typedef enum rserr_e
+{
+	rserr_ok,
+
+	rserr_invalid_fullscreen,
+	rserr_invalid_mode,
+
+	rserr_unknown
+} rserr_t;
 
 typedef struct viddef_s
 {
@@ -56,7 +85,7 @@ typedef enum imagetype_e
 	it_sky
 } imagetype_t;
 
-typedef struct image_s
+/*typedef struct image_s
 {
 	char				name[MAX_QPATH];				// game path, including extension
 	imagetype_t			type;
@@ -70,21 +99,60 @@ typedef struct image_s
 	qboolean			has_alpha;
 
 	qboolean			paletted;
-} image_t;
 
+	byte				padding[1];
+} image_t;*/
+
+#define EMA_ALPHA	0.9
+
+#define SAFE_RELEASE(comObject)	if (comObject) { comObject->Release(); comObject = nullptr; }
+
+extern CRITICAL_SECTION CriticalSection;
+#ifdef _DEBUG
+extern ID3D12Debug* d3dDebug;
+extern ID3D12DebugDevice* d3dDebugDev;
+extern ID3D12InfoQueue *d3dInfoQueue;
+#endif
+
+namespace dx12 {
+	typedef __declspec(align(16)) struct Vertex2D_s
+	{
+		DirectX::XMFLOAT4A		position;
+		DirectX::XMVECTORF32	color;
+		DirectX::XMFLOAT2A		texCoord;
+	} Vertex2D;
+}
+
+#include "dx12_log.hpp"
 #include "dx12_cvar.hpp"
-#include "dx12_client.hpp"
-#include "dx12_system.hpp"
-#include "dx12_image.hpp"
+#include "dx12_resource.hpp"
+#include "dx12_shader.hpp"
+#include "dx12_web.hpp"
 #include "dx12_draw.hpp"
+#include "dx12_quad2D.hpp"
+#include "dx12_subsystem2D.hpp"
+#include "dx12_subsystem3D.hpp"
+#include "dx12_subsystemText.hpp"
+#include "dx12_dx.hpp"
+#include "dx12_system.hpp"
+#include "dx12_client.hpp"
+#include "dx12_texture2D.hpp"
+#include "dx12_image.hpp"
 #include "dx12_model.hpp"
+#include "dx12_light.hpp"
+#include "dx12_xplit.hpp"
+#include "dx12_bsp.hpp"
+#include "dx12_map.hpp"
+#include "dx12_media.hpp"
 #include "dx12_ref.hpp"
 
 namespace dx12
 {
 	// Functions
-	bool	Init		(HINSTANCE hInstance, WNDPROC wndProc);
-	void	Shutdown	(void);
+	bool			Initialize();
+	void			Shutdown();
+
+	void			DumpD3DDebugMessagesToLog();
 }
 
 #endif // !__DX12_LOCAL_HPP__

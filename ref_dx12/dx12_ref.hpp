@@ -35,14 +35,14 @@ namespace dx12
 	private:
 
 	public:
-		Ref(refimport_t rimp);
+		void					Init(refimport_t rimp);
 
-		std::unique_ptr<Cvars>	cvars;
-		std::unique_ptr<Client>	client;
-		std::unique_ptr<Image>	img;
-		std::unique_ptr<Draw>	draw;
-		std::unique_ptr<System>	sys;
-		std::unique_ptr<Model>	model;
+		std::unique_ptr<Cvars>				cvars;
+		std::unique_ptr<Client>				client;
+		std::unique_ptr<ResourceManager>	res;
+		std::unique_ptr<Media>				media;
+		std::unique_ptr<Draw>				draw;
+		std::unique_ptr<System>				sys;
 	};
 
 	extern std::unique_ptr<Ref> ref;

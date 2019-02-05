@@ -24,20 +24,31 @@ ref_dx12
 */
 
 #include "dx12_local.hpp"
-
-namespace dx12
-{
-	std::unique_ptr<Ref> ref = nullptr;
-}
-
-void	dx12::Ref::Init(refimport_t rimp)
+/*
+================
+LoadWal
+================
+*/
+void dx12::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
 {
 	LOG_FUNC();
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	miptex_t		*mt = nullptr;
+	unsigned int	ofs = 0;
+
+	ref->client->FS_LoadFile(fileName, (void **)&mt);
+
+	if (!mt)
+	{
+		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
+		return;
+	}
+
+	width = LittleULong(mt->width);
+	height = LittleULong(mt->height);
+	ofs = LittleULong(mt->offsets[0]);
+
+	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
+
+	ref->client->FS_FreeFile((void *)mt);
 }

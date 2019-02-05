@@ -20,24 +20,41 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2019 Bleeding Eye Studios
+2017 Bleeding Eye Studios
 */
 
 #include "dx12_local.hpp"
 
-namespace dx12
-{
-	std::unique_ptr<Ref> ref = nullptr;
-}
-
-void	dx12::Ref::Init(refimport_t rimp)
+dx12::Subsystem3D::Subsystem3D()
 {
 	LOG_FUNC();
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	LOG(info) << "Initializing";
+
+}
+
+bool dx12::Subsystem3D::Initialize()
+{
+	LOG_FUNC();
+
+	return true;
+}
+
+void dx12::Subsystem3D::Clear()
+{
+	LOG_FUNC();
+}
+
+void dx12::Subsystem3D::Render()
+{
+	LOG_FUNC();
+}
+
+void dx12::Subsystem3D::Shutdown()
+{
+	LOG_FUNC();
+
+	LOG(info) << "Shutting down.";
+
+	LOG(info) << "Shutdown complete.";
 }

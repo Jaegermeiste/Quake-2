@@ -23,21 +23,34 @@ ref_dx12
 2019 Bleeding Eye Studios
 */
 
+#ifndef __DX12_3D_HPP__
+#define __DX12_3D_HPP__
+#pragma once
+
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	std::unique_ptr<Ref> ref = nullptr;
+	__declspec(align(16)) class Subsystem3D {
+		friend class System;
+	private:
+		DirectX::XMMATRIX			m_3DworldMatrix;
+		DirectX::XMMATRIX			m_3DviewMatrix;
+		DirectX::XMMATRIX			m_3DprojectionMatrix;
+
+	public:
+									Subsystem3D();
+
+		bool						Initialize();
+
+		void						Clear();
+
+		void						Render();
+
+		void						Shutdown();
+
+		ALIGNED_16_MEMORY_OPERATORS;
+	};
 }
 
-void	dx12::Ref::Init(refimport_t rimp)
-{
-	LOG_FUNC();
-
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
-}
+#endif // !__DX12_3D_HPP__

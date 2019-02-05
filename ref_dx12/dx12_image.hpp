@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #ifndef __DX12_IMAGE_HPP__
@@ -29,35 +29,48 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
+#define BPP_8	8
+#define BPP_24	24
+#define BPP_32	32
+
 namespace dx12
 {
-	class Image {
+	class ImageManager
+	{
+		friend class Draw;
 	private:
-		struct Texture2D
+		std::vector<std::string> m_imageExtensions =
 		{
-			unsigned int	width;
-			unsigned int	height;
-			size_t			size;
-			DXGI_FORMAT		format;
-			unsigned int	*data;
+			"dds", "exr", "hdr", "tga", "png", "jpg", "tif", "gif", "bmp", "ico", "wdp", "jxr", "wal", "pcx"
 		};
 
-		unsigned int	d_8to24table[256];
-
-		std::map<std::shared_ptr<image_t>, Microsoft::WRL::ComPtr<ID3D12Resource>> images;
+		qhandle_t				m_lastHandle = 0;
 
 		void GetPalette(void);
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
-		static void LoadPCX(std::string fileName, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
+		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 
-		Texture2D*	CreateTexture2DFromRaw(unsigned int width, unsigned int height, byte** raw);
+		void						UploadScratchImage(DirectX::ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
 
-		void UploadScratchImage(DirectX::ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
-
-		bool		UploadTexture2D(Texture2D *texture);
+		bool						UploadTexture2D(Texture2D *texture);
 	public:
-		std::shared_ptr<image_t>	Load(std::string name, imagetype_t type);
+		bool						Initialize();
+		void						Shutdown();
+
+		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
+		DirectX::PackedVector::XMCOLOR	m_rawPalette[256];
+
+		std::shared_ptr<Texture2D>		m_conChars;
+		std::shared_ptr<Texture2D>		m_rawTexture;
+
+		void						SetRawPalette(const unsigned char *palette);
+
+		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
+
+		//std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage);
 	};
+
+
 }
 
 #endif // !__DX12_IMAGE_HPP__

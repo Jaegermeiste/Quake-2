@@ -25,19 +25,37 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-namespace dx12
+unsigned int dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length)
 {
-	std::unique_ptr<Ref> ref = nullptr;
-}
+	// inputs are float[3]
+	float*			inputArray	= reinterpret_cast<float*>(*(&data + offset));
+	unsigned int	i			= 0, 
+					count		= length / sizeof(float[3]);
 
-void	dx12::Ref::Init(refimport_t rimp)
-{
-	LOG_FUNC();
+	// Clear any existing data
+	if (m_vertices != nullptr)
+	{
+		delete[] m_vertices;
+		m_vertices = nullptr;
+	}
+	m_numVertices = 0;
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	if (length % sizeof(float[3]))
+	{
+		ref->client->Sys_Error(ERR_DROP, "Unexpected lump size.");
+		return 0;
+	}
+
+	m_vertices = new dxVertex[count];
+
+	for (i = 0; i < count; i += 3)
+	{
+		m_vertices[i].position.x = LittleFloat(inputArray[i + 0]);
+		m_vertices[i].position.y = LittleFloat(inputArray[i + 1]);
+		m_vertices[i].position.z = LittleFloat(inputArray[i + 2]);
+	}
+
+	m_numVertices = count;
+
+	return count;
 }

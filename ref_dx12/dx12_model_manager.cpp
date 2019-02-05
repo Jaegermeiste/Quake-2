@@ -25,19 +25,26 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-namespace dx12
+dx12::ModelManager::ModelManager()
 {
-	std::unique_ptr<Ref> ref = nullptr;
+	LOG_FUNC();
 }
 
-void	dx12::Ref::Init(refimport_t rimp)
+bool dx12::ModelManager::Initialize()
 {
 	LOG_FUNC();
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	return true;
+}
+
+void dx12::ModelManager::Shutdown()
+{
+	LOG_FUNC();
+}
+
+std::shared_ptr<dx12::Resource> dx12::ModelManager::Load(std::string name)
+{
+	LOG_FUNC();
+
+	return nullptr;
 }

@@ -20,79 +20,228 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2017 Bleeding Eye Studios
+2019 Bleeding Eye Studios
 */
 
 #include "dx12_local.hpp"
 
-inline void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
+void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	ri.Sys_Error(err_level, const_cast<char*>(str.c_str()));
+	std::string errLevelStr = "ERR_FATAL";
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	if (err_level == ERR_DROP)
+	{
+		errLevelStr = "ERR_DROP";
+		LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
+	else if (err_level == ERR_QUIT)
+	{
+		errLevelStr = "ERR_QUIT";
+		LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
+	else
+	{
+		LOG(fatal) << "<err_level> " << errLevelStr << " <string> " << str;
+	}
+
+	m_refImport.Sys_Error(err_level, const_cast<char*>(str.c_str()));
 }
 
-// void(*Cmd_AddCommand)		(char *name, void(*cmd)(void));
-
-inline void dx12::Client::Cmd_RemoveCommand(std::string name)
+void dx12::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	ri.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<name> " << name << " <cmd> " << cmd;
+
+	char *cName = new char[64]();
+	strncpy_s(cName, 64, name.c_str(), name.length());
+	m_cmdNames.push_back(cName);
+
+	m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
 }
 
-inline unsigned int dx12::Client::Cmd_Argc (void)
+void dx12::Client::Cmd_RemoveCommand(std::string name)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	return msl::utilities::SafeInt<unsigned int>(ri.Cmd_Argc());
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<name> " << name;
+
+	m_refImport.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
 }
 
-//char			*(*Cmd_Argv)			(int i);
-//void(*Cmd_ExecuteText)		(int exec_when, char *text);
-
-inline void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
+unsigned int dx12::Client::Cmd_Argc(void)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	ri.Con_Printf(print_level, const_cast<char*>(str.c_str()));
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	return msl::utilities::SafeInt<unsigned int>(m_refImport.Cmd_Argc());
 }
 
-inline int dx12::Client::FS_LoadFile (std::string fileName, void **buf)
+std::string dx12::Client::Cmd_Argv(unsigned int i)
 {
-	return ri.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+	LOG_FUNC();
+
+	int clientIndex = msl::utilities::SafeInt<int>(i);
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	return m_refImport.Cmd_Argv(clientIndex);
 }
 
-//int(*FS_LoadFile)			(char *name, void **buf);
-//void(*FS_FreeFile)			(void *buf);
-
-inline std::string dx12::Client::FS_Gamedir(void)
+void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::string text)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	return std::string(ri.FS_Gamedir());
+	int clientWhen = msl::utilities::SafeInt<int>(exec_when);
+
+	std::string execWhenStr = "EXEC_NOW";
+
+	if (exec_when == EXEC_INSERT)
+	{
+		execWhenStr = "EXEC_INSERT";
+	}
+	else if (exec_when == EXEC_APPEND)
+	{
+		execWhenStr = "EXEC_APPEND";
+	}
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<exec_when> " << execWhenStr << " <text> " << text;
+
+	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
+}
+
+void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
+{
+	LOG_FUNC();
+
+	std::string printLevelStr = "PRINT_ALL";
+
+	if (print_level == PRINT_DEVELOPER)
+	{
+		printLevelStr = "PRINT_DEVELOPER";
+	}
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<print_level> " << printLevelStr << " <string> " << str;
+
+	str += "\n";
+
+	m_refImport.Con_Printf(print_level, const_cast<char*>(str.c_str()));
+}
+
+int dx12::Client::FS_LoadFile(std::string fileName, void **buf)
+{
+	LOG_FUNC();
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(trace) << "<fileName> " << fileName << " <buf> " << buf;
+
+	int retVal = m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+
+	if (retVal > 0)
+	{
+		LOG(info) << "Loaded " << fileName << " with length " << retVal << " at address " << *buf;
+	}
+
+	return retVal;
+}
+
+void dx12::Client::FS_FreeFile(void *buf)
+{
+	LOG_FUNC();
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	LOG(info) << "<buf> " << buf;
+
+	m_refImport.FS_FreeFile(buf);
+}
+
+std::string dx12::Client::FS_Gamedir(void)
+{
+	LOG_FUNC();
+
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	return std::string(m_refImport.FS_Gamedir());
+}
+
+std::string dx12::Client::FS_GamedirAbsolute(void)
+{
+	LOG_FUNC();
+
+	TCHAR  absoluteGamedirBuffer[4096] = TEXT("");
+	ZeroMemory(&absoluteGamedirBuffer, sizeof(TCHAR) * 4096);
+
+	std::string gameDir = FS_Gamedir();
+
+	// Request ownership of the critical section.
+	LOG(trace) << "Entering critical section";
+	EnterCriticalSection(&CriticalSection);
+	LOG(trace) << "Entered critical section";
+
+	DWORD  retval = GetFullPathName(gameDir.c_str(), MAX_PATH, absoluteGamedirBuffer, NULL);
+
+	// Release ownership of the critical section.
+	LOG(trace) << "Leaving critical section";
+	LeaveCriticalSection(&CriticalSection);
+	LOG(trace) << "Left critical section";
+
+	if (retval == 0)
+	{
+		LOG(error) << "GetFullPathName failed: " << GetLastError();
+		return std::string();
+	}
+	else
+	{
+		LOG(info) << "The full path name is: " << absoluteGamedirBuffer;
+	}
+
+	return absoluteGamedirBuffer;
 }
 
 //cvar_t			*(*Cvar_Get)			(char *name, char *value, int flags);
 //cvar_t			*(*Cvar_Set)			(char *name, char *value);
 //void(*Cvar_SetValue)		(char *name, float value);
 
-inline bool dx12::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
+bool dx12::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &height, int mode)
 {
+	LOG_FUNC();
+
 	int clientWidth = 0,
 		clientHeight = 0;
 
 	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	qboolean retVal = ri.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
+	qboolean retVal = m_refImport.Vid_GetModeInfo(&clientWidth, &clientHeight, mode);
 
-	if (retVal = qtrue)
+	LOG(info) << "<width> " << width << " <height> " << height << " <mode> " << mode << " {return value} " << retVal;
+
+	if (retVal == true)
 	{
 		width = msl::utilities::SafeInt<int>(clientWidth);
 		height = msl::utilities::SafeInt<int>(clientHeight);
@@ -101,49 +250,87 @@ inline bool dx12::Client::Vid_GetModeInfo(unsigned int &width, unsigned int &hei
 	return false;
 }
 
-inline void dx12::Client::Vid_MenuInit(void)
+void dx12::Client::Vid_MenuInit(void)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	ri.Vid_MenuInit();
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	m_refImport.Vid_MenuInit();
 }
 
-inline void dx12::Client::Vid_NewWindow(unsigned int width, unsigned int height)
+void dx12::Client::Vid_NewWindow(unsigned int width, unsigned int height)
 {
-	// Wait for exclusive access
-	std::lock_guard<std::mutex> guard(refImportMutex);
+	LOG_FUNC();
 
-	ri.Vid_NewWindow(msl::utilities::SafeInt<int>(width), msl::utilities::SafeInt<int>(height));
+	// Wait for exclusive access
+	std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+	m_refImport.Vid_NewWindow(msl::utilities::SafeInt<int>(width), msl::utilities::SafeInt<int>(height));
 }
 
 void dx12::Client::SetRefImport(refimport_t rimp)
-{ 
-	ri = rimp;
+{
+	LOG_FUNC();
+
+	m_refImport = rimp;
 
 	// Pass everything through that isn't explicitly overridden in the class functions above
-	dx12::Client::Cmd_AddCommand	= ri.Cmd_AddCommand;
-	dx12::Client::Cmd_Argv			= ri.Cmd_Argv;
-	dx12::Client::Cmd_ExecuteText	= ri.Cmd_ExecuteText;
-	dx12::Client::Cvar_Get			= ri.Cvar_Get;
-	dx12::Client::Cvar_Set			= ri.Cvar_Set;
-	dx12::Client::Cvar_SetValue		= ri.Cvar_SetValue;
-	dx12::Client::FS_FreeFile		= ri.FS_FreeFile;
+	dx12::Client::Cvar_Get = m_refImport.Cvar_Get;
+	dx12::Client::Cvar_Set = m_refImport.Cvar_Set;
+	dx12::Client::Cvar_SetValue = m_refImport.Cvar_SetValue;
 };
 
 dx12::Client::Client(refimport_t rimp)
 {
+	LOG_FUNC();
+
 	SetRefImport(rimp);
 }
 
 dx12::Client::~Client()
 {
 	// Null everything through that isn't explicitly overridden in the class functions above
-	dx12::Client::Cmd_AddCommand	= nullptr;
-	dx12::Client::Cmd_Argv			= nullptr;
-	dx12::Client::Cmd_ExecuteText	= nullptr;
-	dx12::Client::Cvar_Get			= nullptr;
-	dx12::Client::Cvar_Set			= nullptr;
-	dx12::Client::Cvar_SetValue		= nullptr;
-	dx12::Client::FS_FreeFile		= nullptr;
+	dx12::Client::Cvar_Get = nullptr;
+	dx12::Client::Cvar_Set = nullptr;
+	dx12::Client::Cvar_SetValue = nullptr;
+
+	// Blow out any stored cmdnames
+	for (auto & cmdName : m_cmdNames)
+	{
+		if (cmdName)
+		{
+			delete[] cmdName;
+			cmdName = nullptr;
+		}
+	}
 }
+
+#ifndef REF_HARD_LINKED
+// this is only here so the functions in q_shared.c and q_shwin.c can link
+void Sys_Error(char *error, ...)
+{
+	va_list		argptr;
+	char		text[1024];
+
+	va_start(argptr, error);
+	vsprintf_s(text, error, argptr);
+	va_end(argptr);
+
+	dx12::ref->client->Sys_Error(ERR_FATAL, text);
+}
+
+void Com_Printf(char *fmt, ...)
+{
+	va_list		argptr;
+	char		text[1024];
+
+	va_start(argptr, fmt);
+	vsprintf_s(text, fmt, argptr);
+	va_end(argptr);
+
+	dx12::ref->client->Con_Printf(PRINT_ALL, text);
+}
+
+#endif

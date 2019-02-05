@@ -23,21 +23,42 @@ ref_dx12
 2019 Bleeding Eye Studios
 */
 
+#ifndef __DX12_LOG_HPP__
+#define __DX12_LOG_HPP__
+#pragma once
+
 #include "dx12_local.hpp"
+
+#define LOG_FILE_NAME	"%y%m%d_%H%M_ref_dx12.log"
+#define LOG_PATH		"logs/ref_dx12"
+
+#define LOG(level)	BOOST_LOG_TRIVIAL(level)
+#define LOG_FUNC()	__pragma(warning(disable:4365))		/*Signed/unsigned mismatch*/		\
+					/*BOOST_LOG_NAMED_SCOPE(__func__)*/BOOST_LOG_NAMED_SCOPE(__FUNCTION__)	\
+					__pragma(warning(default:4365))		/*Signed/unsigned mismatch*/
+
+enum severity_level
+{
+	trace,
+	debug,
+	info,
+	warning,
+	error,
+	fatal
+};
 
 namespace dx12
 {
-	std::unique_ptr<Ref> ref = nullptr;
+	class Log 
+	{
+	private:
+		bool	m_initialized = false;
+
+	public:
+		Log();
+	};
+
+	extern std::unique_ptr<Log> log;
 }
 
-void	dx12::Ref::Init(refimport_t rimp)
-{
-	LOG_FUNC();
-
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
-}
+#endif // !__DX12_LOG_HPP__
