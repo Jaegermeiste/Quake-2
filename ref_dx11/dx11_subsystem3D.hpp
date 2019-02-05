@@ -34,9 +34,9 @@ namespace dx11
 	__declspec(align(16)) class Subsystem3D {
 		friend class System;
 	private:
-		XMMATRIX					m_3DworldMatrix;
-		XMMATRIX					m_3DviewMatrix;
-		XMMATRIX					m_3DprojectionMatrix;
+		DirectX::XMMATRIX			m_3DworldMatrix;
+		DirectX::XMMATRIX			m_3DviewMatrix;
+		DirectX::XMMATRIX			m_3DprojectionMatrix;
 
 	public:
 									Subsystem3D();

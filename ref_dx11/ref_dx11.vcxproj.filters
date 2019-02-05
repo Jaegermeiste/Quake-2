@@ -28,9 +28,6 @@
     <Filter Include="Header Files\d3dx">
       <UniqueIdentifier>{ee52ec58-674b-4aaa-8af6-9bc1150f3791}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\doom3bfg">
-      <UniqueIdentifier>{197cca00-3d84-461f-bf6d-108b532318a4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\client\ref.h">
@@ -216,9 +213,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx11_xplit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3_trisurf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

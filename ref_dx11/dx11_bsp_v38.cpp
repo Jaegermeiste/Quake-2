@@ -31,7 +31,7 @@ dx11::BSP38::BSP38(std::string name, unsigned int* buffer)
 {
 	m_name = name;
 	m_version = BSP38_VERSION;
-	m_header = reinterpret_cast<bsp_disk_header *>(buffer);
+	m_header = reinterpret_cast<dheader_t *>(buffer);
 
 	m_version = msl::utilities::SafeInt<unsigned int>(LittleLong(m_header->version));
 	if (m_version != BSP38_VERSION)
@@ -225,14 +225,6 @@ unsigned int dx11::BSP38::LoadTexInfo(bsp_disk_header* header)
 			d_texInfo[i].image = r_notexture;
 		}
 		*/
-
-		// u = x * u_axis.x + y * u_axis.y + z * u_axis.z + u_offset
-		// v = x * v_axis.x + y * v_axis.y + z * v_axis.z + v_offset
-
-		float u = x * d_texInfo[i].vecs[0][0] + y * d_texInfo[i].vecs[0][1] + z * d_texInfo[i].vecs[0][2] + d_texInfo[i].vecs[0][3];
-		float v = x * d_texInfo[i].vecs[1][0] + y * d_texInfo[i].vecs[1][1] + z * d_texInfo[i].vecs[1][2] + d_texInfo[i].vecs[1][3];
-
-		
 	}
 
 	return m_numVertices;

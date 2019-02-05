@@ -95,9 +95,6 @@ struct registration {};
 #pragma comment(lib, "D2d1.lib")
 #pragma comment(lib, "Dwrite.lib")
 
-using namespace DirectX;
-using namespace PackedVector;
-
 /*
 #ifdef _DEBUG
 // https://msdn.microsoft.com/en-us/library/windows/desktop/dn904627

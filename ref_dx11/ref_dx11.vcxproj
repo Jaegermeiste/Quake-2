@@ -158,7 +158,6 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="d3_trisurf.cpp" />
     <ClCompile Include="dx11_bsp.cpp" />
     <ClCompile Include="dx11_bsp_v29.cpp" />
     <ClCompile Include="dx11_bsp_v38.cpp" />
