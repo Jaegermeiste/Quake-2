@@ -117,8 +117,8 @@ void dx12::ImageManager::GetPalette(void)
 	SetRawPalette(nullptr);
 }
 
-/*
-std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage)
+
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string_view name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette)
 {
 	LOG_FUNC();
 
@@ -251,7 +251,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 
 	return texture;
 }
-*/
+
 
 inline void dx12::ImageManager::UploadScratchImage(ScratchImage &scratch, ID3D12Resource** pResource, bool generateMipMap)
 {
@@ -275,7 +275,7 @@ inline void dx12::ImageManager::UploadScratchImage(ScratchImage &scratch, ID3D12
 		*/
 }
 
-std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imagetype_t type)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string_view name, imagetype_t type)
 {
 	LOG_FUNC();
 
@@ -355,7 +355,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 		/*if (generateMipMap)
 		{
 			miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
-		}
+		}*/
 
 		if (m_images[name]->m_format.compare("pcx") == 0)
 		{

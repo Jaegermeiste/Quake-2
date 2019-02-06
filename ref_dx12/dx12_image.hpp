@@ -50,24 +50,24 @@ namespace dx12
 		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
 		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
 
-		void						UploadScratchImage(DirectX::ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
+		void							UploadScratchImage(ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
 
-		bool						UploadTexture2D(Texture2D *texture);
+		bool							UploadTexture2D(Texture2D *texture);
 	public:
-		bool						Initialize();
-		void						Shutdown();
+		bool							Initialize();
+		void							Shutdown();
 
-		DirectX::PackedVector::XMCOLOR	m_8to32table[256];
-		DirectX::PackedVector::XMCOLOR	m_rawPalette[256];
+		XMCOLOR							m_8to32table[256];
+		XMCOLOR							m_rawPalette[256];
 
 		std::shared_ptr<Texture2D>		m_conChars;
 		std::shared_ptr<Texture2D>		m_rawTexture;
 
 		void						SetRawPalette(const unsigned char *palette);
 
-		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
+		std::shared_ptr<Texture2D>	Load(std::string_view name, imagetype_t type);
 
-		//std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, DirectX::PackedVector::XMCOLOR *palette, D3D12_USAGE usage);
+		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string_view name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
 	};
 
 

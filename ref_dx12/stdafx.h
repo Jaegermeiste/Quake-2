@@ -129,6 +129,7 @@ struct registration {};
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
+using namespace DirectX::PackedVector;
 
 using Microsoft::WRL::ComPtr;
 

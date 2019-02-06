@@ -35,23 +35,9 @@ std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::strin
 {
 	LOG_FUNC();
 
-	std::shared_ptr<Resource> resource = nullptr;
+	AddResource(std::make_shared<Resource>(name, type));
 
-	// At this point, assume the handle is good and create the asset		
-	auto result = m_resources.push_back(std::make_shared<Resource>(name, type));
-
-	if (result.second == true)
-	{
-		// Insertion succeeded. Retrieve a pointer to the resource
-		//resource = *m_resources.get<tag_name>().find(name);
-		resource = *result.first;
-	}
-	else
-	{
-		LOG(warning) << "Resource insertion blocked by existing resource handle: " << std::to_string((*result.first)->GetHandle()) << ", name: " << (*result.first)->GetName() << ".";
-	}
-
-	return resource;
+	return GetResource(name, type);
 }
 
 bool dx12::ResourceManager::Initialize()
