@@ -13,43 +13,61 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\client">
-      <UniqueIdentifier>{feec8154-09e5-4ae1-8334-903608bc90bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\game">
-      <UniqueIdentifier>{4aef59c0-3a3e-4d6b-ba20-5ca76ab8e224}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\qcommon">
-      <UniqueIdentifier>{62ede93f-d42d-4853-baad-e4e67b4bb07f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\win32">
-      <UniqueIdentifier>{7d1b45a4-491e-4014-a1fa-db9e4fb5b3aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\game">
-      <UniqueIdentifier>{b343acb8-306f-42b5-8e9d-659834d5eb7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\win32">
-      <UniqueIdentifier>{f37766eb-5a19-4dc8-876c-cc7c5dcd0ef5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\d3dx">
       <UniqueIdentifier>{fe11c4b7-9bd4-4b5b-8dbf-47221f943aeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Q2base">
+      <UniqueIdentifier>{ea1eb121-d409-4c62-8c39-f12a0f5b35cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Q2base\client">
+      <UniqueIdentifier>{feec8154-09e5-4ae1-8334-903608bc90bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Q2base\game">
+      <UniqueIdentifier>{4aef59c0-3a3e-4d6b-ba20-5ca76ab8e224}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Q2base\qcommon">
+      <UniqueIdentifier>{62ede93f-d42d-4853-baad-e4e67b4bb07f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Q2base\win32">
+      <UniqueIdentifier>{7d1b45a4-491e-4014-a1fa-db9e4fb5b3aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Frontend">
+      <UniqueIdentifier>{dfeb097a-9bf0-4dd9-ac72-19a71eff5412}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backend">
+      <UniqueIdentifier>{4c32b3cc-317f-4789-af9b-21ecccc06e7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Q2base">
+      <UniqueIdentifier>{76b4ef46-a6cb-4f43-8687-a215346c2862}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Q2base\game">
+      <UniqueIdentifier>{b343acb8-306f-42b5-8e9d-659834d5eb7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Q2base\win32">
+      <UniqueIdentifier>{f37766eb-5a19-4dc8-876c-cc7c5dcd0ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Frontend">
+      <UniqueIdentifier>{8696a7a2-0704-4988-85e0-a42a014f4f46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backend">
+      <UniqueIdentifier>{c5b5a94e-02ad-4a9c-ac51-664af59cb15d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\client\ref.h">
-      <Filter>Header Files\client</Filter>
+      <Filter>Header Files\Q2base\client</Filter>
     </ClInclude>
     <ClInclude Include="..\game\q_shared.h">
-      <Filter>Header Files\game</Filter>
+      <Filter>Header Files\Q2base\game</Filter>
     </ClInclude>
     <ClInclude Include="..\qcommon\qcommon.h">
-      <Filter>Header Files\qcommon</Filter>
+      <Filter>Header Files\Q2base\qcommon</Filter>
     </ClInclude>
     <ClInclude Include="..\qcommon\qfiles.h">
-      <Filter>Header Files\qcommon</Filter>
+      <Filter>Header Files\Q2base\qcommon</Filter>
     </ClInclude>
     <ClInclude Include="..\win32\winquake.h">
-      <Filter>Header Files\win32</Filter>
+      <Filter>Header Files\Q2base\win32</Filter>
     </ClInclude>
     <ClInclude Include="dx12_local.hpp">
       <Filter>Header Files</Filter>
@@ -60,9 +78,6 @@
     <ClInclude Include="dx12_client.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_draw.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dx12_system.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -70,9 +85,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dx12_ref.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_image.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d3dx12.h">
@@ -126,18 +138,18 @@
     <ClInclude Include="dx12_resource.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dx12_draw.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_image.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx12_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dx12_client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_draw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dx12_system.cpp">
@@ -209,12 +221,6 @@
     <ClCompile Include="dx12_image_wal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="q_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="q_shwin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dx12_media.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -226,6 +232,18 @@
     </ClCompile>
     <ClCompile Include="dx12_resource_manager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_api.cpp">
+      <Filter>Source Files\Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_draw.cpp">
+      <Filter>Source Files\Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shwin.cpp">
+      <Filter>Source Files\Q2base</Filter>
+    </ClCompile>
+    <ClCompile Include="q_shared.cpp">
+      <Filter>Source Files\Q2base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

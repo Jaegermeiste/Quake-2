@@ -46,100 +46,107 @@ namespace dx12
 		friend class Draw;
 		friend class ImageManager;
 	private:
-		UINT							m_windowWidth = 0;
-		UINT							m_windowHeight = 0;
+		UINT										m_windowWidth				= 0;
+		UINT										m_windowHeight				= 0;
 
-		D3D_DRIVER_TYPE					m_driverType = D3D_DRIVER_TYPE_NULL;
-		D3D_FEATURE_LEVEL				m_featureLevel = D3D_FEATURE_LEVEL_12_1;
+		D3D_DRIVER_TYPE								m_driverType				= D3D_DRIVER_TYPE_NULL;
+		D3D_FEATURE_LEVEL							m_featureLevel				= D3D_FEATURE_LEVEL_12_1;
 
-		DXGI_ADAPTER_DESC				m_adapterDesc;
+		DXGI_ADAPTER_DESC							m_adapterDesc{};
 
-		D3D_FEATURE_LEVEL				m_featureLevelArray[NUM_D3D_FEATURE_LEVELS];
+		D3D_FEATURE_LEVEL							m_featureLevelArray[NUM_D3D_FEATURE_LEVELS]{};
 
-		LARGE_INTEGER					m_clockFrameStart;
-		LARGE_INTEGER					m_clockFrameEndCurrent;
-		LARGE_INTEGER					m_clockFrameEndPrevious;
+		LARGE_INTEGER								m_clockFrameStart{};
+		LARGE_INTEGER								m_clockFrameEndCurrent{};
+		LARGE_INTEGER								m_clockFrameEndPrevious{};
 
-		IDXGIFactory6*					m_dxgiFactory = nullptr;
-		IDXGIAdapter4*					m_dxgiAdapter = nullptr;
+		std::shared_ptr<IDXGIFactory6>				m_dxgiFactory				= nullptr;
+		std::shared_ptr<IDXGIAdapter4>				m_dxgiAdapter				= nullptr;
 
-		ID3D12Device*					m_d3dDevice = nullptr;
+		std::shared_ptr<ID3D12Device>				m_d3dDevice					= nullptr;
 
-		ID3D12Fence*					m_fence = nullptr;
-		HANDLE							m_fenceEvent;
-		UINT64							m_fenceValues[MAX_BACK_BUFFERS]{};
+		std::shared_ptr<ID3D12Fence>				m_fence						= nullptr;
+		HANDLE										m_fenceEvent;
+		UINT64										m_fenceValues[MAX_BACK_BUFFERS]{};
 
-		ID3D12CommandQueue*				m_commandQueue = nullptr;
-		ID3D12CommandAllocator*			m_directCmdListAllocs[MAX_BACK_BUFFERS]{};
-		ID3D12GraphicsCommandList*		m_commandListGfx = nullptr;
+		std::shared_ptr<ID3D12CommandQueue>			m_commandQueue				= nullptr;
+		std::shared_ptr<ID3D12CommandAllocator>		m_directCmdListAllocs[MAX_BACK_BUFFERS]{};
+		std::shared_ptr<ID3D12GraphicsCommandList>	m_commandListGfx			= nullptr;
 
-		UINT							m_multisampleCount = 0;
-		IDXGISwapChain3*				m_swapChain = nullptr;
+		UINT										m_multisampleCount			= 0;
+		std::shared_ptr<IDXGISwapChain3>			m_swapChain					= nullptr;
 
-		ID3D12DescriptorHeap*			m_descriptorHeap = nullptr;
-		UINT							m_descriptorsAllocated = 0;
-		UINT							m_descriptorSizeRTV = 0;
-		UINT							m_descriptorSizeDSV = 0;
-		UINT							m_descriptorSizeCBVSRVUAV = 0;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapRTV			= nullptr;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapDSV			= nullptr;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapCBVSRVUAV	= nullptr;
+		UINT										m_descriptorsAllocatedRTV	= 0;
+		UINT										m_descriptorsAllocatedDSV	= 0;
+		UINT										m_descriptorsAllocatedRTV	= 0;
+		UINT										m_descriptorSizeRTV			= 0;
+		UINT										m_descriptorSizeDSV			= 0;
+		UINT										m_descriptorSizeCBVSRVUAV	= 0;
 
-		UINT							m_backBufferCount = 0;
-		ID3D12Resource*					m_backBufferRenderTargets[MAX_BACK_BUFFERS]{};
-		UINT							m_backBufferIndex = 0;
+		UINT										m_backBufferCount			= 0;
+		std::shared_ptr<ID3D12Resource>				m_backBufferRenderTargets[MAX_BACK_BUFFERS]{};
+		UINT										m_backBufferIndex			= 0;
 
-		D3D12_VIEWPORT					m_viewport{};
-		D3D12_RECT						m_scissorRect{};
+		D3D12_VIEWPORT								m_viewport{};
+		D3D12_RECT									m_scissorRect{};
 
-		bool							m_d3dInitialized;
+		bool										m_d3dInitialized			= false;
 
-		bool							m_inRegistration;
-		bool							m_uploadBatchOpen;
+		bool										m_inRegistration			= false;
+		bool										m_uploadBatchOpen			= false;
 
-		bool							m_clockRunning;
+		bool										m_clockRunning				= false;
 
-		double							m_frameTime;
-		double							m_frameTimeEMA;
-		double							m_frameRateEMA;
+		double										m_frameTime					= 0.0;
+		double										m_frameTimeEMA				= 0.0;
+		double										m_frameRateEMA				= 0.0;
 
-		void							FillFeatureLevelArray(void);
+		void										FillFeatureLevelArray(void);
 
-		bool							InitFactory(HWND hWnd);
-		bool							InitAdapter();
-		bool							InitDeviceDebug();
-		bool							InitDevice(HWND hWnd);
-		bool							InitFences();
-		bool							InitCommandObjects();
-		bool							InitSwapChain(HWND hWnd);
-		bool							InitDescriptorHeaps();
-		bool							InitBackBufferRenderTargets();
-		bool							InitViewport();
-		bool							InitScissorRect();
+		bool										InitFactory(HWND hWnd);
+		bool										InitAdapter();
+		bool										InitDeviceDebug();
+		bool										InitDevice(HWND hWnd);
+		bool										InitFences();
+		bool										InitCommandObjects();
+		bool										InitSwapChain(HWND hWnd);
+		bool										InitDescriptorHeaps();
+		bool										InitBackBufferRenderTargets();
+		bool										InitViewport();
+		bool										InitScissorRect();
 
-		void							WaitForGPU();
+		void										WaitForGPU();
 
-		void							D3D_Shutdown();
+		void										D3D_Shutdown();
 
 		friend void dx12::Draw::Fill(int x, int y, int w, int h, int c);
+		friend std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
 
 	public:
-		std::unique_ptr<Subsystem2D>	subsystem2D;
-		std::unique_ptr<Subsystem3D>	subsystem3D;
-		std::unique_ptr<SubsystemText>	subsystemText;
+		std::unique_ptr<Subsystem2D>				subsystem2D;
+		std::unique_ptr<Subsystem3D>				subsystem3D;
+		std::unique_ptr<SubsystemText>				subsystemText;
 
-	private:
-		byte							m_padding[4];
+	protected:
+		std::shared_ptr<ID3D12DescriptorHeap>		GetHeapRTV() { return m_descriptorHeapRTV; };
+		std::shared_ptr<ID3D12DescriptorHeap>		GetHeapDSV() { return m_descriptorHeapDSV; };
+		std::shared_ptr<ID3D12DescriptorHeap>		GetHeapCBVSRVUAV() { return m_descriptorHeapCBVSRVUAV; };
 
 	public:
-										Dx();
+													Dx();
 
-		bool							Initialize(HWND hWnd);
-		void							Shutdown();
+		bool										Initialize(HWND hWnd);
+		void										Shutdown();
 
-		void							BeginFrame();
-		void							RenderFrame(refdef_t *fd);
-		void							EndFrame();
+		void										BeginFrame();
+		void										RenderFrame(refdef_t *fd);
+		void										EndFrame();
 
 		// Commands
-		void							D3D_Strings_f();
+		void										D3D_Strings_f();
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

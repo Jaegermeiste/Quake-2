@@ -210,7 +210,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MipLevels = 1;
 
-			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, &srvDesc, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+			ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, &srvDesc, ref->sys->dx->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart());
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
