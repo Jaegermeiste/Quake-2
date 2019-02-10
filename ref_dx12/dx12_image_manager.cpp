@@ -64,10 +64,10 @@ void dx12::ImageManager::GetPalette(void)
 	LOG_FUNC();
 
 	byte			*raw = nullptr,
-		*pic = nullptr,
-		*pal = nullptr;
-	unsigned int	width = 0,
-		height = 0;
+					*pic = nullptr,
+					*pal = nullptr;
+	UINT64			width = 0;
+	unsigned int	height = 0;
 
 	//
 	// load the file
@@ -118,7 +118,7 @@ void dx12::ImageManager::GetPalette(void)
 }
 
 
-std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string_view name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette)
 {
 	LOG_FUNC();
 
@@ -128,42 +128,29 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 
 	if (raw != nullptr)
 	{
-		texture = std::make_shared<dx12::Texture2D>();
+		texture = std::make_shared<dx12::Texture2D>(name);
 
-		ZeroMemory(&texture->m_textureDesc, sizeof(D3D12_TEXTURE2D_DESC));
+		ZeroMemory(&texture->m_resourceDesc, sizeof(D3D12_RESOURCE_DESC));
 		ZeroMemory(&data, sizeof(D3D12_SUBRESOURCE_DATA));
 
-		texture->m_name = name;
-		texture->m_textureDesc.Width = width;
-		texture->m_textureDesc.Height = height;
+		texture->m_resourceDesc.Width = width;
+		texture->m_resourceDesc.Height = height;
 		if (generateMipmaps)
 		{
-			texture->m_textureDesc.MipLevels = 0;
-			texture->m_textureDesc.MiscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
+			texture->m_resourceDesc.MipLevels = 0;
 		}
 		else
 		{
-			texture->m_textureDesc.MipLevels = 1;
-			texture->m_textureDesc.MiscFlags = 0;
+			texture->m_resourceDesc.MipLevels = 1;
 		}
-		texture->m_textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		texture->m_textureDesc.SampleDesc.Count = 1;
-		texture->m_textureDesc.SampleDesc.Quality = static_cast<UINT>(D3D12_STANDARD_MULTISAMPLE_PATTERN);
-		texture->m_textureDesc.Usage = usage;
-		texture->m_textureDesc.BindFlags = D3D12_BIND_SHADER_RESOURCE;
+		texture->m_resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texture->m_resourceDesc.SampleDesc.Count = 1;
+		texture->m_resourceDesc.SampleDesc.Quality = static_cast<UINT>(DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN);
+		texture->m_resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		texture->m_resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-		if (usage == D3D12_USAGE_DYNAMIC)
-		{
-			texture->m_textureDesc.CPUAccessFlags = D3D12_CPU_ACCESS_WRITE;
-		}
-		else
-		{
-			texture->m_textureDesc.CPUAccessFlags = 0;
-		}
-
-		texture->m_textureDesc.ArraySize = 1;
-		data.SysMemPitch = width * (sizeof(unsigned int) / sizeof(byte));
-		data.SysMemSlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
+		data.RowPitch = width * (sizeof(unsigned int) / sizeof(byte));
+		data.SlicePitch = width * height * (sizeof(unsigned int) / sizeof(byte));
 		unsigned int* rgba32 = nullptr;
 
 		if (bpp == BPP_8)
@@ -203,9 +190,9 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 			rgba32 = reinterpret_cast<unsigned int*>(raw);
 		}
 
-		data.pSysMem = rgba32;
+		data.pData = rgba32;
 
-		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_textureDesc, &data, &texture->m_texture2D);
+		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_resourceDesc, &data, &texture->m_texture2D);
 		if (FAILED(hr))
 		{
 			LOG(error) << "Failed to create texture";
@@ -214,28 +201,16 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 			return nullptr;
 		}
 
-		// Get texture/resource as necessary
-		if ((texture->m_resource) && (!texture->m_texture2D))
-		{
-			hr = texture->m_resource->QueryInterface(IID_ID3D12Texture2D, (void **)&texture->m_texture2D);
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
-			}
-		}
-		else if ((!texture->m_resource) && (texture->m_texture2D))
-		{
-			hr = texture->m_texture2D->QueryInterface(IID_ID3D12Resource, (void **)&texture->m_resource);
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
-			}
-		}
-
-		// Get SRV as necessary
+		// Get SRV
 		if ((texture->m_resource) && (!texture->m_shaderResourceView))
 		{
-			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, NULL, &texture->m_shaderResourceView);
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = texture->m_resourceDesc.Format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = 1;
+
+			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, &srvDesc, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
@@ -243,9 +218,9 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 		}
 
 		// Overwrite the texture desc with whatever is in memory/on GPU
-		if (texture->m_texture2D)
+		if (texture)
 		{
-			texture->m_texture2D->GetDesc(&texture->m_textureDesc);
+			texture->UpdateDesc();
 		}
 	}
 
@@ -253,29 +228,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 }
 
 
-inline void dx12::ImageManager::UploadScratchImage(ScratchImage &scratch, ID3D12Resource** pResource, bool generateMipMap)
-{
-	LOG_FUNC();
-
-	HRESULT hr = E_UNEXPECTED;
-	unsigned int miscFlags = 0;
-	/*
-		if (generateMipMap)
-		{
-			miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
-		}
-
-		hr = CreateTextureEx(ref->sys->dx->m_d3dDevice, scratch.GetImages(), scratch.GetImageCount(), scratch.GetMetadata(),
-			D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE, 0, miscFlags, false, pResource);
-
-		if (FAILED(hr))
-		{
-			ref->client->Con_Printf(PRINT_ALL, "Failed to create resource for ScratchImage.");
-		}
-		*/
-}
-
-std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string_view name, imagetype_t type)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imagetype_t type)
 {
 	LOG_FUNC();
 
@@ -357,37 +310,23 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string_view name,
 			miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
 		}*/
 
-		if (m_images[name]->m_format.compare("pcx") == 0)
+		if (texture->m_format.compare("pcx") == 0)
 		{
 			byte	*pic = nullptr, *palette = nullptr;
-			LoadPCX(buffer, bufferSize, &pic, &palette, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height);
-			m_images[name] = CreateTexture2DFromRaw(name, m_images[name]->m_textureDesc.Width, m_images[name]->m_textureDesc.Height, false, BPP_8, pic, m_8to32table, D3D12_USAGE_DEFAULT);	// FIXME
+			LoadPCX(buffer, bufferSize, &pic, &palette, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height);
+			texture = CreateTexture2DFromRaw(name, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, false, BPP_8, pic, m_8to32table);	// FIXME
 		}
-		else if (m_images[name]->m_format.compare("wal") == 0)
+		else if (texture->m_format.compare("wal") == 0)
 		{
 			// Requesting a .wal file
 		}
-		else if (m_images[name]->m_format.compare("tga") == 0)
+		else if (texture->m_format.compare("tga") == 0)
 		{
 			// Requesting a .tga file
-			ScratchImage scratch;
-			TexMetadata info;
-			hr = LoadFromTGAMemory(buffer, static_cast<size_t>(bufferSize), &info, scratch);
-
-			UploadScratchImage(scratch, &m_images[name]->m_resource, generateMipMap);
-
 		}
-		else if (m_images[name]->m_format.compare("dds") == 0)
+		else if (texture->m_format.compare("dds") == 0)
 		{
 			// .dds file
-			hr = CreateDDSTextureFromMemoryEx(ref->sys->dx->m_d3dDevice,
-				ref->sys->dx->m_immediateContext,
-				static_cast<uint8_t*>(buffer), static_cast<size_t>(bufferSize),
-				0, D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE,
-				NULL, miscFlags,
-				false,
-				&m_images[name]->m_resource, &m_images[name]->m_shaderResourceView,
-				nullptr);
 
 			if (FAILED(hr))
 			{
@@ -395,7 +334,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string_view name,
 			}
 
 		}
-		else if (m_images[name]->m_format.compare("hdr") == 0)
+		else if (texture->m_format.compare("hdr") == 0)
 		{
 			// Requesting a .hdr file
 			TexMetadata metadata;
@@ -407,41 +346,23 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string_view name,
 			}
 			else
 			{
-				ScratchImage scratch;
-				hr = LoadFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), &metadata, scratch);
 
-				if (FAILED(hr))
-				{
-					ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with HDR loader.");
-				}
-				else
-				{
-					// Upload scratch
-					UploadScratchImage(scratch, &m_images[name]->m_resource, generateMipMap);
-				}
 			}
 		}
-		else if (m_images[name]->m_format.compare("exr") == 0)
+		else if (texture->m_format.compare("exr") == 0)
 		{
 			// Requesting a .exr file
 		}
 		else
 		{
 			// Assume a WIC compatible format (.bmp, .jpg, .png, .tif, .gif, .ico, .wdp, .jxr)
-			hr = CreateWICTextureFromMemoryEx(ref->sys->dx->m_d3dDevice,
-				ref->sys->dx->m_immediateContext,
-				static_cast<uint8_t*>(buffer), static_cast<size_t>(bufferSize),
-				0, D3D12_USAGE_DEFAULT, D3D12_BIND_SHADER_RESOURCE,
-				NULL, miscFlags,
-				WIC_LOADER_DEFAULT,
-				&m_images[name]->m_resource, &m_images[name]->m_shaderResourceView);
 
 			if (FAILED(hr))
 			{
 				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with WIC loader.");
 			}
 		}
-		*/
+		
 		LOG(info) << "Successfully uploaded " << name << " to GPU.";
 	}
 

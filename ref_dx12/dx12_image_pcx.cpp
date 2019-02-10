@@ -30,7 +30,7 @@ ref_dx12
 LoadPCX
 ==============
 */
-void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height)
+void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette, UINT64 &width, unsigned int &height)
 {
 	LOG_FUNC();
 
@@ -38,7 +38,7 @@ void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette,
 	byte	dataByte = 0;
 	int		runLength = 0;
 	byte	*out = nullptr,
-		*pix = nullptr;
+			*pix = nullptr;
 
 	*pic = nullptr;
 	*palette = nullptr;

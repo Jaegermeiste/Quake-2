@@ -97,6 +97,7 @@ namespace dx12
 	{
 		friend class Resource;
 	private:
+		std::unique_ptr <ResourceUploadBatch>								m_uploader;
 		ResourceSet															m_resources;
 		std::unordered_map<dxhandle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
 

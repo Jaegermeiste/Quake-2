@@ -47,10 +47,8 @@ namespace dx12
 		qhandle_t				m_lastHandle = 0;
 
 		void GetPalette(void);
-		static void LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height);
-		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, unsigned int &width, unsigned int &height);
-
-		void							UploadScratchImage(ScratchImage & image, ID3D12Resource** pResource, bool generateMipMap);
+		static void LoadWal(std::string fileName, byte **pic, UINT64 &width, unsigned int &height);
+		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, UINT64 &width, unsigned int &height);
 
 		bool							UploadTexture2D(Texture2D *texture);
 	public:
@@ -65,9 +63,9 @@ namespace dx12
 
 		void						SetRawPalette(const unsigned char *palette);
 
-		std::shared_ptr<Texture2D>	Load(std::string_view name, imagetype_t type);
+		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
 
-		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string_view name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
+		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
 	};
 
 
