@@ -192,6 +192,9 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std:
 
 		data.pData = rgba32;
 
+		DescriptorHeap heap();
+
+
 		hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_resourceDesc, &data, &texture->m_texture2D);
 		if (FAILED(hr))
 		{
