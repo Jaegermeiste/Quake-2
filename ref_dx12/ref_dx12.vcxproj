@@ -131,6 +131,7 @@
     <ClInclude Include="dx12_bsp.hpp" />
     <ClInclude Include="dx12_client.hpp" />
     <ClInclude Include="dx12_cvar.hpp" />
+    <ClInclude Include="dx12_descriptorHeap.hpp" />
     <ClInclude Include="dx12_draw.hpp" />
     <ClInclude Include="dx12_dx.hpp" />
     <ClInclude Include="dx12_image.hpp" />
