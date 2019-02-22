@@ -46,11 +46,11 @@ namespace dx12
 		friend class Draw;
 		friend class ImageManager;
 	private:
-		UINT										m_windowWidth				= 0;
-		UINT										m_windowHeight				= 0;
+		UINT										m_windowWidth					= 0;
+		UINT										m_windowHeight					= 0;
 
-		D3D_DRIVER_TYPE								m_driverType				= D3D_DRIVER_TYPE_NULL;
-		D3D_FEATURE_LEVEL							m_featureLevel				= D3D_FEATURE_LEVEL_12_1;
+		D3D_DRIVER_TYPE								m_driverType					= D3D_DRIVER_TYPE_NULL;
+		D3D_FEATURE_LEVEL							m_featureLevel					= D3D_FEATURE_LEVEL_12_1;
 
 		DXGI_ADAPTER_DESC							m_adapterDesc{};
 
@@ -60,49 +60,49 @@ namespace dx12
 		LARGE_INTEGER								m_clockFrameEndCurrent{};
 		LARGE_INTEGER								m_clockFrameEndPrevious{};
 
-		std::shared_ptr<IDXGIFactory6>				m_dxgiFactory				= nullptr;
-		std::shared_ptr<IDXGIAdapter4>				m_dxgiAdapter				= nullptr;
+		std::shared_ptr<IDXGIFactory6>				m_dxgiFactory					= nullptr;
+		std::shared_ptr<IDXGIAdapter4>				m_dxgiAdapter					= nullptr;
 
-		std::shared_ptr<ID3D12Device>				m_d3dDevice					= nullptr;
+		std::shared_ptr<ID3D12Device>				m_d3dDevice						= nullptr;
 
-		std::shared_ptr<ID3D12Fence>				m_fence						= nullptr;
+		std::shared_ptr<ID3D12Fence>				m_fence							= nullptr;
 		HANDLE										m_fenceEvent;
 		UINT64										m_fenceValues[MAX_BACK_BUFFERS]{};
 
-		std::shared_ptr<ID3D12CommandQueue>			m_commandQueue				= nullptr;
+		std::shared_ptr<ID3D12CommandQueue>			m_commandQueue					= nullptr;
 		std::shared_ptr<ID3D12CommandAllocator>		m_directCmdListAllocs[MAX_BACK_BUFFERS]{};
-		std::shared_ptr<ID3D12GraphicsCommandList>	m_commandListGfx			= nullptr;
+		std::shared_ptr<ID3D12GraphicsCommandList>	m_commandListGfx				= nullptr;
 
-		UINT										m_multisampleCount			= 0;
-		std::shared_ptr<IDXGISwapChain3>			m_swapChain					= nullptr;
+		UINT										m_multisampleCount				= 0;
+		std::shared_ptr<IDXGISwapChain3>			m_swapChain						= nullptr;
 
-		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapRTV			= nullptr;
-		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapDSV			= nullptr;
-		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapCBVSRVUAV	= nullptr;
-		UINT										m_descriptorsAllocatedRTV	= 0;
-		UINT										m_descriptorsAllocatedDSV	= 0;
-		UINT										m_descriptorsAllocatedRTV	= 0;
-		UINT										m_descriptorSizeRTV			= 0;
-		UINT										m_descriptorSizeDSV			= 0;
-		UINT										m_descriptorSizeCBVSRVUAV	= 0;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapRTV				= nullptr;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapDSV				= nullptr;
+		std::shared_ptr<ID3D12DescriptorHeap>		m_descriptorHeapCBVSRVUAV		= nullptr;
+		UINT										m_descriptorsAllocatedRTV		= 0;
+		UINT										m_descriptorsAllocatedDSV		= 0;
+		UINT										m_descriptorsAllocatedCBVSRVUAV	= 0;
+		UINT										m_descriptorSizeRTV				= 0;
+		UINT										m_descriptorSizeDSV				= 0;
+		UINT										m_descriptorSizeCBVSRVUAV		= 0;
 
-		UINT										m_backBufferCount			= 0;
+		UINT										m_backBufferCount				= 0;
 		std::shared_ptr<ID3D12Resource>				m_backBufferRenderTargets[MAX_BACK_BUFFERS]{};
-		UINT										m_backBufferIndex			= 0;
+		UINT										m_backBufferIndex				= 0;
 
 		D3D12_VIEWPORT								m_viewport{};
 		D3D12_RECT									m_scissorRect{};
 
-		bool										m_d3dInitialized			= false;
+		bool										m_d3dInitialized				= false;
 
-		bool										m_inRegistration			= false;
-		bool										m_uploadBatchOpen			= false;
+		bool										m_inRegistration				= false;
+		bool										m_uploadBatchOpen				= false;
 
-		bool										m_clockRunning				= false;
+		bool										m_clockRunning					= false;
 
-		double										m_frameTime					= 0.0;
-		double										m_frameTimeEMA				= 0.0;
-		double										m_frameRateEMA				= 0.0;
+		double										m_frameTime						= 0.0;
+		double										m_frameTimeEMA					= 0.0;
+		double										m_frameRateEMA					= 0.0;
 
 		void										FillFeatureLevelArray(void);
 
