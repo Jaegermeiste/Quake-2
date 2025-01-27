@@ -67,12 +67,12 @@ namespace dx12
 
 		void						OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string shaderFilename);
 
-		bool						CompileShader(ID3D12Device* device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements);
+		bool						CompileShader(ComPtr<ID3D12Device5> device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements);
 
 	public:
 									Shader();
 
-		bool						Initialize(ID3D12Device* device, std::string vsFileName, std::string psFileName);
+		bool						Initialize(ComPtr<ID3D12Device5> device, std::string vsFileName, std::string psFileName);
 
 		//bool						SetShaderParameters(ID3D12DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
 

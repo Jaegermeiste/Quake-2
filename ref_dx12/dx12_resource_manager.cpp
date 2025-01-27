@@ -31,15 +31,6 @@ inline dxhandle_t dx12::ResourceManager::GenerateHandleForString(std::string str
 	return std::hash<std::string>{}(string);
 }
 
-std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource(std::string name, resourceType_t type)
-{
-	LOG_FUNC();
-
-	AddResource(std::make_shared<Resource>(name, type));
-
-	return GetResource(name, type);
-}
-
 bool dx12::ResourceManager::Initialize()
 {
 	LOG_FUNC();
@@ -58,53 +49,117 @@ void dx12::ResourceManager::Shutdown()
 	m_resources.clear();
 }
 
-std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(dxhandle_t handle)
+/*std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(dxhandle_t handle)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<Resource> resource = nullptr;
+	try {
+		if (!m_resources.empty()) {
+			auto result = m_resources.get<tag_handle>().find(handle);
 
-	auto result = m_resources.get<tag_handle>().find(handle);
-	auto res2 = *result;
-
-	if ( res2 > 0)
-	{
-		// Found the resource
-		resource = *m_resources.get<tag_handle>().find(handle);
+			if (result != m_resources.get<tag_handle>().end())
+			{
+				// Found the resource
+				return std::make_shared<dx12::Resource>(*result);
+			}
+			else
+			{
+				LOG(warning) << "Resource for handle " << handle << " not found.";
+			}
+		}
 	}
-	else
-	{
-		LOG(warning) << "Resource for handle " << handle << " not found.";
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+	
+	return nullptr;
+}*/
+
+template<DerivedFrom<dx12::Resource> T>
+std::shared_ptr<T> dx12::ResourceManager::GetResource(dxhandle_t handle)
+{
+	LOG_FUNC();
+
+	try {
+		if (!m_resources.empty()) {
+			auto result = m_resources.get<tag_handle>().find(handle);
+
+			if (result != m_resources.get<tag_handle>().end())
+			{
+				auto resource = *result;
+				auto dummy = std::make_shared<T>("dummy");
+
+				// Found the resource, see if it is the right type
+				if (resource->GetType() == dummy->GetType()) {
+					return std::dynamic_pointer_cast<T>(resource);
+				}
+
+				LOG(warning) << "Resource for handle " << handle << " found, but wrong type.";
+			}
+			else
+			{
+				LOG(warning) << "Resource for handle " << handle << " not found.";
+			}
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return resource;
+	return nullptr;
 }
 
-std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(std::string name, resourceType_t type)
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(dxhandle_t handle);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(dxhandle_t handle);
+
+/*std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(std::string name)
 {
 	LOG_FUNC();
 
 	dxhandle_t handle = GenerateHandleForString(name);
 
 	return GetResource(handle);
-}
+}*/
 
-std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetOrCreateResource(std::string name, resourceType_t type)
+template<DerivedFrom<dx12::Resource> T>
+std::shared_ptr<T> dx12::ResourceManager::GetResource(std::string name)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<Resource> resource = nullptr;
+	dxhandle_t handle = GenerateHandleForString(name);
 
-	resource = GetResource(name, type);
+	return GetResource<T>(handle);
+}
+
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(std::string name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(std::string name);
+
+template<DerivedFrom<dx12::Resource> T>
+std::shared_ptr<T> dx12::ResourceManager::GetOrCreateResource(std::string name)
+{
+	LOG_FUNC();
+
+	std::shared_ptr<T> resource = nullptr;
+
+	resource = GetResource<T>(name);
 
 	if (resource == nullptr)
 	{
 		// Resource not found
-		resource = CreateResource(name, type);
+		resource = CreateResource<T>(name);
 	}
 
 	return resource;
 }
+
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetOrCreateResource<dx12::Resource>(std::string name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetOrCreateResource<dx12::Texture2D>(std::string name);
 
 resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t handle, bool validate)
 {
@@ -115,7 +170,7 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 	if (validate)
 	{
 		// Check if handle is a valid resource
-		auto resource = GetResource(handle);
+		auto resource = GetResource<Resource>(handle);
 		if (resource)
 		{
 			if (resource->GetHandle() != handle)
@@ -147,20 +202,22 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 	return q2handle;
 }
 
-void dx12::ResourceManager::AddResource(std::shared_ptr<Resource> resource)
+template<DerivedFrom<dx12::Resource> T>
+std::shared_ptr<T> dx12::ResourceManager::CreateResource(std::string name)
 {
-	if (resource != nullptr)
+	LOG_FUNC();
+
+	try
 	{
-		if (GetResource(resource->GetHandle()) == nullptr)
+		if (GetResource<T>(name) == nullptr)
 		{
 			// Resource not found already
-			auto result = m_resources.push_back(resource);
+			auto result = m_resources.push_back(std::make_shared<T>(name));
 
 			if (result.second == true)
 			{
-				// Insertion succeeded. Retrieve a pointer to the resource
-				//resource = *m_resources.get<tag_name>().find(name);
-				resource = *result.first;
+				// Insertion succeeded. Return the pointer to the resource
+				return std::dynamic_pointer_cast<T>(*result.first);
 			}
 			else
 			{
@@ -168,4 +225,14 @@ void dx12::ResourceManager::AddResource(std::shared_ptr<Resource> resource)
 			}
 		}
 	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return nullptr;
 }
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource<dx12::Resource>(std::string name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::CreateResource<dx12::Texture2D>(std::string name);

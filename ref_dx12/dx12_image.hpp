@@ -61,11 +61,11 @@ namespace dx12
 		std::shared_ptr<Texture2D>		m_conChars;
 		std::shared_ptr<Texture2D>		m_rawTexture;
 
-		void						SetRawPalette(const unsigned char *palette);
+		void						    SetRawPalette(const unsigned char *palette);
 
-		std::shared_ptr<Texture2D>	Load(std::string name, imagetype_t type);
+		std::shared_ptr<Texture2D>	    Load(std::string name, imagetype_t type);
 
-		std::shared_ptr<Texture2D>	CreateTexture2DFromRaw(std::string name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
+		void                     	    UpdateTexture2DFromRaw(std::shared_ptr<Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
 	};
 
 

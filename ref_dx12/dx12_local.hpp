@@ -105,7 +105,7 @@ typedef enum imagetype_e
 
 #define EMA_ALPHA	0.9
 
-#define SAFE_RELEASE(comObject)	if (comObject) { comObject->Release(); comObject = nullptr; }
+#define SAFE_RELEASE(comObject)	try { if (comObject) { comObject->Release(); comObject = nullptr; } } catch (...) { LOG(error) << "Exception in SAFE_RELEASE"; }
 
 extern CRITICAL_SECTION CriticalSection;
 #ifdef _DEBUG
@@ -133,11 +133,11 @@ namespace dx12 {
 #include "dx12_subsystem2D.hpp"
 #include "dx12_subsystem3D.hpp"
 #include "dx12_subsystemText.hpp"
+#include "dx12_texture2D.hpp"
+#include "dx12_image.hpp"
 #include "dx12_dx.hpp"
 #include "dx12_system.hpp"
 #include "dx12_client.hpp"
-#include "dx12_texture2D.hpp"
-#include "dx12_image.hpp"
 #include "dx12_model.hpp"
 #include "dx12_light.hpp"
 #include "dx12_xplit.hpp"

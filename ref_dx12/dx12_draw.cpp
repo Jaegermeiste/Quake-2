@@ -44,7 +44,7 @@ void dx12::Draw::Pic(int x, int y, std::string name)
 
 	if (image)
 	{
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->GetWidth()), msl::utilities::SafeInt<int>(image->GetHeight()), DirectX::Colors::White);
+		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->GetWidth()), msl::utilities::SafeInt<int>(image->GetHeight()), DirectX::Colors::White);
 
 		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 	}
@@ -58,7 +58,7 @@ void dx12::Draw::StretchPic(int x, int y, int w, int h, std::string name)
 
 	if (image)
 	{
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
 		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 	}
@@ -81,7 +81,7 @@ void dx12::Draw::Char(int x, int y, unsigned char c)
 	float frow = row * size;
 	float fcol = col * size;
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
+	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
 
 	// Render the overlay to the back buffer
 	//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
@@ -124,7 +124,7 @@ void dx12::Draw::TileClear(int x, int y, int w, int h, std::string name)
 
 	if (image)
 	{
-		ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
 		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 	}
@@ -145,7 +145,7 @@ void dx12::Draw::Fill(int x, int y, int w, int h, int c)
 	color.f[1] = ref->media->img->m_8to32table[c].g;
 	color.f[2] = ref->media->img->m_8to32table[c].b;
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, color);
+	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, color);
 
 	// Render the overlay to the back buffer
 	//ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);
@@ -203,7 +203,7 @@ void dx12::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 		*/
 	}
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
 
 	//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_rawTexture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
 

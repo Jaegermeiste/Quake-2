@@ -70,6 +70,7 @@ namespace dx12
 			m_origin		= DirectX::XMVectorZero();
 			m_color			= DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);	// White Light by default
 			m_flareOrigin	= DirectX::XMVectorZero();
+			m_padding       = 0;
 		};
 	};
 }

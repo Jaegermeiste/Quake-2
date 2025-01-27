@@ -25,12 +25,12 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-unsigned int dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length)
+size_t dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length)
 {
 	// inputs are float[3]
 	float*			inputArray	= reinterpret_cast<float*>(*(&data + offset));
-	unsigned int	i			= 0, 
-					count		= length / sizeof(float[3]);
+	unsigned int	i           = 0;
+	size_t          count       = length / sizeof(float[3]);
 
 	// Clear any existing data
 	if (m_vertices != nullptr)

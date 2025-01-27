@@ -43,6 +43,10 @@ ref_dx12
 #include <algorithm>
 #include <filesystem>
 #include <exception>
+#include <stdexcept>
+#include <concepts>
+#include <typeinfo>
+#include <type_traits>
 
 // Boost Includes
 #define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE	1
@@ -113,7 +117,7 @@ struct registration {};
 #include "Mouse.h"
 #include "PostProcess.h"
 #include "PrimitiveBatch.h"
-//#include "ResourceUploadBatch.h"
+#include "ResourceUploadBatch.h"
 #include "ScreenGrab.h"
 #include "SimpleMath.h"
 #include "SpriteBatch.h"
@@ -147,6 +151,23 @@ namespace DX
 			// Set a breakpoint on this line to catch DirectX API errors
 			throw std::exception();
 		}
+	}
+}
+
+// Define a concept to check if T is derived from Parent
+template<typename T, typename Parent>
+concept DerivedFrom = std::is_base_of_v<Parent, T>;
+
+template<typename T, typename U>
+concept SameType = std::is_same_v<T, U>;
+
+template<typename T, typename U>
+auto CompareSharedPtrTypes(const std::shared_ptr<T>& ptr1, const std::shared_ptr<U>& ptr2) {
+	if constexpr (SameType<T, U>) {
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 

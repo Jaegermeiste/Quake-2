@@ -1296,7 +1296,7 @@ void Com_sprintf(char *dest, int size, char *fmt, ...)
 	va_end(argptr);
 	if (len >= size)
 		Com_Printf(const_cast<char*>("Com_sprintf: overflow of %i in %i\n"), len, size);
-	strncpy(dest, bigbuffer, size - 1);
+	strncpy(dest, bigbuffer, static_cast<size_t>(size) - 1);
 }
 
 /*

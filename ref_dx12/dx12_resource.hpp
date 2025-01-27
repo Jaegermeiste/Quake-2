@@ -47,19 +47,18 @@ namespace dx12
 	class Resource : public std::enable_shared_from_this<Resource>
 	{
 		friend class ResourceManager;
-	private:
+
+	protected:
 		dxhandle_t				m_handle;
 		std::string				m_name;
 		resourceType_t			m_type;
-
-	protected:
 		D3D12_RESOURCE_DESC		m_resourceDesc;
 		ID3D12Resource*			m_resource = nullptr;
 
 	public:
-		Resource(std::string name, resourceType_t type) {
+		Resource(std::string name) {
 			m_name = name; 
-			m_type = type; 
+			m_type = RESOURCE_NONE;
 			m_handle = std::hash<std::string>{}(name);
 			memset(&m_resourceDesc, 0, sizeof(D3D12_RESOURCE_DESC));
 			m_resource = nullptr;
@@ -70,7 +69,9 @@ namespace dx12
 		const	std::string_view			GetNameView()	const	{ return m_name; };
 		const	resourceType_t				GetType()		const	{ return m_type; };
 
-		void								UpdateDesc()			{ if (m_resource != nullptr) { memcpy(&m_resourceDesc, &(m_resource->GetDesc()), sizeof(D3D12_RESOURCE_DESC)); } };
+		void								UpdateDesc()			{ if (m_resource != nullptr) { m_resourceDesc = m_resource->GetDesc(); } };
+
+		virtual ~Resource() {}
 	};
 
 	struct tag_handle {};
@@ -97,24 +98,30 @@ namespace dx12
 	{
 		friend class Resource;
 	private:
-		std::unique_ptr <ResourceUploadBatch>								m_uploader;
+		std::unique_ptr<ResourceUploadBatch>								m_uploader;
 		ResourceSet															m_resources;
 		std::unordered_map<dxhandle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
 
-		std::shared_ptr<Resource>											CreateResource			(std::string name, resourceType_t type);
-
 	protected:
-		static dxhandle_t													GenerateHandleForString(std::string string);
+		static dxhandle_t													GenerateHandleForString (std::string string);
 
 	public:
 		bool																Initialize();
 		void																Shutdown();
 
 
-		std::shared_ptr<Resource>											GetResource				(dxhandle_t handle);
-		std::shared_ptr<Resource>											GetResource				(std::string name, resourceType_t type);
-		std::shared_ptr<Resource>											GetOrCreateResource		(std::string name, resourceType_t type);
-		void																AddResource				(std::shared_ptr<Resource> resource);
+		//std::shared_ptr<Resource>											GetResource				(dxhandle_t handle);
+		//std::shared_ptr<Resource>											GetResource				(std::string name);
+		template <DerivedFrom<dx12::Resource> T>
+		std::shared_ptr<T>											        GetResource             (dxhandle_t handle);
+		template <DerivedFrom<dx12::Resource> T>
+		std::shared_ptr<T>											        GetResource             (std::string name);
+
+		template <DerivedFrom<dx12::Resource> T>
+		std::shared_ptr<T>											        GetOrCreateResource		(std::string name);
+		
+		template <DerivedFrom<dx12::Resource> T>
+		std::shared_ptr<T> 											        CreateResource          (std::string name);
 
 
 		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle, bool validate = false);

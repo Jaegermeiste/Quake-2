@@ -38,10 +38,16 @@ namespace dx12
 	public:
 		imagetype_t					m_imageType;
 		std::string					m_format;
+		ComPtr<ID3D12Resource>      m_texture;
 
 		unsigned int				m_registrationSequence = 0;
 
-		Texture2D(std::string name) : Resource(name, RESOURCE_TEXTURE2D) {};
+		Texture2D(std::string name) : Resource(name) 
+		{ 
+			m_type      = RESOURCE_TEXTURE2D;
+			m_imageType = it_pic;
+			m_format    = "UNKNOWN";
+		};
 
 		unsigned int				GetWidth() { return m_resourceDesc.Width; };
 		unsigned int				GetHeight() { return m_resourceDesc.Height; };

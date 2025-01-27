@@ -46,12 +46,14 @@ namespace dx12
 		friend class Dx;
 		friend class Quad2D;
 	private:
-		UINT						m_renderTargetWidth = 0;
-		UINT						m_renderTargetHeight = 0;
+		UINT						   m_renderTargetWidth = 0;
+		UINT						   m_renderTargetHeight = 0;
 
-		//ID3D12DeviceContext*		m_2DdeferredContext = nullptr;
-		ID3D12CommandList*			m_2DcommandList = nullptr;
-		ID3D12Resource*				m_2DrenderTargetTexture = nullptr;
+		ComPtr<ID3D12RootSignature>    m_rootSignature;
+		ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+		ComPtr<ID3D12CommandList>      m_commandList;
+		ComPtr<ID3D12PipelineState>    m_pipelineState;
+		ID3D12Resource*				   m_2DrenderTargetTexture = nullptr;
 		//ID3D12RenderTargetView*		m_2DoverlayRTV = nullptr;
 		//ID3D12ShaderResourceView*	m_2DshaderResourceView = nullptr;
 		//ID3D12DepthStencilState*	m_depthDisabledStencilState = nullptr;

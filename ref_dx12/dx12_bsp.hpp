@@ -44,12 +44,12 @@ namespace dx12
 		std::string					m_name;
 		unsigned int				m_version;
 
-		unsigned int				m_numVertices;
+		size_t				        m_numVertices;
 		dxVertex*					m_vertices;
 
 		bsp_disk_header*			m_header = nullptr;
 
-		virtual unsigned int		LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length) = 0;
+		virtual size_t		        LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length) = 0;
 		virtual unsigned int		LoadVertices(bsp_disk_header* header) = 0;
 
 	public:

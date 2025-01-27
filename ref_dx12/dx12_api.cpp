@@ -54,7 +54,7 @@ inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr) && (dx12::ref->media->img != nullptr))
 	{
-		dx12::ref->media->img->Load(name, it_skin).get();
+		dx12::ref->media->img->Load(name, it_skin);
 	}
 
 	return image;
@@ -66,7 +66,7 @@ inline image_s	*SHIM_R_RegisterPic(char *name)
 
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr) && (dx12::ref->media->img != nullptr))
 	{
-		dx12::ref->media->img->Load(name, it_pic).get();
+		dx12::ref->media->img->Load(name, it_pic);
 	}
 
 	return image;

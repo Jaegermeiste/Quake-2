@@ -43,7 +43,7 @@ dx12::Shader::Shader()
 	//m_sampleState = nullptr;
 }
 
-bool dx12::Shader::CompileShader(ID3D12Device* device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
+bool dx12::Shader::CompileShader(ComPtr<ID3D12Device5> device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements)
 {
 	LOG_FUNC();
 
@@ -223,7 +223,7 @@ bool dx12::Shader::CompileShader(ID3D12Device* device, std::string fileName, sha
 	return true;
 }
 
-bool dx12::Shader::Initialize(ID3D12Device* device, std::string vsFileName, std::string psFileName)
+bool dx12::Shader::Initialize(ComPtr<ID3D12Device5> device, std::string vsFileName, std::string psFileName)
 {
 	LOG_FUNC();
 	/*

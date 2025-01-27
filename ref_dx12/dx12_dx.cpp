@@ -27,9 +27,10 @@ ref_dx12
 
 D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 {
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_1;
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_2;
 
 	std::map<std::string, D3D_FEATURE_LEVEL> featureLevelMap;
+	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_2)] = D3D_FEATURE_LEVEL_12_2;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_1)] = D3D_FEATURE_LEVEL_12_1;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_0)] = D3D_FEATURE_LEVEL_12_0;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_11_1)] = D3D_FEATURE_LEVEL_11_1;
@@ -51,9 +52,10 @@ D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 
 std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
 {
-	std::string featureLevelString = "D3D_FEATURE_LEVEL_12_1";
+	std::string featureLevelString = "D3D_FEATURE_LEVEL_12_2";
 
 	std::map<D3D_FEATURE_LEVEL, std::string> featureLevelMap;
+	featureLevelMap[D3D_FEATURE_LEVEL_12_2] = STR(D3D_FEATURE_LEVEL_12_2);
 	featureLevelMap[D3D_FEATURE_LEVEL_12_1] = STR(D3D_FEATURE_LEVEL_12_1);
 	featureLevelMap[D3D_FEATURE_LEVEL_12_0] = STR(D3D_FEATURE_LEVEL_12_0);
 	featureLevelMap[D3D_FEATURE_LEVEL_11_1] = STR(D3D_FEATURE_LEVEL_11_1);
@@ -75,15 +77,16 @@ std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
 
 void dx12::Dx::FillFeatureLevelArray(void)
 {
-	m_featureLevelArray[0] = D3D_FEATURE_LEVEL_12_1;
-	m_featureLevelArray[1] = D3D_FEATURE_LEVEL_12_0;
-	m_featureLevelArray[2] = D3D_FEATURE_LEVEL_11_1;
-	m_featureLevelArray[3] = D3D_FEATURE_LEVEL_11_0;
-	m_featureLevelArray[4] = D3D_FEATURE_LEVEL_10_1;
-	m_featureLevelArray[5] = D3D_FEATURE_LEVEL_10_0;
-	m_featureLevelArray[6] = D3D_FEATURE_LEVEL_9_3;
-	m_featureLevelArray[7] = D3D_FEATURE_LEVEL_9_2;
-	m_featureLevelArray[8] = D3D_FEATURE_LEVEL_9_1;
+	m_featureLevelArray[0] = D3D_FEATURE_LEVEL_12_2;
+	m_featureLevelArray[1] = D3D_FEATURE_LEVEL_12_1;
+	m_featureLevelArray[2] = D3D_FEATURE_LEVEL_12_0;
+	m_featureLevelArray[3] = D3D_FEATURE_LEVEL_11_1;
+	m_featureLevelArray[4] = D3D_FEATURE_LEVEL_11_0;
+	m_featureLevelArray[5] = D3D_FEATURE_LEVEL_10_1;
+	m_featureLevelArray[6] = D3D_FEATURE_LEVEL_10_0;
+	m_featureLevelArray[7] = D3D_FEATURE_LEVEL_9_3;
+	m_featureLevelArray[8] = D3D_FEATURE_LEVEL_9_2;
+	m_featureLevelArray[9] = D3D_FEATURE_LEVEL_9_1;
 }
 
 dx12::Dx::Dx()
@@ -119,8 +122,12 @@ dx12::Dx::Dx()
 	m_multisampleCount = ref->cvars->samplesPerPixel->UInt();
 	m_swapChain = nullptr;
 
-	m_descriptorHeap = nullptr;
-	m_descriptorsAllocated = 0;
+	m_descriptorHeapRTV = nullptr;
+	m_descriptorHeapDSV = nullptr;
+	m_descriptorHeapCBVSRVUAV = nullptr;
+	m_descriptorsAllocatedRTV = 0;
+	m_descriptorsAllocatedDSV = 0;
+	m_descriptorsAllocatedCBVSRVUAV = 0;
 	m_descriptorSizeRTV = 0;
 	m_descriptorSizeDSV = 0;
 	m_descriptorSizeCBVSRVUAV = 0;
@@ -168,14 +175,15 @@ void dx12::Dx::BeginFrame(void)
 
 	DX::ThrowIfFailed(m_directCmdListAllocs[m_backBufferIndex]->Reset());
 
-	DX::ThrowIfFailed(m_commandListGfx->Reset(m_directCmdListAllocs[m_backBufferIndex], nullptr));
+	DX::ThrowIfFailed(m_commandListGfx->Reset(m_directCmdListAllocs[m_backBufferIndex].Get(), nullptr));
 
 	//m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 	m_commandListGfx->RSSetViewports(1, &m_viewport);
 	m_commandListGfx->RSSetScissorRects(1, &m_scissorRect);
 
 	// Indicate that the back buffer will be used as a render target.
-	m_commandListGfx->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_commandListGfx->ResourceBarrier(1, &barrier);
 
 	if (ref->cvars->clear->Bool())
 	{
@@ -190,7 +198,7 @@ void dx12::Dx::BeginFrame(void)
 		}
 		*/
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_descriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_backBufferIndex, m_descriptorSizeRTV);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_descriptorHeapRTV->GetCPUDescriptorHandleForHeapStart(), m_backBufferIndex, m_descriptorSizeRTV);
 		m_commandListGfx->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	}
 
@@ -238,7 +246,8 @@ void dx12::Dx::EndFrame(void)
 	}
 
 	// Indicate that the back buffer will now be used to present.
-	m_commandListGfx->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	m_commandListGfx->ResourceBarrier(1, &barrier);
 
 	// Cloase the command list
 	m_commandListGfx->Close();
@@ -246,7 +255,7 @@ void dx12::Dx::EndFrame(void)
 	if (m_commandQueue)
 	{
 		// Execute the command list.
-		ID3D12CommandList* ppCommandLists[] = { m_commandListGfx };
+		ID3D12CommandList* ppCommandLists[] = { m_commandListGfx.Get()};
 		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	}
 
@@ -257,7 +266,7 @@ void dx12::Dx::EndFrame(void)
 
 		// Schedule a Signal command in the queue.
 		const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
-		DX::ThrowIfFailed(m_commandQueue->Signal(m_fence, currentFenceValue));
+		DX::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
 
 		// Update the frame index.
 		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -444,6 +453,7 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		return false;
 	}
 
+	/*
 	if ((!subsystem2D) || (!subsystem2D->Initialize()))
 	{
 		LOG(error) << "Failed to create 2D overlay subsystem (GUI)";
@@ -460,7 +470,7 @@ bool dx12::Dx::Initialize(HWND hWnd)
 	{
 		LOG(error) << "Failed to create 3D subsystem";
 		return false;
-	}
+	}*/
 
 	WaitForGPU();
 
@@ -536,7 +546,7 @@ bool dx12::Dx::InitAdapter()
 			}
 
 			// Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
-			if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device), nullptr)))
+			if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device5), nullptr)))
 			{
 				break;
 			}
@@ -616,27 +626,34 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	LOG(info) << "Creating DirectX 12 device...";
 
-	hr = D3D12CreateDevice(m_dxgiAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+	hr = D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_d3dDevice));
 
 	if (FAILED(hr))
 	{
-		LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so trying D3D_FEATURE_LEVEL_12_0.";
-		hr = D3D12CreateDevice(m_dxgiAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_d3dDevice));
+		LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_2, so trying D3D_FEATURE_LEVEL_12_1.";
+
+		hr = D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
 
 		if (FAILED(hr))
 		{
-			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so attempt to create WARP device.";
+			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so trying D3D_FEATURE_LEVEL_12_0.";
+			hr = D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_d3dDevice));
 
-			ComPtr<IDXGIFactory6> dxgiFactory;
-			CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
-
-			ComPtr<IDXGIAdapter> pWarpAdapter;
-			dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter));
-
-			hr = D3D12CreateDevice(pWarpAdapter.Get(),	D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
 			if (FAILED(hr))
 			{
-				LOG(warning) << "Failed to create WARP device!";
+				LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_0, so attempt to create WARP device.";
+
+				ComPtr<IDXGIFactory6> dxgiFactory;
+				CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
+
+				ComPtr<IDXGIAdapter> pWarpAdapter;
+				dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter));
+
+				hr = D3D12CreateDevice(pWarpAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+				if (FAILED(hr))
+				{
+					LOG(warning) << "Failed to create WARP device!";
+				}
 			}
 		}
 	}
@@ -670,7 +687,7 @@ bool dx12::Dx::InitFences()
 	{
 		LOG(info) << "Creating fences...";
 
-		hr = m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, __uuidof(ID3D12Fence), reinterpret_cast<void**>(&m_fence));
+		hr = m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
 	}
 
 	if (SUCCEEDED(hr))
@@ -711,7 +728,7 @@ bool dx12::Dx::InitCommandObjects()
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-		hr = m_d3dDevice->CreateCommandQueue(&queueDesc, __uuidof(ID3D12CommandQueue), reinterpret_cast<void**>(&m_commandQueue));
+		hr = m_d3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
 
 		if (SUCCEEDED(hr))
 		{
@@ -719,7 +736,7 @@ bool dx12::Dx::InitCommandObjects()
 
 			for (unsigned int i = 0; i < m_backBufferCount; i++)
 			{
-				hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), reinterpret_cast<void**>(&m_directCmdListAllocs[i]));
+				hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_directCmdListAllocs[i]));
 				if (FAILED(hr))
 				{
 					LOG(error) << "Failed to create Command Allocator " << i + 1 << ".";
@@ -733,9 +750,9 @@ bool dx12::Dx::InitCommandObjects()
 				hr = m_d3dDevice->CreateCommandList(
 					0,
 					D3D12_COMMAND_LIST_TYPE_DIRECT,
-					m_directCmdListAllocs[0], // Associated command allocator
+					m_directCmdListAllocs[0].Get(), // Associated command allocator
 					nullptr,                   // Initial PipelineStateObject
-					__uuidof(ID3D12GraphicsCommandList), reinterpret_cast<void**>(&m_commandListGfx));
+					__uuidof(ID3D12GraphicsCommandList), static_cast<void**>(&m_commandListGfx));
 
 				if (SUCCEEDED(hr))
 				{
@@ -796,7 +813,7 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 		swapChainDesc.SampleDesc.Count = m_multisampleCount;
 
 		IDXGISwapChain1* pSwapChain = nullptr;
-		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue, hWnd, &swapChainDesc, nullptr, nullptr, &pSwapChain);
+		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue.Get(), hWnd, &swapChainDesc, nullptr, nullptr, &pSwapChain);
 
 		if (SUCCEEDED(hr))
 		{
@@ -840,26 +857,69 @@ bool dx12::Dx::InitDescriptorHeaps()
 		// Create descriptor heaps
 		LOG(info) << "Creating descriptor heap for back buffer RTVs...";
 
-		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescRTV = {};
 
-		descriptorHeapDesc.NumDescriptors = m_backBufferCount;
-		descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		descriptorHeapDesc.NodeMask = 0;
+		descriptorHeapDescRTV.NumDescriptors = m_backBufferCount;
+		descriptorHeapDescRTV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		descriptorHeapDescRTV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		descriptorHeapDescRTV.NodeMask = 0;
 
-		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
+		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescRTV, IID_PPV_ARGS(&m_descriptorHeapRTV));
+
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Successfully created RTV descriptor heap.";
+		}
+		else {
+			LOG(error) << "Unable to create RTV descriptor heap.";
+
+			return false;
+		}
+
+		LOG(info) << "Creating descriptor heap for back buffer DSVs...";
+
+		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescDSV = {};
+
+		descriptorHeapDescDSV.NumDescriptors = m_backBufferCount;
+		descriptorHeapDescDSV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		descriptorHeapDescDSV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		descriptorHeapDescDSV.NodeMask = 0;
+
+		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescDSV, IID_PPV_ARGS(&m_descriptorHeapDSV));
+
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Successfully created DSV descriptor heap.";
+		}
+		else {
+			LOG(error) << "Unable to create DSV descriptor heap.";
+
+			return false;
+		}
+
+		LOG(info) << "Creating descriptor heap for back buffer CBV_SRV_UAVs...";
+
+		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescCBV_SRV_UAV = {};
+
+		descriptorHeapDescCBV_SRV_UAV.NumDescriptors = m_backBufferCount;
+		descriptorHeapDescCBV_SRV_UAV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		descriptorHeapDescCBV_SRV_UAV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		descriptorHeapDescCBV_SRV_UAV.NodeMask = 0;
+
+		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescCBV_SRV_UAV, IID_PPV_ARGS(&m_descriptorHeapCBVSRVUAV));
+
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Successfully created CBV_SRV_UAV descriptor heap.";
+		}
+		else {
+			LOG(error) << "Unable to create CBV_SRV_UAV descriptor heap.";
+
+			return false;
+		}
 	}
 
-	if (SUCCEEDED(hr))
-	{
-		LOG(info) << "Successfully created descriptor heap.";
-
-		return true;
-	}
-
-	LOG(error) << "Unable to create descriptor heap.";
-
-	return false;
+	return true;
 }
 
 bool dx12::Dx::InitBackBufferRenderTargets()
@@ -878,7 +938,7 @@ bool dx12::Dx::InitBackBufferRenderTargets()
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		rtvDesc.Texture2D.MipSlice = 0;
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_descriptorHeapRTV->GetCPUDescriptorHandleForHeapStart();
 
 		// Create a RTV for each back buffer.
 		for (UINT i = 0; i < m_backBufferCount; i++)
@@ -889,7 +949,7 @@ bool dx12::Dx::InitBackBufferRenderTargets()
 				return false;
 			}
 
-			m_d3dDevice->CreateRenderTargetView(m_backBufferRenderTargets[i], &rtvDesc, rtvHandle);
+			m_d3dDevice->CreateRenderTargetView(m_backBufferRenderTargets[i].Get(), &rtvDesc, rtvHandle);
 			rtvHandle.ptr += m_descriptorSizeRTV;
 		}
 	}
@@ -939,7 +999,7 @@ bool dx12::Dx::InitScissorRect()
 void dx12::Dx::WaitForGPU()
 {
 	// Schedule a Signal command in the queue.
-	DX::ThrowIfFailed(m_commandQueue->Signal(m_fence, m_fenceValues[m_backBufferIndex]));
+	DX::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_backBufferIndex]));
 
 	// Wait until the fence has been processed.
 	DX::ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent));
@@ -970,7 +1030,9 @@ void dx12::Dx::D3D_Shutdown()
 		SAFE_RELEASE(m_backBufferRenderTargets[i]);
 	}
 
-	SAFE_RELEASE(m_descriptorHeap);
+	SAFE_RELEASE(m_descriptorHeapRTV);
+	SAFE_RELEASE(m_descriptorHeapDSV);
+	SAFE_RELEASE(m_descriptorHeapCBVSRVUAV);
 
 	SAFE_RELEASE(m_swapChain);
 

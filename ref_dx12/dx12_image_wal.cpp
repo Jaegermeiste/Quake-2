@@ -29,7 +29,7 @@ ref_dx12
 LoadWal
 ================
 */
-void dx12::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int &width, unsigned int &height)
+void dx12::ImageManager::LoadWal(std::string fileName, byte **pic, UINT64 &width, unsigned int &height)
 {
 	LOG_FUNC();
 
@@ -40,7 +40,7 @@ void dx12::ImageManager::LoadWal(std::string fileName, byte **pic, unsigned int 
 
 	if (!mt)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "GL_FindImage: can't load " + fileName + "\n");
+		ref->client->Con_Printf(PRINT_ALL, "LoadWal: can't load " + fileName + "\n");
 		return;
 	}
 
