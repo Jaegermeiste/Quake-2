@@ -31,14 +31,6 @@ ref_dx12
 
 namespace dx12
 {
-	__declspec(align(16)) struct ShaderConstants2D
-	{
-		float brightness;
-		float contrast;
-		float unused1;
-		float unused2;
-	};
-
 	__declspec(align(16)) class Subsystem2D {
 		friend class System;
 		friend class SubsystemText;
@@ -46,67 +38,45 @@ namespace dx12
 		friend class Dx;
 		friend class Quad2D;
 	private:
-		UINT						   m_renderTargetWidth = 0;
-		UINT						   m_renderTargetHeight = 0;
+		UINT						        m_renderTargetWidth = 0;
+		UINT						        m_renderTargetHeight = 0;
 
-		ComPtr<ID3D12RootSignature>    m_rootSignature;
-		ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-		ComPtr<ID3D12CommandList>      m_commandList;
-		ComPtr<ID3D12PipelineState>    m_pipelineState;
-		ID3D12Resource*				   m_2DrenderTargetTexture = nullptr;
-		//ID3D12RenderTargetView*		m_2DoverlayRTV = nullptr;
-		//ID3D12ShaderResourceView*	m_2DshaderResourceView = nullptr;
-		//ID3D12DepthStencilState*	m_depthDisabledStencilState = nullptr;
-		IDXGISurface*				m_dxgiSurface = nullptr;
-		ID2D1RenderTarget*			m_d2dRenderTarget = nullptr;
-		ID2D1SolidColorBrush*		fadeColor = nullptr;
+		ComPtr<ID3D12RootSignature>         m_rootSignature = nullptr;
+		std::shared_ptr<CommandList>    	m_commandList = nullptr;
+		ComPtr<ID3D12PipelineState>         m_pipelineState = nullptr;
+		ComPtr<ID3D12Resource>		        m_2DrenderTargetTexture = nullptr;
+		D3D12_RESOURCE_STATES               m_2drenderTargetState = D3D12_RESOURCE_STATE_COMMON;
+		dxhandle_t                          m_2dRTVHandle = {};
+		dxhandle_t                          m_2dDSVHandle = {};
+		dxhandle_t                          m_2dSRVHandle = {};
+		D3D12_VIEWPORT                      m_viewport = {};
+		D3D12_RECT                          m_scissorRect = {};
 
-		bool						m_d2dDrawingActive = false;
+		DirectX::XMMATRIX			        m_2DorthographicMatrix;
 
-		byte						m_padding[3];
+		Shader						        m_2DshaderVertex;
+		Shader						        m_2DshaderPixel;
 
-		DirectX::XMMATRIX			m_2DorthographicMatrix;
+		Quad2D						        m_renderTargetQuad;
+		Quad2D						        m_generalPurposeQuad;
+		Quad2D						        m_fadeScreenQuad;
 
-		Shader						m_2DshaderVertexColor;
-		Shader						m_2DshaderTexture;
-
-		//ID3D12UnorderedAccessView*	m_2DunorderedAccessView = nullptr;
-		
-		//ID3D12BlendState*			m_alphaBlendState = nullptr;
-
-		Quad2D						m_renderTargetQuad;
-		Quad2D						m_generalPurposeQuad;
-
-		void						EndD2DDrawing();
-		
-	public:
-		ID2D1SolidColorBrush*		colorBlack = nullptr;
-		ID2D1SolidColorBrush*		colorGray = nullptr;
-		ID2D1SolidColorBrush*		colorYellowGreen = nullptr;
-		ID2D1SolidColorBrush*		colorWhite = nullptr;
-		ID2D1SolidColorBrush*		colorRed = nullptr;
-		ID2D1SolidColorBrush*		colorBlue = nullptr;
-
-	private:
-		//ID3D12Buffer*				m_constantBuffer = nullptr;
-		byte						m_padding2[4];
+		dxhandle_t				            m_constantBufferHandle = 0;
 
 	public:
-									Subsystem2D();
+									        Subsystem2D();
 
-		bool						Initialize();
+		bool						        Initialize();
 
-		void						ActivateD2DDrawing();
+		void						        Clear();
+		 
+		void						        Update();
 
-		void						Clear();
+		void						        Render();
 
-		void						Update();
+		void						        FadeScreen();
 
-		void						Render();
-
-		void						FadeScreen();
-
-		void						Shutdown();
+		void						        Shutdown();
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

@@ -34,7 +34,7 @@ namespace dx12
 	class Map
 	{
 	private:
-		std::string					m_mapName;
+		std::wstring				m_mapName;
 
 		std::unique_ptr<BSP>		m_bsp = nullptr;
 
@@ -46,7 +46,7 @@ namespace dx12
 		bool						Initialize();
 		void						Shutdown();
 
-		void						Load(std::string mapName);
+		void						Load(std::wstring mapName);
 	};
 }
 

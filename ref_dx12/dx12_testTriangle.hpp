@@ -20,25 +20,36 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2019 Bleeding Eye Studios
+2025 Bleeding Eye Studios
 */
 
-#ifndef __DX12_XPLIT_HPP__
-#define __DX12_XPLIT_HPP__
+#ifndef __DX12_TESTTRIANGLE_HPP__
+#define __DX12_TESTTRIANGLE_HPP__
 #pragma once
 
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	class xpLit
-	{
+	__declspec(align(16)) class TestTriangle : public IndexedGeometry {
+		friend class System;
+		friend class SubsystemText;
+		friend class Subsystem2D;
+		friend class Draw;
 	private:
-		static	bool						DownloadXPLitForMap(std::wstring mapName);
+		float						m_aspectRatio = 1.0f;
+
+		bool						InitializeBuffers() override;
 
 	public:
-		static	std::vector<dx12::Light>	Load(std::wstring fileName);
+		TestTriangle();
+
+		bool						Initialize(int width, int height);
+
+		using IndexedGeometry::Render;
+
+		ALIGNED_16_MEMORY_OPERATORS;
 	};
 }
 
-#endif // !__DX12_LIGHT_HPP__
+#endif // !__DX12_TESTTRIANGLE_HPP__

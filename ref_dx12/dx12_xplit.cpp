@@ -21,27 +21,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "dx12_local.hpp"
 
 // Courtesy https://stackoverflow.com/questions/5184988/should-i-use-urldownloadtofile
-bool dx12::xpLit::DownloadXPLitForMap(std::string mapName)
+bool dx12::xpLit::DownloadXPLitForMap(std::wstring mapName)
 {
 	LOG_FUNC();
 
-	std::string gameDir = dx12::ref->client->FS_Gamedir();
-	std::string mapsPath = dx12::ref->cvars->xpLitPathBaseQ2->String();
+	std::wstring gameDir = dx12::ref->client->FS_Gamedir();
+	std::wstring mapsPath = dx12::ref->cvars->xpLitPathBaseQ2->String();
 
-	if (gameDir.find("xatrix"))
+	if (gameDir.find(L"xatrix"))
 	{
 		mapsPath = dx12::ref->cvars->xpLitPathXatrix->String();
 	}
-	else if (gameDir.find("rogue"))
+	else if (gameDir.find(L"rogue"))
 	{
 		mapsPath = dx12::ref->cvars->xpLitPathRogue->String();
 	}
 
-	std::string downloadURL = dx12::ref->cvars->xpLitDownloadPath->String() + mapsPath + mapName + ".xplit?format=raw";
+	std::wstring downloadURL = dx12::ref->cvars->xpLitDownloadPath->String() + mapsPath + mapName + L".xplit?format=raw";
 
 	LOG(info) << "Downloading xpLit for map " << mapName << " from " << downloadURL;
 
-	std::string destinationPath = dx12::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + ".xplit";
+	std::wstring destinationPath = dx12::ref->sys->GetCurrentWorkingDirectory() + mapsPath + mapName + L".xplit";
 
 	LOG(info) << "Saving xpLit to " << destinationPath;
 
@@ -49,7 +49,7 @@ bool dx12::xpLit::DownloadXPLitForMap(std::string mapName)
 }
 
 // https://sourceforge.net/p/quake2xp/code/HEAD/tree/trunk/ref_gl/r_light.c
-std::vector<dx12::Light> dx12::xpLit::Load(std::string mapName) 
+std::vector<dx12::Light> dx12::xpLit::Load(std::wstring mapName) 
 {
 	LOG_FUNC();
 
@@ -57,7 +57,7 @@ std::vector<dx12::Light> dx12::xpLit::Load(std::string mapName)
 
 	std::vector<dx12::Light>	lights;
 	bool						runParseLoop = false;
-	std::string fileName = mapName + ".xplit";
+	std::wstring fileName = mapName + L".xplit";
 
 	// Attempt to load relight file from file system
 	unsigned int*	xpLitBuffer = nullptr;

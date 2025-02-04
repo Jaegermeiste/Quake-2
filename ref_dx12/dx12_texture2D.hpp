@@ -35,23 +35,38 @@ namespace dx12
 	{
 		friend class ResourceManager;
 		friend class ImageManager;
+
+	private:
+		dxhandle_t               	m_srvHandle = 0;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_cachedD3D12SRVHandle = {};
+
+		void                        RefreshSRV();
+
 	public:
 		imagetype_t					m_imageType;
-		std::string					m_format;
-		ComPtr<ID3D12Resource>      m_texture;
+		std::wstring				m_format;
 
 		unsigned int				m_registrationSequence = 0;
 
-		Texture2D(std::string name) : Resource(name) 
+		Texture2D(std::wstring name) : Resource(name) 
 		{ 
 			m_type      = RESOURCE_TEXTURE2D;
 			m_imageType = it_pic;
-			m_format    = "UNKNOWN";
+			m_format    = L"UNKNOWN";
+			m_srvHandle = {};
 		};
 
 		unsigned int				GetWidth() { return m_resourceDesc.Width; };
 		unsigned int				GetHeight() { return m_resourceDesc.Height; };
+
+		void                        CreateSRV();
+		void                        BindSRV(std::shared_ptr<CommandList> commandList);
 	};
 }
+
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::CreateResource<dx12::Texture2D>(std::wstring name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetOrCreateResource<dx12::Texture2D>(std::wstring name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(std::wstring name);
+template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(dxhandle_t handle);
 
 #endif//__DX12_TEXTURE2D_HPP__

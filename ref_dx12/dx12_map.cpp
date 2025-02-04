@@ -42,7 +42,7 @@ void dx12::Map::Shutdown()
 	LOG_FUNC();
 }
 
-void dx12::Map::Load(std::string mapName)
+void dx12::Map::Load(std::wstring mapName)
 {
 	LOG_FUNC();
 
@@ -50,7 +50,7 @@ void dx12::Map::Load(std::string mapName)
 
 	if (mapName.empty())
 	{
-		ref->client->Sys_Error(ERR_DROP, "Empty filename provided.");
+		ref->client->Sys_Error(ERR_DROP, L"Empty filename provided.");
 	}
 
 	if (mapName == m_mapName)
@@ -65,7 +65,7 @@ void dx12::Map::Load(std::string mapName)
 	int fileLen = ref->client->FS_LoadFile(mapName, reinterpret_cast<void**>(&fileBuffer));
 	if ((fileLen < 1) || (!fileBuffer))
 	{
-		ref->client->Sys_Error(ERR_DROP, "Map " + mapName + " not found.");
+		ref->client->Sys_Error(ERR_DROP, L"Map " + mapName + L" not found.");
 		return;
 	}
 
@@ -107,7 +107,7 @@ void dx12::Map::Load(std::string mapName)
 	}
 	else
 	{
-		ref->client->Sys_Error(ERR_DROP, "Unknown file type for " + mapName);
+		ref->client->Sys_Error(ERR_DROP, L"Unknown file type for " + mapName);
 	}
 
 	ref->client->FS_FreeFile(fileBuffer);

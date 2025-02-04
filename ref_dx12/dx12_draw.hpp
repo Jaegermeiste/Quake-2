@@ -29,18 +29,30 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
+constexpr auto NUM_INITIAL_DRAW_QUADS = 1024;
+
 namespace dx12
 {
 	class Draw {
+	private:
+		std::vector<Quad2D> m_quadList = std::vector<Quad2D>(NUM_INITIAL_DRAW_QUADS);
+		unsigned int m_quadIndex = 0;
+
 	public:
-		void		GetPicSize	(unsigned int &w, unsigned int &h, std::string name);
-		void		Pic			(int x, int y, std::string name);
-		void		StretchPic	(int x, int y, int w, int h, std::string name);
+		void		GetPicSize	(unsigned int &w, unsigned int &h, std::wstring name);
+		void		Pic			(int x, int y, std::wstring name);
+		void		StretchPic	(int x, int y, int w, int h, std::wstring name);
 		void		Char		(int x, int y, unsigned char c);
-		void		TileClear	(int x, int y, int w, int h, std::string name);
+		void		TileClear	(int x, int y, int w, int h, std::wstring name);
 		void		Fill		(int x, int y, int w, int h, int c);
 		void		FadeScreen	(void);
 		void		StretchRaw	(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte *data);
+
+		void        BeginFrame() { m_quadIndex = 0; };
+		void        EndFrame() { return; };
+
+		void        Initialize();
+		void        Shutdown();
 	};
 }
 

@@ -44,7 +44,7 @@ dx12::System::System()
 	else
 	{
 		m_clockFrequencyObtained = false;
-		ref->client->Sys_Error(ERR_FATAL, "Couldn't obtain clock frequency.");
+		ref->client->Sys_Error(ERR_FATAL, L"Couldn't obtain clock frequency.");
 	}
 
 	dx = std::make_unique<Dx>();
@@ -71,7 +71,7 @@ bool dx12::System::VID_CreateWindow()
 	const LONG			height = ref->cvars->r_customHeight->Int();
 	const bool			fullscreen = ref->cvars->vid_fullscreen->Bool();
 
-	ref->client->Con_Printf(PRINT_ALL, "Creating window");
+	ref->client->Con_Printf(PRINT_ALL, L"Creating window");
 
 	/* Register the frame class */
 	m_wndClassEx.style = CS_HREDRAW | CS_VREDRAW;
@@ -89,7 +89,7 @@ bool dx12::System::VID_CreateWindow()
 
 	if (!RegisterClassEx(&m_wndClassEx))
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Couldn't register window class");
+		ref->client->Sys_Error(ERR_FATAL, L"Couldn't register window class");
 	}
 
 	// Note that adding the sysmenu and hitting close puts the game thread into an infinite loop, so don't do it
@@ -138,7 +138,7 @@ bool dx12::System::VID_CreateWindow()
 
 	if (!m_hWnd)
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Couldn't create window");
+		ref->client->Sys_Error(ERR_FATAL, L"Couldn't create window");
 	}
 
 	ShowWindow(m_hWnd, SW_SHOW);
@@ -159,7 +159,7 @@ void dx12::System::VID_DestroyWindow()
 
 	if (m_hWnd != nullptr)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "...destroying window\n");
+		ref->client->Con_Printf(PRINT_ALL, L"...destroying window\n");
 
 		ShowWindow(m_hWnd, SW_SHOWNORMAL);	// prevents leaving empty slots in the taskbar
 		DestroyWindow(m_hWnd);
@@ -202,11 +202,11 @@ bool dx12::System::Initialize(HINSTANCE hInstance, WNDPROC wndProc)
 	return true;
 }
 
-std::string dx12::System::GetCurrentWorkingDirectory()
+std::wstring dx12::System::GetCurrentWorkingDirectory()
 {
 	LOG_FUNC();
 
-	TCHAR currentWorkingDirectory[MAX_PATH + 1];
+	WCHAR currentWorkingDirectory[MAX_PATH + 1];
 	ZeroMemory(&currentWorkingDirectory, (sizeof(TCHAR) * MAX_PATH) + sizeof(TCHAR));
 
 	// Request ownership of the critical section.
@@ -215,12 +215,12 @@ std::string dx12::System::GetCurrentWorkingDirectory()
 	LOG(trace) << "Entered critical section";
 
 	// Get current working directory
-	DWORD dwRet = GetCurrentDirectory(MAX_PATH, currentWorkingDirectory);
+	DWORD dwRet = GetCurrentDirectoryW(MAX_PATH, currentWorkingDirectory);
 
 	if (dwRet == 0)
 	{
 		LOG(error) << "GetCurrentDirectory failed " << GetLastError();
-		return std::string();
+		return std::wstring();
 	}
 	if (dwRet > MAX_PATH)
 	{
@@ -228,7 +228,7 @@ std::string dx12::System::GetCurrentWorkingDirectory()
 		currentWorkingDirectory[MAX_PATH] = 0;
 	}
 
-	LOG(info) << "Current working directory is " << currentWorkingDirectory;
+	LOG(info) << "Current working directory is " << ref->sys->ToWideString(currentWorkingDirectory);
 
 	// Release ownership of the critical section.
 	LOG(trace) << "Leaving critical section";
@@ -238,11 +238,11 @@ std::string dx12::System::GetCurrentWorkingDirectory()
 	return currentWorkingDirectory;
 }
 
-bool dx12::System::SetCurrentWorkingDirectory(std::string directory)
+bool dx12::System::SetCurrentWorkingDirectory(std::wstring directory)
 {
 	LOG_FUNC();
 
-	std::string currentWorkingDirectory = GetCurrentWorkingDirectory();
+	std::wstring currentWorkingDirectory = GetCurrentWorkingDirectory();
 
 	if (directory != currentWorkingDirectory)
 	{
@@ -253,7 +253,7 @@ bool dx12::System::SetCurrentWorkingDirectory(std::string directory)
 
 		LOG(info) << "Changing current working directory to: " << directory;
 
-		BOOL success = SetCurrentDirectory(directory.c_str());
+		BOOL success = SetCurrentDirectoryW(directory.c_str());
 
 		// Release ownership of the critical section.
 		LOG(trace) << "Leaving critical section";
@@ -323,40 +323,84 @@ void dx12::System::AppActivate(bool active)
 	}
 }
 
-bool dx12::System::DoesFileExist(std::string fileName)
+bool dx12::System::DoesFileExist(std::wstring fileName)
 {
 	// Courtesy https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program
-	DWORD dwAttrib = GetFileAttributes(fileName.c_str());
+	DWORD dwAttrib = GetFileAttributesW(fileName.c_str());
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 std::wstring dx12::System::ToWideString(std::string inStr)
 {
-	// Courtesy https://stackoverflow.com/questions/6693010/problem-using-multibytetowidechar
-	// Courtesy https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
 	if (inStr.empty())
 	{
 		return std::wstring();
 	}
 
-	int strLen = MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), msl::utilities::SafeInt<int>(inStr.size()), NULL, 0);
-	std::wstring outWString(msl::utilities::SafeInt<size_t>(strLen + 1), 0);
-	MultiByteToWideChar(CP_UTF8, 0, inStr.c_str(), msl::utilities::SafeInt<int>(inStr.size()), &outWString[0], strLen);
+	return boost::locale::conv::utf_to_utf<wchar_t>(inStr);
+}
 
-	return outWString;
+std::wstring dx12::System::ToWideString(WCHAR* inWideStr)
+{
+	if (!inWideStr)
+	{
+		return std::wstring();
+	}
+
+	return std::wstring(inWideStr);
+}
+
+std::wstring dx12::System::ToWideString(const WCHAR* inWideStr)
+{
+	if (!inWideStr)
+	{
+		return std::wstring();
+	}
+
+	return std::wstring(inWideStr);
+}
+
+std::string dx12::System::ToString(std::wstring inWideStr)
+{
+	if (inWideStr.empty())
+	{
+		return std::string();
+	}
+
+	return boost::locale::conv::utf_to_utf<char>(inWideStr);
 }
 
 std::string dx12::System::ToString(WCHAR* inWideStr)
 {
-	// Courtesy https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
 	if (!inWideStr)
 	{
 		return std::string();
 	}
 
-	int strLen = WideCharToMultiByte(CP_UTF8, 0, inWideStr, msl::utilities::SafeInt<int>(wcslen(inWideStr)), NULL, 0, NULL, NULL);
-	std::string outString(msl::utilities::SafeInt<size_t>(strLen + 1), 0);
-	WideCharToMultiByte(CP_UTF8, 0, inWideStr, msl::utilities::SafeInt<int>(wcslen(inWideStr)), &outString[0], strLen, NULL, NULL);
-	return outString;
+	return boost::locale::conv::utf_to_utf<char>(inWideStr);
+}
+
+Vector2 dx12::System::GetNormalizedDeviceCoordinates(int px, int py, int windowWidth, int windowHeight)
+{
+	Vector2 v = {};
+
+	// Convert pixel coordinates to NDC (-1 to 1 range)
+	v.x = (2.0f * px / windowWidth) - 1.0f;   // Convert x
+	v.y = 1.0f - (2.0f * py / windowHeight);  // Convert y
+
+	return v;
+}
+
+Vector4 dx12::System::GetNormalizedDeviceRectangle(int px, int py, int pw, int ph, int windowWidth, int windowHeight)
+{
+	Vector4 v = {};
+
+	// Convert pixel coordinates to NDC (-1 to 1 range)
+	v.x = (2.0f * px / windowWidth) - 1.0f;
+	v.y = 1.0f - (2.0f * py / windowHeight);
+	v.z = 2.0f * pw / windowWidth;
+	v.w = 2.0f * ph / windowHeight;
+
+	return v;
 }

@@ -29,9 +29,12 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-#define BPP_8	8
-#define BPP_24	24
-#define BPP_32	32
+constexpr auto BPP_8 = 8;
+constexpr auto BPP_24 = 24;
+constexpr auto BPP_32 = 32;
+
+constexpr auto WHITE_TEXTURE_NAME = L"WHITE";
+constexpr auto CHECKERBOARD_TEXTURE_NAME = L"CHECKERBOARD";
 
 namespace dx12
 {
@@ -39,33 +42,37 @@ namespace dx12
 	{
 		friend class Draw;
 	private:
-		std::vector<std::string> m_imageExtensions =
+		std::vector<std::wstring> m_imageExtensions =
 		{
-			"dds", "exr", "hdr", "tga", "png", "jpg", "tif", "gif", "bmp", "ico", "wdp", "jxr", "wal", "pcx"
+			L"dds", L"exr", L"hdr", L"tga", L"png", L"jpg", L"tif", L"gif", L"bmp", L"ico", L"wdp", L"jxr", L"wal", L"pcx"
 		};
 
 		qhandle_t				m_lastHandle = 0;
 
 		void GetPalette(void);
-		static void LoadWal(std::string fileName, byte **pic, UINT64 &width, unsigned int &height);
+		static void LoadWal(std::wstring fileName, byte **pic, UINT64 &width, unsigned int &height);
 		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, UINT64 &width, unsigned int &height);
 
-		bool							UploadTexture2D(Texture2D *texture);
+		
+	
 	public:
 		bool							Initialize();
 		void							Shutdown();
 
-		XMCOLOR							m_8to32table[256];
-		XMCOLOR							m_rawPalette[256];
+		XMCOLOR							m_8to32table[256] = {};
+		XMCOLOR							m_rawPalette[256] = {};
 
-		std::shared_ptr<Texture2D>		m_conChars;
-		std::shared_ptr<Texture2D>		m_rawTexture;
+		std::shared_ptr<Texture2D>		m_conChars = nullptr;
+		std::shared_ptr<Texture2D>		m_rawTexture = nullptr;
+		std::shared_ptr<Texture2D>		m_whiteTexture = nullptr;
+		std::shared_ptr<Texture2D>		m_checkerboardTexture = nullptr;
 
 		void						    SetRawPalette(const unsigned char *palette);
 
-		std::shared_ptr<Texture2D>	    Load(std::string name, imagetype_t type);
+		std::shared_ptr<Texture2D>	    Load(std::wstring name, imagetype_t type);
 
-		void                     	    UpdateTexture2DFromRaw(std::shared_ptr<Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
+		std::shared_ptr<Texture2D> 	    CreateTexture2DFromRaw(std::wstring name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette);
+		void                     	    UpdateTexture2DFromRaw(std::shared_ptr<Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette, bool update = true, std::shared_ptr<CommandList> commandList = nullptr);
 	};
 
 

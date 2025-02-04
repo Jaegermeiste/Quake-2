@@ -45,11 +45,11 @@ namespace dx12
 		void			(*Cvar_SetValue)	(char *name, float value);
 
 		// Friends
-		friend dx12::Cvars::Cvar::Cvar		(std::string name, std::string defaultString, unsigned int flags);
-		friend dx12::Cvars::Cvar::Cvar		(std::string name, float defaultValue, unsigned int flags);
-		friend dx12::Cvars::Cvar::Cvar		(std::string name, double defaultValue, unsigned int flags);
-		friend dx12::Cvars::Cvar::Cvar		(std::string name, int defaultValue, unsigned int flags);
-		friend void dx12::Cvars::Cvar::Set	(std::string value);
+		friend dx12::Cvars::Cvar::Cvar		(std::wstring name, std::wstring defaultString, unsigned int flags);
+		friend dx12::Cvars::Cvar::Cvar		(std::wstring name, float defaultValue, unsigned int flags);
+		friend dx12::Cvars::Cvar::Cvar		(std::wstring name, double defaultValue, unsigned int flags);
+		friend dx12::Cvars::Cvar::Cvar		(std::wstring name, int defaultValue, unsigned int flags);
+		friend void dx12::Cvars::Cvar::Set	(std::wstring value);
 
 	public:
 		Client(refimport_t rimp);
@@ -57,21 +57,21 @@ namespace dx12
 
 		void			SetRefImport		(refimport_t rimp);
 
-		void			Sys_Error			(unsigned short err_level, std::string str);
+		void			Sys_Error			(unsigned short err_level, std::wstring str);
 
-		void			Cmd_AddCommand		(std::string name, void(*cmd)());
-		void			Cmd_RemoveCommand	(std::string name);
+		void			Cmd_AddCommand		(std::wstring name, void(*cmd)());
+		void			Cmd_RemoveCommand	(std::wstring name);
 		unsigned int	Cmd_Argc			(void);
-		std::string		Cmd_Argv			(unsigned int i);
-		void			Cmd_ExecuteText		(unsigned int exec_when, std::string text);
+		std::wstring	Cmd_Argv			(unsigned int i);
+		void			Cmd_ExecuteText		(unsigned int exec_when, std::wstring text);
 
-		void			Con_Printf			(unsigned short print_level, std::string str);
+		void			Con_Printf          (unsigned short print_level, std::wstring str);
 
-		int				FS_LoadFile			(std::string fileName, void **buf);
+		int				FS_LoadFile			(std::wstring fileName, void **buf);
 		void			FS_FreeFile			(void *buf);
 
-		std::string		FS_Gamedir			(void);
-		std::string		FS_GamedirAbsolute	(void);		// Added to faciliate shader compiling
+		std::wstring	FS_Gamedir			(void);
+		std::wstring	FS_GamedirAbsolute	(void);		// Added to faciliate shader compiling
 
 		bool			Vid_GetModeInfo		(unsigned int &width, unsigned int &height, int mode);
 		void			Vid_MenuInit		(void);

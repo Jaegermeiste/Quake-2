@@ -31,52 +31,37 @@ ref_dx12
 
 namespace dx12
 {
-	typedef std::string shaderTarget;
+	typedef std::wstring shaderTarget;
 
-#define SHADER_TARGET_VERTEX	"vs"
-#define SHADER_TARGET_PIXEL		"ps"
-#define SHADER_TARGET_COMPUTE	"cs"
-#define SHADER_TARGET_DOMAIN	"ds"
-#define SHADER_TARGET_GEOMETRY	"gs"
-#define SHADER_TARGET_HULL		"hs"
-#define SHADER_TARGET_LIBRARY	"lib"
+#define SHADER_TARGET_VERTEX	L"vs"
+#define SHADER_TARGET_PIXEL		L"ps"
+#define SHADER_TARGET_COMPUTE	L"cs"
+#define SHADER_TARGET_DOMAIN	L"ds"
+#define SHADER_TARGET_GEOMETRY	L"gs"
+#define SHADER_TARGET_HULL		L"hs"
+#define SHADER_TARGET_LIBRARY	L"lib"
 
-#define SHADER_ENTRY_POINT_VERTEX	"VS_Entry"
-#define SHADER_ENTRY_POINT_PIXEL	"PS_Entry"
-#define SHADER_ENTRY_POINT_COMPUTE	"CS_Entry"
-#define SHADER_ENTRY_POINT_DOMAIN	"DS_Entry"
-#define SHADER_ENTRY_POINT_GEOMETRY	"GS_Entry"
-#define SHADER_ENTRY_POINT_HULL		"HS_Entry"
-#define SHADER_ENTRY_POINT_LIBRARY	"LIB_Entry"
+#define SHADER_ENTRY_POINT_VERTEX	L"VSMain"
+#define SHADER_ENTRY_POINT_PIXEL	L"PSMain"
+#define SHADER_ENTRY_POINT_COMPUTE	L"CSMain"
+#define SHADER_ENTRY_POINT_DOMAIN	L"DSMain"
+#define SHADER_ENTRY_POINT_GEOMETRY	L"GSMain"
+#define SHADER_ENTRY_POINT_HULL		L"HSMain"
+#define SHADER_ENTRY_POINT_LIBRARY	L"LIBMain"
 
 	class Shader 
 	{
 	private:
-		struct MatrixBufferType
-		{
-			DirectX::XMMATRIX world;
-			DirectX::XMMATRIX view;
-			DirectX::XMMATRIX projection;
-		};
+		ComPtr<ID3DBlob>			m_shaderBlob = nullptr;
 
-		//ID3D12VertexShader*			m_vertexShader = nullptr;
-		//ID3D12PixelShader*			m_pixelShader = nullptr;
-		//ID3D12InputLayout*			m_layout = nullptr;
-		//ID3D12Buffer*				m_matrixBuffer = nullptr;
-		//ID3D12SamplerState*			m_sampleState = nullptr;
-
-		void						OutputShaderErrorMessage(ID3DBlob* errorMessage, std::string shaderFilename);
-
-		bool						CompileShader(ComPtr<ID3D12Device5> device, std::string fileName, shaderTarget target, D3D12_INPUT_ELEMENT_DESC* inputElementDesc, UINT numElements);
+		void						OutputShaderErrorMessage(ComPtr<ID3DBlob> errorMessage, std::wstring shaderFilename);
 
 	public:
 									Shader();
 
-		bool						Initialize(ComPtr<ID3D12Device5> device, std::string vsFileName, std::string psFileName);
+		bool						Compile(std::wstring shaderFilename, shaderTarget target);
 
-		//bool						SetShaderParameters(ID3D12DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
-
-		//bool						Render(ID3D12DeviceContext* deviceContext, UINT indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, ID3D12ShaderResourceView* shaderResource, ID3D12Buffer* constants);
+		ComPtr<ID3DBlob>			Blob() { return m_shaderBlob; };
 
 		void						Shutdown();
 	};

@@ -25,7 +25,7 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
+void dx12::Client::Sys_Error(unsigned short err_level, std::wstring str)
 {
 	LOG_FUNC();
 
@@ -49,10 +49,10 @@ void dx12::Client::Sys_Error(unsigned short err_level, std::string str)
 		LOG(fatal) << "<err_level> " << errLevelStr << " <string> " << str;
 	}
 
-	m_refImport.Sys_Error(err_level, const_cast<char*>(str.c_str()));
+	m_refImport.Sys_Error(err_level, const_cast<char*>(ref->sys->ToString(str).c_str()));
 }
 
-void dx12::Client::Cmd_AddCommand(std::string name, void(*cmd)())
+void dx12::Client::Cmd_AddCommand(std::wstring name, void(*cmd)())
 {
 	LOG_FUNC();
 
@@ -62,13 +62,13 @@ void dx12::Client::Cmd_AddCommand(std::string name, void(*cmd)())
 	LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
 	char *cName = new char[64]();
-	strncpy_s(cName, 64, name.c_str(), name.length());
+	strncpy_s(cName, 64, ref->sys->ToString(name).c_str(), name.length());
 	m_cmdNames.push_back(cName);
 
 	m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
 }
 
-void dx12::Client::Cmd_RemoveCommand(std::string name)
+void dx12::Client::Cmd_RemoveCommand(std::wstring name)
 {
 	LOG_FUNC();
 
@@ -77,7 +77,7 @@ void dx12::Client::Cmd_RemoveCommand(std::string name)
 
 	LOG(info) << "<name> " << name;
 
-	m_refImport.Cmd_RemoveCommand(const_cast<char*>(name.c_str()));
+	m_refImport.Cmd_RemoveCommand(const_cast<char*>(ref->sys->ToString(name).c_str()));
 }
 
 unsigned int dx12::Client::Cmd_Argc(void)
@@ -90,7 +90,7 @@ unsigned int dx12::Client::Cmd_Argc(void)
 	return msl::utilities::SafeInt<unsigned int>(m_refImport.Cmd_Argc());
 }
 
-std::string dx12::Client::Cmd_Argv(unsigned int i)
+std::wstring dx12::Client::Cmd_Argv(unsigned int i)
 {
 	LOG_FUNC();
 
@@ -99,10 +99,10 @@ std::string dx12::Client::Cmd_Argv(unsigned int i)
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return m_refImport.Cmd_Argv(clientIndex);
+	return ref->sys->ToWideString(m_refImport.Cmd_Argv(clientIndex));
 }
 
-void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::string text)
+void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::wstring text)
 {
 	LOG_FUNC();
 
@@ -124,10 +124,10 @@ void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::string text)
 
 	LOG(info) << "<exec_when> " << execWhenStr << " <text> " << text;
 
-	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(text.c_str()));
+	m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(ref->sys->ToString(text).c_str()));
 }
 
-void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
+void dx12::Client::Con_Printf(unsigned short print_level, std::wstring str)
 {
 	LOG_FUNC();
 
@@ -143,12 +143,12 @@ void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
 
 	LOG(info) << "<print_level> " << printLevelStr << " <string> " << str;
 
-	str += "\n";
+	str += L"\n";
 
-	m_refImport.Con_Printf(print_level, const_cast<char*>(str.c_str()));
+	m_refImport.Con_Printf(print_level, const_cast<char*>(ref->sys->ToString(str).c_str()));
 }
 
-int dx12::Client::FS_LoadFile(std::string fileName, void **buf)
+int dx12::Client::FS_LoadFile(std::wstring fileName, void **buf)
 {
 	LOG_FUNC();
 
@@ -157,7 +157,7 @@ int dx12::Client::FS_LoadFile(std::string fileName, void **buf)
 
 	LOG(trace) << "<fileName> " << fileName << " <buf> " << buf;
 
-	int retVal = m_refImport.FS_LoadFile(const_cast<char*>(fileName.c_str()), buf);
+	int retVal = m_refImport.FS_LoadFile(const_cast<char*>(ref->sys->ToString(fileName).c_str()), buf);
 
 	if (retVal > 0)
 	{
@@ -179,31 +179,31 @@ void dx12::Client::FS_FreeFile(void *buf)
 	m_refImport.FS_FreeFile(buf);
 }
 
-std::string dx12::Client::FS_Gamedir(void)
+std::wstring dx12::Client::FS_Gamedir(void)
 {
 	LOG_FUNC();
 
 	// Wait for exclusive access
 	std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-	return std::string(m_refImport.FS_Gamedir());
+	return ref->sys->ToWideString(m_refImport.FS_Gamedir());
 }
 
-std::string dx12::Client::FS_GamedirAbsolute(void)
+std::wstring dx12::Client::FS_GamedirAbsolute(void)
 {
 	LOG_FUNC();
 
-	TCHAR  absoluteGamedirBuffer[4096] = TEXT("");
-	ZeroMemory(&absoluteGamedirBuffer, sizeof(TCHAR) * 4096);
+	WCHAR  absoluteGamedirBuffer[4096] = TEXT(L"");
+	ZeroMemory(&absoluteGamedirBuffer, sizeof(WCHAR) * 4096);
 
-	std::string gameDir = FS_Gamedir();
+	std::wstring gameDir = FS_Gamedir();
 
 	// Request ownership of the critical section.
 	LOG(trace) << "Entering critical section";
 	EnterCriticalSection(&CriticalSection);
 	LOG(trace) << "Entered critical section";
 
-	DWORD  retval = GetFullPathName(gameDir.c_str(), MAX_PATH, absoluteGamedirBuffer, NULL);
+	DWORD  retval = GetFullPathNameW(gameDir.c_str(), MAX_PATH, absoluteGamedirBuffer, NULL);
 
 	// Release ownership of the critical section.
 	LOG(trace) << "Leaving critical section";
@@ -213,11 +213,11 @@ std::string dx12::Client::FS_GamedirAbsolute(void)
 	if (retval == 0)
 	{
 		LOG(error) << "GetFullPathName failed: " << GetLastError();
-		return std::string();
+		return std::wstring();
 	}
 	else
 	{
-		LOG(info) << "The full path name is: " << absoluteGamedirBuffer;
+		LOG(info) << "The full path name is: " << ref->sys->ToWideString(absoluteGamedirBuffer);
 	}
 
 	return absoluteGamedirBuffer;
@@ -312,10 +312,10 @@ dx12::Client::~Client()
 void Sys_Error(char *error, ...)
 {
 	va_list		argptr;
-	char		text[1024];
+	wchar_t		text[1024];
 
 	va_start(argptr, error);
-	vsprintf_s(text, error, argptr);
+	vswprintf(text, 1024, dx12::ref->sys->ToWideString(error).c_str(), argptr);
 	va_end(argptr);
 
 	dx12::ref->client->Sys_Error(ERR_FATAL, text);
@@ -324,10 +324,10 @@ void Sys_Error(char *error, ...)
 void Com_Printf(char *fmt, ...)
 {
 	va_list		argptr;
-	char		text[1024];
+	wchar_t		text[1024];
 
 	va_start(argptr, fmt);
-	vsprintf_s(text, fmt, argptr);
+	vswprintf(text, 1024, dx12::ref->sys->ToWideString(fmt).c_str(), argptr);
 	va_end(argptr);
 
 	dx12::ref->client->Con_Printf(PRINT_ALL, text);

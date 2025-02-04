@@ -25,10 +25,10 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-inline dxhandle_t dx12::ResourceManager::GenerateHandleForString(std::string string)
+inline dxhandle_t dx12::ResourceManager::GenerateHandleForString(std::wstring string)
 {
 	// Resources should never have the same name and path, so hashes should (almost) never collide
-	return std::hash<std::string>{}(string);
+	return std::hash<std::wstring>{}(string);
 }
 
 bool dx12::ResourceManager::Initialize()
@@ -90,7 +90,7 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(dxhandle_t handle)
 			if (result != m_resources.get<tag_handle>().end())
 			{
 				auto resource = *result;
-				auto dummy = std::make_shared<T>("dummy");
+				auto dummy = std::make_shared<T>(L"dummy");
 
 				// Found the resource, see if it is the right type
 				if (resource->GetType() == dummy->GetType()) {
@@ -115,9 +115,6 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(dxhandle_t handle)
 	return nullptr;
 }
 
-template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(dxhandle_t handle);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(dxhandle_t handle);
-
 /*std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(std::string name)
 {
 	LOG_FUNC();
@@ -128,7 +125,7 @@ template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx1
 }*/
 
 template<DerivedFrom<dx12::Resource> T>
-std::shared_ptr<T> dx12::ResourceManager::GetResource(std::string name)
+std::shared_ptr<T> dx12::ResourceManager::GetResource(std::wstring name)
 {
 	LOG_FUNC();
 
@@ -137,11 +134,8 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(std::string name)
 	return GetResource<T>(handle);
 }
 
-template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(std::string name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(std::string name);
-
 template<DerivedFrom<dx12::Resource> T>
-std::shared_ptr<T> dx12::ResourceManager::GetOrCreateResource(std::string name)
+std::shared_ptr<T> dx12::ResourceManager::GetOrCreateResource(std::wstring name)
 {
 	LOG_FUNC();
 
@@ -157,9 +151,6 @@ std::shared_ptr<T> dx12::ResourceManager::GetOrCreateResource(std::string name)
 
 	return resource;
 }
-
-template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetOrCreateResource<dx12::Resource>(std::string name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetOrCreateResource<dx12::Texture2D>(std::string name);
 
 resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t handle, bool validate)
 {
@@ -203,7 +194,7 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 }
 
 template<DerivedFrom<dx12::Resource> T>
-std::shared_ptr<T> dx12::ResourceManager::CreateResource(std::string name)
+std::shared_ptr<T> dx12::ResourceManager::CreateResource(std::wstring name)
 {
 	LOG_FUNC();
 
@@ -221,7 +212,7 @@ std::shared_ptr<T> dx12::ResourceManager::CreateResource(std::string name)
 			}
 			else
 			{
-				LOG(warning) << "Resource insertion blocked by existing resource handle: " << std::to_string((*result.first)->GetHandle()) << ", name: " << (*result.first)->GetName() << ".";
+				LOG(warning) << "Resource insertion blocked by existing resource handle: " << std::to_wstring((*result.first)->GetHandle()) << ", name: " << (*result.first)->GetName() << ".";
 			}
 		}
 	}
@@ -234,5 +225,3 @@ std::shared_ptr<T> dx12::ResourceManager::CreateResource(std::string name)
 
 	return nullptr;
 }
-template std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource<dx12::Resource>(std::string name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::CreateResource<dx12::Texture2D>(std::string name);

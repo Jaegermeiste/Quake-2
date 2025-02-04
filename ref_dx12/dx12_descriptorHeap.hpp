@@ -31,14 +31,73 @@ ref_dx12
 
 namespace dx12
 {
-	class DescHeap
+	class DescriptorHeap
 	{
 	private:
+		const std::unordered_map<D3D12_DESCRIPTOR_HEAP_TYPE, std::wstring> m_descriptorTypes = {
+		{ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, L"D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV" },
+		{ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, L"D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER" },
+		{ D3D12_DESCRIPTOR_HEAP_TYPE_RTV, L"D3D12_DESCRIPTOR_HEAP_TYPE_RTV" },
+		{ D3D12_DESCRIPTOR_HEAP_TYPE_DSV, L"D3D12_DESCRIPTOR_HEAP_TYPE_DSV" },
+		{ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES, L"D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES" }
+		};
+
+		ComPtr<ID3D12Device> m_device = nullptr;
+		D3D12_DESCRIPTOR_HEAP_TYPE m_type = D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+		ComPtr<ID3D12DescriptorHeap> m_heap = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_heapStartCPU = {};
+		D3D12_GPU_DESCRIPTOR_HANDLE m_heapStartGPU = {};
+		bool m_shaderVisible = false;
+		UINT m_descriptorSize = 0;
+		UINT m_descriptorCount = 0;
+		std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, std::optional<D3D12_GPU_DESCRIPTOR_HANDLE>>> m_handles;
+
+		void CreateHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible);
+
+		void ResizeHeap(UINT newSize);
+
+		
 
 	public:
-		bool																Initialize();
-		void																Shutdown();
+		DescriptorHeap(ComPtr<ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible = false);
+		~DescriptorHeap();
+
+		operator ComPtr<ID3D12DescriptorHeap> () { return m_heap; }
+		ComPtr<ID3D12DescriptorHeap> GetHeap() { return m_heap; }
+
+		dxhandle_t Allocate();
+
+		UINT GetDescriptorSize() const { return m_descriptorSize; }
+		UINT GetDescriptorCount() const { return m_descriptorCount; }
+		UINT GetAllocatedCount() const { return m_handles.size(); }
+
+		D3D12_DESCRIPTOR_HEAP_TYPE GetType() const { return m_type; }
+
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(dxhandle_t handle) const
+		{
+			assert(handle < m_descriptorCount);
+			return { m_handles.at(handle).first };
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart() const
+		{
+			return { m_heap->GetCPUDescriptorHandleForHeapStart() };
+		}
+
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(dxhandle_t handle) const
+		{
+			assert(handle < m_descriptorCount);
+			assert(m_heapStartGPU.ptr != 0); // Ensure this is a shader-visible heap
+			return { m_handles.at(handle).second ? *m_handles.at(handle).second : D3D12_GPU_DESCRIPTOR_HANDLE(0) };
+		}
+
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart() const
+		{
+			return { m_heap->GetGPUDescriptorHandleForHeapStart() };
+		}
 	};
+
+	
 }
 
 #endif // !__DX12_DESCRIPTORHEAP_HPP__

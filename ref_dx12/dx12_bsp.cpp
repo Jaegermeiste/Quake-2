@@ -42,7 +42,7 @@ size_t dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size
 
 	if (length % sizeof(float[3]))
 	{
-		ref->client->Sys_Error(ERR_DROP, "Unexpected lump size.");
+		ref->client->Sys_Error(ERR_DROP, L"Unexpected lump size.");
 		return 0;
 	}
 

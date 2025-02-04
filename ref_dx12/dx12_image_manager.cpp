@@ -31,7 +31,9 @@ bool dx12::ImageManager::Initialize()
 
 	GetPalette();
 
-	m_conChars = Load("pics/conchars.pcx", it_pic);
+	m_whiteTexture = Load(WHITE_TEXTURE_NAME, it_pic);
+	m_checkerboardTexture = Load(CHECKERBOARD_TEXTURE_NAME, it_pic);
+	m_conChars = Load(L"pics/conchars.pcx", it_pic);
 
 	return true;
 }
@@ -49,6 +51,33 @@ void dx12::ImageManager::Shutdown()
 		m_rawTexture->m_format.clear();
 		m_rawTexture->m_registrationSequence = 0;
 		m_rawTexture = nullptr;
+	}
+
+	if (m_conChars)
+	{
+		SAFE_RELEASE(m_conChars->m_resource);
+		ZeroMemory(&m_conChars->m_resourceDesc, sizeof(D3D12_RESOURCE_DESC));
+		m_conChars->m_format.clear();
+		m_conChars->m_registrationSequence = 0;
+		m_conChars = nullptr;
+	}
+
+	if (m_whiteTexture)
+	{
+		SAFE_RELEASE(m_whiteTexture->m_resource);
+		ZeroMemory(&m_whiteTexture->m_resourceDesc, sizeof(D3D12_RESOURCE_DESC));
+		m_whiteTexture->m_format.clear();
+		m_whiteTexture->m_registrationSequence = 0;
+		m_whiteTexture = nullptr;
+	}
+
+	if (m_checkerboardTexture)
+	{
+		SAFE_RELEASE(m_checkerboardTexture->m_resource);
+		ZeroMemory(&m_checkerboardTexture->m_resourceDesc, sizeof(D3D12_RESOURCE_DESC));
+		m_checkerboardTexture->m_format.clear();
+		m_checkerboardTexture->m_registrationSequence = 0;
+		m_checkerboardTexture = nullptr;
 	}
 
 	LOG(info) << "Shutdown complete.";
@@ -72,10 +101,10 @@ void dx12::ImageManager::GetPalette(void)
 	//
 	// load the file
 	//
-	int len = ref->client->FS_LoadFile("pics/colormap.pcx", (void **)&raw);
+	int len = ref->client->FS_LoadFile(L"pics/colormap.pcx", (void **)&raw);
 	if (!raw)
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		ref->client->Sys_Error(ERR_FATAL, L"Couldn't load pics/colormap.pcx");
 		return;
 	}
 
@@ -85,7 +114,7 @@ void dx12::ImageManager::GetPalette(void)
 
 	if (!pal)
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		ref->client->Sys_Error(ERR_FATAL, L"Couldn't load pics/colormap.pcx");
 		return;
 	}
 
@@ -117,8 +146,86 @@ void dx12::ImageManager::GetPalette(void)
 	SetRawPalette(nullptr);
 }
 
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::CreateTexture2DFromRaw(std::wstring name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette)
+{
+	LOG_FUNC();
 
-void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette)
+	HRESULT hr = E_UNEXPECTED;
+	byte* buffer = nullptr;
+	int bufferSize = -1;
+	unsigned int	miscFlags = 0;
+
+	if (name.length() < 1)
+	{
+		ref->client->Con_Printf(PRINT_DEVELOPER, L"Bad name: " + name);
+	}
+
+	// First, see if the image has already been loaded:
+	auto image = ref->res->GetResource<Texture2D>(name);
+
+	if (image)
+	{
+		return image;
+	}
+	else
+	{
+		// Create a new image
+		auto texture = ref->res->CreateResource<Texture2D>(name);
+
+		if (texture)
+		{
+			texture->m_imageType = it_pic;
+			texture->m_format = L"RAW";
+
+			texture->m_resourceDesc.Width = width;
+			texture->m_resourceDesc.Height = height;
+			texture->m_resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			texture->m_resourceDesc.DepthOrArraySize = 1;
+			if (generateMipmaps)
+			{
+				texture->m_resourceDesc.MipLevels = 0;
+			}
+			else
+			{
+				texture->m_resourceDesc.MipLevels = 1;
+			}
+			texture->m_resourceDesc.SampleDesc.Count = 1;
+			texture->m_resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+			if (bpp == BPP_8)
+			{
+				UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, generateMipmaps, BPP_8, raw, m_8to32table, false);
+			}
+			else
+			{
+				UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, generateMipmaps, bpp, raw, nullptr, false);
+			}
+
+			if (texture->m_resource)
+			{
+				texture->m_resource->SetName(name.c_str());
+			}
+
+			LOG(info) << "Successfully uploaded " << texture->GetName() << " to GPU.";
+		}
+	}
+
+	auto texture = ref->res->GetResource<Texture2D>(name);
+
+	if (texture)
+	{
+		// Overwrite the texture desc with whatever is in memory/on GPU
+		texture->UpdateDesc();
+
+		// Create a shader resource view
+		texture->CreateSRV();
+	}
+
+	// Return the pointer
+	return texture;
+}
+
+void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette, bool update, std::shared_ptr<CommandList> commandList)
 {
 	LOG_FUNC();
 
@@ -192,12 +299,7 @@ void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D>
 
 			data.pData = rgba32;
 
-			//DescriptorHeap heap();
-
 			CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-
-
-			//hr = ref->sys->dx->m_d3dDevice->CreateTexture2D(&texture->m_resourceDesc, &data, &texture->m_texture2D);
 
 			hr = ref->sys->dx->m_d3dDevice->CreateCommittedResource(
 					&heapProps,
@@ -205,11 +307,11 @@ void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D>
 					&texture->m_resourceDesc,
 					D3D12_RESOURCE_STATE_COPY_DEST,
 					nullptr,
-					IID_PPV_ARGS(texture->m_texture.ReleaseAndGetAddressOf()));
+					IID_PPV_ARGS(texture->m_resource.ReleaseAndGetAddressOf()));
 
 			if (FAILED(hr))
 			{
-				LOG(error) << "Failed to update texture";
+				LOG(error) << "Failed to update texture: " << GetD3D12ErrorMessage(hr);
 				delete[] rgba32;
 				rgba32 = nullptr;
 				return;
@@ -219,37 +321,88 @@ void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D>
 
 			resourceUpload.Begin();
 
-			resourceUpload.Upload(texture->m_texture.Get(), 0, &data, 1);
+			if (update && commandList && commandList->IsOpen())
+			{
+				auto uploadHeap = ref->res->GetOrCreateResource<Resource>(L"UploadHeap_" + texture->GetName());
+
+				// Define heap properties for an upload buffer
+				D3D12_HEAP_PROPERTIES heapProps = {};
+				heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;  // Must be UPLOAD type for CPU -> GPU transfers
+
+				// Describe the upload buffer
+				uploadHeap->m_resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+				uploadHeap->m_resourceDesc.Width = sizeof(unsigned int) * static_cast<UINT64>(width) * height;
+				uploadHeap->m_resourceDesc.Height = 1;
+				uploadHeap->m_resourceDesc.DepthOrArraySize = 1;
+				uploadHeap->m_resourceDesc.MipLevels = 1;
+				uploadHeap->m_resourceDesc.SampleDesc.Count = 1;
+				uploadHeap->m_resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+				// Create the upload heap resource
+				hr = ref->sys->dx->Device()->CreateCommittedResource(
+					&heapProps,               // Heap properties
+					D3D12_HEAP_FLAG_NONE,     // Heap flag
+					&uploadHeap->m_resourceDesc,              // Resource description
+					D3D12_RESOURCE_STATE_GENERIC_READ,  // Must be GENERIC_READ for upload heap
+					nullptr,                  // No clear value needed
+					IID_PPV_ARGS(&uploadHeap->m_resource)  // Output resource
+				);
+
+				if (FAILED(hr)) {
+					LOG(error) << "Failed to create upload heap.\n";
+				}
+
+
+				D3D12_RESOURCE_BARRIER barrier = {};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				barrier.Transition.pResource = texture->m_resource.Get();
+				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+				commandList->List()->ResourceBarrier(1, &barrier);
+
+				// Update the texture resource
+                UpdateSubresources(
+					commandList->List().Get(),
+                    texture->m_resource.Get(),
+					uploadHeap->m_resource.Get(),
+                    0,
+                    0,
+                    1,
+                    &data
+                );
+
+				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+				barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				commandList->List()->ResourceBarrier(1, &barrier);
+
+				texture->m_srvHandle = 0;
+				texture->m_cachedD3D12SRVHandle = {};			
+			}
+			else
+			{
+				resourceUpload.Upload(texture->m_resource.Get(), 0, &data, 1);
+			}
 
 			resourceUpload.Transition(
-				texture->m_texture.Get(),
+				texture->m_resource.Get(),
 				D3D12_RESOURCE_STATE_COPY_DEST,
 				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+			if (generateMipmaps) {
+				resourceUpload.GenerateMips(texture->m_resource.Get());
+			}
 
 			auto uploadResourcesFinished = resourceUpload.End(ref->sys->dx->m_commandQueue.Get());
 
 			uploadResourcesFinished.wait();
 
-			// Get SRV
-			/*if ((texture->m_resource) && (!texture->m_shaderResourceView))
-			{
-				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				srvDesc.Format = texture->m_resourceDesc.Format;
-				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-				srvDesc.Texture2D.MipLevels = 1;
-
-				ref->sys->dx->m_d3dDevice->CreateShaderResourceView(texture->m_resource, &srvDesc, ref->sys->dx->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart());
-				if (FAILED(hr))
-				{
-					ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
-				}
-			}*/
-
 			// Overwrite the texture desc with whatever is in memory/on GPU
 			if (texture)
 			{
 				texture->UpdateDesc();
+
+				texture->RefreshSRV();
 			}
 		}
 	}
@@ -264,7 +417,7 @@ void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D>
 }
 
 
-std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imagetype_t type)
+std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::wstring name, imagetype_t type)
 {
 	LOG_FUNC();
 
@@ -276,7 +429,7 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 
 	if (name.length() < 1)
 	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "Bad name: " + name);
+		ref->client->Con_Printf(PRINT_DEVELOPER, L"Bad name: " + name);
 	}
 
 	// First, see if the image has already been loaded:
@@ -292,51 +445,58 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 		auto texture = ref->res->CreateResource<Texture2D>(name);
 		texture->m_imageType = type;
 
-		// Determine the image type
-		std::string fileName = std::filesystem::path(name).stem().string();
-		std::string extension = std::filesystem::path(name).extension().string();
-		std::string path = "";
-
-		if ((fileName.at(0) != '/') && (fileName.at(0) != '\\'))
+		if ((name.compare(WHITE_TEXTURE_NAME) != 0) && (name.compare(CHECKERBOARD_TEXTURE_NAME) != 0))
 		{
-			switch (type)
+			// Determine the image type
+			std::wstring fileName = std::filesystem::path(name).stem().wstring();
+			std::wstring extension = std::filesystem::path(name).extension().wstring();
+			std::wstring path = L"";
+
+			if ((fileName.at(0) != '/') && (fileName.at(0) != '\\'))
 			{
-			case it_pic:
-				path = "pics/";
-				break;
-			case it_skin:
-			case it_sprite:
-			case it_wall:
-			case it_sky:
-			default:
-				break;
+				switch (type)
+				{
+				case it_pic:
+					path = L"pics/";
+					break;
+				case it_skin:
+				case it_sprite:
+				case it_wall:
+				case it_sky:
+				default:
+					break;
+				}
+			}
+			else
+			{
+				fileName = name.substr(1, name.length() - 1);
+			}
+
+			// Iterate through all possible format extensions until we find the file
+			for (auto& format : m_imageExtensions)
+			{
+				buffer = nullptr;
+				bufferSize = -1;
+
+				// Attempt to load the file
+				bufferSize = ref->client->FS_LoadFile(path + fileName + L"." + format, (void**)&buffer);
+
+				if ((bufferSize > 0) && (buffer))
+				{
+					texture->m_format = format;
+					break;
+				}
+			}
+
+			if (bufferSize <= 0)
+			{
+				ref->client->Con_Printf(PRINT_ALL, L"File not found: " + name);
+				return nullptr;
 			}
 		}
-		else
+		else 
 		{
-			fileName = name.substr(1, name.length() - 1);
-		}
-
-		// Iterate through all possible format extensions until we find the file
-		for (auto & format : m_imageExtensions)
-		{
-			buffer = nullptr;
-			bufferSize = -1;
-
-			// Attempt to load the file
-			bufferSize = ref->client->FS_LoadFile(path + fileName + "." + format, (void **)&buffer);
-
-			if ((bufferSize > 0) && (buffer))
-			{
-				texture->m_format = format;
-				break;
-			}
-		}
-
-		if (bufferSize <= 0)
-		{
-			ref->client->Con_Printf(PRINT_ALL, "File not found: " + name);
-			return nullptr;
+			texture->m_format = L"INTERNAL";
 		}
 
 		/*if (generateMipMap)
@@ -344,46 +504,96 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 			miscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
 		}*/
 
-		if (texture->m_format.compare("pcx") == 0)
+		if (texture->m_format.compare(L"INTERNAL") == 0)
+		{
+			if (name.compare(WHITE_TEXTURE_NAME) == 0)
+			{
+				UINT8 whitePixel[4] = { 255, 255, 255, 255 };
+				texture->m_resourceDesc.Width = 1;
+				texture->m_resourceDesc.Height = 1;
+				texture->m_resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				texture->m_resourceDesc.DepthOrArraySize = 1;
+				texture->m_resourceDesc.MipLevels = 1;
+				texture->m_resourceDesc.SampleDesc.Count = 1;
+				texture->m_resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+				UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, false, BPP_32, whitePixel, nullptr, false);
+			}
+			else if (name.compare(CHECKERBOARD_TEXTURE_NAME) == 0)
+			{
+				const int dimension = 256;
+				std::vector<UINT8> checkerboardData(dimension * dimension * 4); // RGBA
+				int squareSize = dimension / 8; // 8x8 checkerboard pattern
+
+				for (int y = 0; y < dimension; y++) {
+					for (int x = 0; x < dimension; x++) {
+						int index = (y * dimension + x) * 4;
+
+						// Checkerboard pattern logic
+						bool isWhite = ((x / squareSize) % 2) ^ ((y / squareSize) % 2);
+						UINT8 color = isWhite ? 255 : 0; // White (255,255,255), Black (0,0,0)
+
+						checkerboardData[index]     = color; // R
+						checkerboardData[index + 1] = color; // G
+						checkerboardData[index + 2] = color; // B
+						checkerboardData[index + 3] = 255;   // A (Opaque)
+					}
+				}
+
+				texture->m_resourceDesc.Width = dimension;
+				texture->m_resourceDesc.Height = dimension;
+				texture->m_resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				texture->m_resourceDesc.DepthOrArraySize = 1;
+				texture->m_resourceDesc.MipLevels = 0;
+				texture->m_resourceDesc.SampleDesc.Count = 1;
+				texture->m_resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+				UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, true, BPP_32, checkerboardData.data(), nullptr, false);
+			}
+		}
+		else if (texture->m_format.compare(L"pcx") == 0)
 		{
 			byte	*pic = nullptr, *palette = nullptr;
 			LoadPCX(buffer, bufferSize, &pic, &palette, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height);
-			UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, false, BPP_8, pic, m_8to32table);	// FIXME
+			UpdateTexture2DFromRaw(texture, texture->m_resourceDesc.Width, texture->m_resourceDesc.Height, false, BPP_8, pic, m_8to32table, false);	// FIXME
 		}
-		else if (texture->m_format.compare("wal") == 0)
+		else if (texture->m_format.compare(L"wal") == 0)
 		{
 			// Requesting a .wal file
 		}
-		else if (texture->m_format.compare("tga") == 0)
+		else if (texture->m_format.compare(L"tga") == 0)
 		{
 			// Requesting a .tga file
 		}
-		else if (texture->m_format.compare("dds") == 0)
+		else if (texture->m_format.compare(L"dds") == 0)
 		{
 			// .dds file
 
 			if (FAILED(hr))
 			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with DDS loader.");
+				ref->client->Con_Printf(PRINT_ALL, L"Failed to load " + name + L" with DDS loader.");
 			}
 
 		}
-		else if (texture->m_format.compare("hdr") == 0)
+		else if (texture->m_format.compare(L"hdr") == 0)
 		{
 			// Requesting a .hdr file
 			TexMetadata metadata;
-			hr = GetMetadataFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), metadata);
+            if (buffer != nullptr)
+            {
+                hr = GetMetadataFromHDRMemory(buffer, msl::utilities::SafeInt<size_t>(bufferSize), metadata);
 
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to extract HDR metadata from " + name + ".");
-			}
-			else
-			{
-
-			}
+				if (FAILED(hr))
+				{
+					ref->client->Con_Printf(PRINT_ALL, L"Failed to extract HDR metadata from " + name + L".");
+				}
+            }
+            else
+            {
+                hr = E_POINTER; // or any appropriate error code
+                ref->client->Con_Printf(PRINT_ALL, L"Buffer is null for " + name + L".");
+            }
 		}
-		else if (texture->m_format.compare("exr") == 0)
+		else if (texture->m_format.compare(L"exr") == 0)
 		{
 			// Requesting a .exr file
 		}
@@ -393,10 +603,10 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 
 			if (FAILED(hr))
 			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to load " + name + " with WIC loader.");
+				ref->client->Con_Printf(PRINT_ALL, L"Failed to load " + name + L" with WIC loader.");
 			}
 		}
-		
+	
 		LOG(info) << "Successfully uploaded " << texture->GetName() << " to GPU.";
 	}
 
@@ -409,36 +619,11 @@ std::shared_ptr<dx12::Texture2D> dx12::ImageManager::Load(std::string name, imag
 
 	if (texture)
 	{
-		// Get texture/resource as necessary
-		/*if ((m_images[name]->m_resource) && (!m_images[name]->m_texture2D))
-		{
-			hr = m_images[name]->m_resource->QueryInterface(IID_ID3D12Resource, (void **)&m_images[name]->m_texture2D);
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to get Texture2D from resource.");
-			}
-		}
-		else if ((!m_images[name]->m_resource) && (m_images[name]->m_texture2D))
-		{
-			hr = m_images[name]->m_texture2D->QueryInterface(IID_ID3D12Resource, (void **)&m_images[name]->m_resource);
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to get resource from Texture2D.");
-			}
-		}*/
-
-		// Get SRV as necessary
-		/*if ((m_images[name]->m_resource) && (!m_images[name]->m_shaderResourceView))
-		{
-			hr = ref->sys->dx->m_d3dDevice->CreateShaderResourceView(m_images[name]->m_resource, NULL, &m_images[name]->m_shaderResourceView);
-			if (FAILED(hr))
-			{
-				ref->client->Con_Printf(PRINT_ALL, "Failed to get ShaderResourceView from resource.");
-			}
-		}*/
-
 		// Overwrite the texture desc with whatever is in memory/on GPU
 		texture->UpdateDesc();
+
+		// Create a shader resource view
+		texture->CreateSRV();
 	}
 
 	// Return the pointer

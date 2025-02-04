@@ -51,7 +51,7 @@ dx12::Log::Log()
 		boost::log::keywords::format = "[%TimeStamp%] <%Severity%> %Scope% - %Message%"
 	);
 
-	logSink->locked_backend()->auto_flush(true);
+	//logSink->locked_backend()->auto_flush(true);
 
 	boost::log::add_console_log();
 
@@ -92,5 +92,5 @@ dx12::Log::Log()
 
 	LOG(info) << "nullptr address: " << static_cast<void*>(nullptr);
 
-	//logSink->flush();
+	logSink->flush();
 }

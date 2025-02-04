@@ -25,7 +25,7 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-void dx12::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name)
+void dx12::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::wstring name)
 {
 	std::shared_ptr<dx12::Texture2D> image = ref->media->img->Load(name, it_pic);
 
@@ -36,37 +36,67 @@ void dx12::Draw::GetPicSize(unsigned int & w, unsigned int & h, std::string name
 	}
 }
 
-void dx12::Draw::Pic(int x, int y, std::string name)
+void dx12::Draw::Pic(int x, int y, std::wstring name)
 {
 	LOG_FUNC();
 
 	std::shared_ptr<dx12::Texture2D> image = ref->media->img->Load(name, it_pic);
 
+	if (m_quadIndex >= m_quadList.capacity())
+	{
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
 	if (image)
 	{
-		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, msl::utilities::SafeInt<int>(image->GetWidth()), msl::utilities::SafeInt<int>(image->GetHeight()), DirectX::Colors::White);
+		image->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
 
-		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, msl::utilities::SafeInt<int>(image->GetWidth()), msl::utilities::SafeInt<int>(image->GetHeight()), DirectX::Colors::White);
+
+		m_quadIndex++;
 	}
 }
 
-void dx12::Draw::StretchPic(int x, int y, int w, int h, std::string name)
+void dx12::Draw::StretchPic(int x, int y, int w, int h, std::wstring name)
 {
 	LOG_FUNC();
 
 	std::shared_ptr<dx12::Texture2D> image = ref->media->img->Load(name, it_pic);
 
+	if (m_quadIndex >= m_quadList.capacity())
+	{
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
 	if (image)
 	{
-		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+		image->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
+		
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, w, h, DirectX::Colors::White);
 
-		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+		m_quadIndex++;
 	}
 }
 
 void dx12::Draw::Char(int x, int y, unsigned char c)
 {
 	LOG_FUNC();
+
+	c &= 255;
 
 	if ((y <= -SMALL_CHAR_SIZE) || ((c & 127) == 32))
 	{
@@ -81,7 +111,26 @@ void dx12::Draw::Char(int x, int y, unsigned char c)
 	float frow = row * size;
 	float fcol = col * size;
 
-	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
+	if (m_quadIndex >= m_quadList.capacity())
+	{
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
+	if (ref->media->img->m_conChars)
+	{
+		ref->media->img->m_conChars->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
+
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, fcol, frow, fcol + size, frow + size, DirectX::Colors::White);
+
+		m_quadIndex++;
+	}
 
 	// Render the overlay to the back buffer
 	//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_conChars->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
@@ -116,17 +165,31 @@ void dx12::Draw::Char(int x, int y, unsigned char c)
 	}*/
 }
 
-void dx12::Draw::TileClear(int x, int y, int w, int h, std::string name)
+void dx12::Draw::TileClear(int x, int y, int w, int h, std::wstring name)
 {
 	LOG_FUNC();
 
 	std::shared_ptr<dx12::Texture2D> image = ref->media->img->Load(name, it_pic);
 
+	if (m_quadIndex >= m_quadList.capacity())
+	{
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
 	if (image)
 	{
-		//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
+		image->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
 
-		//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, image->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, w, h, x / 64.0f, y / 64.0f, (x + w) / 64.0f, (y + h) / 64.0f, DirectX::Colors::White);
+
+		m_quadIndex++;
 	}
 }
 
@@ -136,7 +199,7 @@ void dx12::Draw::Fill(int x, int y, int w, int h, int c)
 
 	if (msl::utilities::SafeInt<unsigned int>(c) > 255)
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
+		ref->client->Sys_Error(ERR_FATAL, L"Draw_Fill: bad color");
 		return;
 	}
 
@@ -145,20 +208,35 @@ void dx12::Draw::Fill(int x, int y, int w, int h, int c)
 	color.f[1] = ref->media->img->m_8to32table[c].g;
 	color.f[2] = ref->media->img->m_8to32table[c].b;
 
-	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, color);
+	std::shared_ptr<dx12::Texture2D> image = ref->media->img->Load(WHITE_TEXTURE_NAME, it_pic);
 
-	// Render the overlay to the back buffer
-	//ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);
+	if (m_quadIndex >= m_quadList.capacity())
+	{
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
+	if (image)
+	{
+		image->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
+
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, w, h, DirectX::Colors::White);
+
+		m_quadIndex++;
+	}
 }
 
 void dx12::Draw::FadeScreen(void)
 {
-	//ref->sys->dx->subsystem2D->FadeScreen();
+	LOG_FUNC();
 
-	ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(0, 0, msl::utilities::SafeInt<int>(ref->sys->dx->subsystem2D->m_renderTargetWidth), msl::utilities::SafeInt<int>(ref->sys->dx->subsystem2D->m_renderTargetHeight), { 0.0f, 0.0f, 0.0f, 0.75f });
-
-	// Render the overlay to the back buffer
-	//ref->sys->dx->subsystem2D->m_2DshaderVertexColor.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, nullptr, ref->sys->dx->subsystem2D->m_constantBuffer);
+	ref->sys->dx->subsystem2D->FadeScreen();
 }
 
 void dx12::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsigned int rows, byte * data)
@@ -167,49 +245,49 @@ void dx12::Draw::StretchRaw(int x, int y, int w, int h, unsigned int cols, unsig
 
 	if ((x < 0) || (x + w > ref->sys->dx->m_windowWidth) || (y + h > ref->sys->dx->m_windowHeight))
 	{
-		ref->client->Sys_Error(ERR_FATAL, "Draw_StretchRaw: bad coordinates");
+		ref->client->Sys_Error(ERR_FATAL, L"Draw_StretchRaw: bad coordinates");
 	}
-
-	unsigned int	*image32 = new unsigned int[rows * cols]();
-	DirectX::PackedVector::XMCOLOR* palette = ref->media->img->m_rawPalette;
-
-	// De-palletize the texture data
-	Concurrency::parallel_for(0u, (rows * cols), [&data, &image32, &palette](unsigned int i)
-	{
-		// Paletted
-		image32[i] = palette[data[i]];
-	});
 
 	if (!ref->media->img->m_rawTexture)
 	{
 		// Create the texture on demand
-		//ref->media->img->m_rawTexture = ref->media->img->CreateTexture2DFromRaw("StretchRaw", cols, rows, false, BPP_32, (byte*)image32, nullptr, D3D12_USAGE_DYNAMIC);
+		ref->media->img->m_rawTexture = ref->media->img->CreateTexture2DFromRaw(L"StretchRaw", cols, rows, false, BPP_8, data, ref->media->img->m_rawPalette);
 	}
 	else
 	{
-		/*
-		// Update the texture
-		D3D12_MAPPED_SUBRESOURCE mappedResource;
-		ZeroMemory(&mappedResource, sizeof(D3D12_MAPPED_SUBRESOURCE));
-
-		//	Disable GPU access to the texture data.
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->Map(ref->media->img->m_rawTexture->m_resource, 0, D3D12_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-		//	Update the texture here.
-		memcpy(mappedResource.pData, image32, sizeof(unsigned int) * rows * cols);
-
-		//	Reenable GPU access to the texture data.
-		ref->sys->dx->subsystem2D->m_2DdeferredContext->Unmap(ref->media->img->m_rawTexture->m_resource, 0);
-		*/
+		ref->media->img->UpdateTexture2DFromRaw(ref->media->img->m_rawTexture, cols, rows, false, BPP_8, data, ref->media->img->m_rawPalette, true, ref->sys->dx->subsystem2D->m_commandList);
 	}
 
-	//ref->sys->dx->subsystem2D->m_generalPurposeQuad.Render(x, y, w, h, DirectX::Colors::White);
-
-	//ref->sys->dx->subsystem2D->m_2DshaderTexture.Render(ref->sys->dx->subsystem2D->m_2DdeferredContext, ref->sys->dx->subsystem2D->m_generalPurposeQuad.IndexCount(), DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), ref->sys->dx->subsystem2D->m_2DorthographicMatrix, ref->media->img->m_rawTexture->m_shaderResourceView, ref->sys->dx->subsystem2D->m_constantBuffer);
-
-	if (image32)
+	if (m_quadIndex >= m_quadList.capacity())
 	{
-		delete[] image32;
-		image32 = nullptr;
+		auto oldCapacity = m_quadList.capacity();
+
+		LOG(warning) << "Growing Quad list...";
+		m_quadList.resize(oldCapacity * 2);
+
+		for (int i = m_quadIndex; i < m_quadList.capacity(); ++i) {
+			m_quadList.at(i).Initialize(0, 0, SMALL_CHAR_SIZE, SMALL_CHAR_SIZE, DirectX::Colors::White);
+		}
+	}
+
+	if (ref->media->img->m_rawTexture)
+	{
+		ref->media->img->m_rawTexture->BindSRV(ref->sys->dx->subsystem2D->m_commandList);
+
+		m_quadList.at(m_quadIndex).Render(ref->sys->dx->subsystem2D->m_commandList, x, y, w, h, DirectX::Colors::White);
+	}
+}
+
+void dx12::Draw::Initialize()
+{
+	for (auto& quad : m_quadList) {
+		quad.Initialize(0, 0, 128, 128, DirectX::Colors::White);
+	}
+}
+
+void dx12::Draw::Shutdown()
+{
+	for (auto& quad : m_quadList) {
+		quad.Shutdown();
 	}
 }

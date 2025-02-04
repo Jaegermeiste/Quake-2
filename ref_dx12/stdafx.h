@@ -47,6 +47,7 @@ ref_dx12
 #include <concepts>
 #include <typeinfo>
 #include <type_traits>
+#include <codecvt>
 
 // Boost Includes
 #define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE	1
@@ -74,6 +75,11 @@ ref_dx12
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/tag.hpp>
+#include <boost/locale.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/string_generator.hpp>
 
 // Boost Container Index Tags
 struct name {};
@@ -96,6 +102,7 @@ struct registration {};
 #include <Urlmon.h>
 #include <D2d1_1.h>
 #include <Dwrite.h>
+#include <comdef.h>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "D3DCompiler.lib")

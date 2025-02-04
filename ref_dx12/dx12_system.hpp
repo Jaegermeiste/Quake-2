@@ -27,7 +27,7 @@ ref_dx12
 #define __DX12_SYSTEM_HPP__
 #pragma once
 
-#define	WINDOW_CLASS_NAME	"Quake 2"
+constexpr auto	WINDOW_CLASS_NAME =	"Quake 2";
 
 #include "dx12_local.hpp"
 
@@ -44,11 +44,12 @@ namespace dx12
 
 		bool						m_clockRunning;
 		bool						m_clockFrequencyObtained;
-		byte						m_padding[2];
 		LARGE_INTEGER				m_clockFrequency;
 
 		bool						VID_CreateWindow();
 		void						VID_DestroyWindow();
+
+		boost::uuids::time_generator_v7 uuid7_gen;
 
 	public:
 		std::unique_ptr<Dx>			dx;			// Backend
@@ -61,14 +62,22 @@ namespace dx12
 
 		void						AppActivate(bool active);
 
-		std::string					GetCurrentWorkingDirectory();
-		bool						SetCurrentWorkingDirectory(std::string directory);
+		std::wstring				GetCurrentWorkingDirectory();
+		bool						SetCurrentWorkingDirectory(std::wstring directory);
 
-		bool						DoesFileExist(std::string fileName);
+		bool						DoesFileExist(std::wstring fileName);
 
 		std::wstring				ToWideString(std::string inStr);
+		std::wstring				ToWideString(WCHAR* inWideStr);
+		std::wstring				ToWideString(const WCHAR* inWideStr);
+		std::string					ToString(std::wstring inStr);
 		std::string					ToString(WCHAR* inWideStr);
+
+		std::wstring                GetUUIDv7() { return boost::uuids::to_wstring(uuid7_gen()); };
+
+		Vector2                     GetNormalizedDeviceCoordinates(int px, int py, int windowWidth, int windowHeight);
+		Vector4                     GetNormalizedDeviceRectangle (int px, int py, int pw, int ph, int windowWidth, int windowHeight);
 	};
-}
+};
 
 #endif // !__DX12_SYSTEM_HPP__

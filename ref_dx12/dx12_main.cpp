@@ -29,9 +29,9 @@ ref_dx12
 CRITICAL_SECTION CriticalSection;
 
 #if defined(DEBUG) || defined (_DEBUG)
-ID3D12Debug*		d3dDebug		= nullptr;
-ID3D12DebugDevice*	d3dDebugDev		= nullptr;
-ID3D12InfoQueue*	d3dInfoQueue	= nullptr;
+ComPtr<ID3D12Debug>		    d3dDebug		= nullptr;
+ComPtr<ID3D12DebugDevice>	d3dDebugDev		= nullptr;
+ComPtr<ID3D12InfoQueue>	    d3dInfoQueue	= nullptr;
 #endif
 
 /*
@@ -45,7 +45,7 @@ bool dx12::Initialize()
 
 	if (dx12::ref->client != nullptr)
 	{
-		dx12::ref->client->Con_Printf(PRINT_ALL, "ref_dx12 version: " REF_VERSION);
+		dx12::ref->client->Con_Printf(PRINT_ALL, L"ref_dx12 version: " REF_VERSION);
 	}
 
 	// Initialize the critical section one time only.
@@ -55,7 +55,13 @@ bool dx12::Initialize()
 	}
 
 #if defined(DEBUG) || defined (_DEBUG)
-	D3D12GetDebugInterface(__uuidof(ID3D12Debug), reinterpret_cast<void**>(&d3dDebug));
+	HRESULT hr = E_UNEXPECTED;
+
+	hr = D3D12GetDebugInterface(IID_PPV_ARGS(&d3dDebug));
+
+	if (FAILED(hr)) {
+		LOG(warning) << "Failed to get debug interface: " << GetD3D12ErrorMessage(hr);
+	}
 
 	if (d3dDebug != nullptr)
 	{

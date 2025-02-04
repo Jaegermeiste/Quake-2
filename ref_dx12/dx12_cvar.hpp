@@ -41,15 +41,15 @@ namespace dx12
 
 			std::mutex				m_ptrAccessMutex;
 
-			std::string				CvarFlagsToString(unsigned int flags);
+			std::wstring			CvarFlagsToString(unsigned int flags);
 
-			static	bool			InfoValidate(std::string value);
+			static	bool			InfoValidate(std::wstring value);
 
 		public:
-									Cvar(std::string name, std::string defaultString, unsigned int flags);
-									Cvar(std::string name, float defaultValue, unsigned int flags);
-									Cvar(std::string name, double defaultValue, unsigned int flags);
-									Cvar(std::string name, int defaultValue, unsigned int flags);
+									Cvar(std::wstring name, std::wstring defaultString, unsigned int flags);
+									Cvar(std::wstring name, float defaultValue, unsigned int flags);
+									Cvar(std::wstring name, double defaultValue, unsigned int flags);
+									Cvar(std::wstring name, int defaultValue, unsigned int flags);
 									~Cvar();
 
 					bool			Bool();
@@ -57,13 +57,13 @@ namespace dx12
 					unsigned int	UInt();
 					float			Float();
 					double			Double();
-					std::string		String();
-					std::string		LatchedString();
-					std::string		Name();
+					std::wstring	String();
+					std::wstring	LatchedString();
+					std::wstring	Name();
 					unsigned int	Flags();
 					bool			Modified();
 
-					void			Set(std::string string);
+					void			Set(std::wstring string);
 					void			Set(bool value);
 					void			Set(signed int value);
 					void			Set(unsigned int value);
@@ -93,6 +93,11 @@ namespace dx12
 		std::shared_ptr<Cvar>  backBufferFormat;
 		std::shared_ptr<Cvar>  Vsync;
 		std::shared_ptr<Cvar>  samplesPerPixel;
+
+		std::shared_ptr<Cvar>  shaderVertexSwap;
+		std::shared_ptr<Cvar>  shaderPixelSwap;
+		std::shared_ptr<Cvar>  shaderVertex2D;
+		std::shared_ptr<Cvar>  shaderPixel2D;
 
 		std::shared_ptr<Cvar>  zNear2D;
 		std::shared_ptr<Cvar>  zNear3D;

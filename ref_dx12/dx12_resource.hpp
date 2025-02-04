@@ -41,37 +41,47 @@ namespace dx12
 	typedef enum resourceType_e {
 		RESOURCE_NONE,
 		RESOURCE_TEXTURE2D,
+		RESOURCE_BUFFER,
+		RESOURCE_VERTEXBUFFER,
+		RESOURCE_INDEXBUFFER,
+		RESOURCE_CONSTANTBUFFER,
 		RESOURCE_MAX
 	} resourceType_t;
 
 	class Resource : public std::enable_shared_from_this<Resource>
 	{
 		friend class ResourceManager;
+		friend class ImageManager;
 
 	protected:
 		dxhandle_t				m_handle;
-		std::string				m_name;
+		std::wstring			m_name;
 		resourceType_t			m_type;
 		D3D12_RESOURCE_DESC		m_resourceDesc;
-		ID3D12Resource*			m_resource = nullptr;
+		ComPtr<ID3D12Resource>	m_resource = nullptr;
 
 	public:
-		Resource(std::string name) {
+		Resource(std::wstring name) {
 			m_name = name; 
 			m_type = RESOURCE_NONE;
-			m_handle = std::hash<std::string>{}(name);
+			m_handle = std::hash<std::wstring>{}(name);
 			memset(&m_resourceDesc, 0, sizeof(D3D12_RESOURCE_DESC));
 			m_resource = nullptr;
 		};
 
 		const	dxhandle_t					GetHandle()		const	{ return m_handle; };
-		const	std::string					GetName()		const	{ return m_name; };
-		const	std::string_view			GetNameView()	const	{ return m_name; };
+		const	std::wstring				GetName()		const	{ return m_name; };
+		const	std::wstring_view			GetNameView()	const	{ return m_name; };
 		const	resourceType_t				GetType()		const	{ return m_type; };
 
 		void								UpdateDesc()			{ if (m_resource != nullptr) { m_resourceDesc = m_resource->GetDesc(); } };
 
-		virtual ~Resource() {}
+		virtual ~Resource() {
+			if (m_resource != nullptr) {
+				SAFE_RELEASE(m_resource);
+			}
+			m_type = RESOURCE_NONE;
+		}
 	};
 
 	struct tag_handle {};
@@ -86,7 +96,7 @@ namespace dx12
 				tag<tag_handle>, const_mem_fun< Resource, const dxhandle_t, &Resource::GetHandle > 
 			>,
 			ordered_unique<
-				tag<tag_name>, const_mem_fun< Resource, const std::string_view, &Resource::GetNameView > 
+				tag<tag_name>, const_mem_fun< Resource, const std::wstring_view, &Resource::GetNameView > 
 			>,
 			ordered_non_unique<
 				tag<tag_type>, const_mem_fun< Resource, const resourceType_t, &Resource::GetType > 
@@ -103,7 +113,7 @@ namespace dx12
 		std::unordered_map<dxhandle_t, std::shared_ptr<resourceHandleQ2_t>>	m_handlesQ2;
 
 	protected:
-		static dxhandle_t													GenerateHandleForString (std::string string);
+		static dxhandle_t													GenerateHandleForString (std::wstring string);
 
 	public:
 		bool																Initialize();
@@ -111,21 +121,26 @@ namespace dx12
 
 
 		//std::shared_ptr<Resource>											GetResource				(dxhandle_t handle);
-		//std::shared_ptr<Resource>											GetResource				(std::string name);
+		//std::shared_ptr<Resource>											GetResource				(std::wstring name);
 		template <DerivedFrom<dx12::Resource> T>
 		std::shared_ptr<T>											        GetResource             (dxhandle_t handle);
 		template <DerivedFrom<dx12::Resource> T>
-		std::shared_ptr<T>											        GetResource             (std::string name);
+		std::shared_ptr<T>											        GetResource             (std::wstring name);
 
 		template <DerivedFrom<dx12::Resource> T>
-		std::shared_ptr<T>											        GetOrCreateResource		(std::string name);
+		std::shared_ptr<T>											        GetOrCreateResource		(std::wstring name);
 		
 		template <DerivedFrom<dx12::Resource> T>
-		std::shared_ptr<T> 											        CreateResource          (std::string name);
+		std::shared_ptr<T> 											        CreateResource          (std::wstring name);
 
 
 		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle, bool validate = false);
 	};
 }
+
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::CreateResource<dx12::Resource>(std::wstring name);
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetOrCreateResource<dx12::Resource>(std::wstring name);
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(std::wstring name);
+template std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource<dx12::Resource>(dxhandle_t handle);
 
 #endif // !__DX12_RESOURCE_HPP__

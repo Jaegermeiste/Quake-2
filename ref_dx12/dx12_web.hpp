@@ -40,7 +40,7 @@ namespace dx12
 
 		bool						Initialize();
 
-		bool						DownloadFile(std::string downloadURL, std::string destinationPath);
+		bool						DownloadFile(std::wstring downloadURL, std::wstring destinationPath);
 
 		void						Shutdown();
 	};

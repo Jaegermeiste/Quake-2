@@ -27,10 +27,10 @@ ref_dx12
 #define __DX12_DX_HPP__
 #pragma once
 
-#define NUM_D3D_FEATURE_LEVELS	10
+constexpr auto NUM_D3D_FEATURE_LEVELS = 10;
 
-#define MIN_BACK_BUFFERS	1
-#define MAX_BACK_BUFFERS	3
+constexpr auto MIN_BACK_BUFFERS = 1;
+constexpr auto MAX_BACK_BUFFERS = 3;
 
 #include "dx12_local.hpp"
 
@@ -39,6 +39,10 @@ namespace dx12
 	//https://stackoverflow.com/questions/20104815/warning-c4316-object-allocated-on-the-heap-may-not-be-aligned-16
 	__declspec(align(16)) class Dx
 	{
+		friend class CommandList;
+		friend class VertexBuffer;
+		friend class IndexBuffer;
+		friend class TestTriangle;
 		friend class Quad2D;
 		friend class SubsystemText;
 		friend class Subsystem2D;
@@ -70,25 +74,27 @@ namespace dx12
 		UINT64										m_fenceValues[MAX_BACK_BUFFERS]{};
 
 		ComPtr<ID3D12CommandQueue>			        m_commandQueue					= nullptr;
-		ComPtr<ID3D12CommandAllocator>		        m_directCmdListAllocs[MAX_BACK_BUFFERS]{};
-		ComPtr<ID3D12GraphicsCommandList>	        m_commandListGfx				= nullptr;
+		std::shared_ptr<CommandList>      	        m_commandListSwap				= nullptr;
 
 		UINT										m_multisampleCount				= 0;
 		ComPtr<IDXGISwapChain3>			            m_swapChain                     = nullptr;
 
-		ComPtr<ID3D12DescriptorHeap>		        m_descriptorHeapRTV				= nullptr;
-		ComPtr<ID3D12DescriptorHeap>		        m_descriptorHeapDSV				= nullptr;
-		ComPtr<ID3D12DescriptorHeap>		        m_descriptorHeapCBVSRVUAV		= nullptr;
-		UINT										m_descriptorsAllocatedRTV		= 0;
-		UINT										m_descriptorsAllocatedDSV		= 0;
-		UINT										m_descriptorsAllocatedCBVSRVUAV	= 0;
-		UINT										m_descriptorSizeRTV				= 0;
-		UINT										m_descriptorSizeDSV				= 0;
-		UINT										m_descriptorSizeCBVSRVUAV		= 0;
+		std::shared_ptr<DescriptorHeap>		        m_descriptorHeapRTV				= nullptr;
+		std::shared_ptr<DescriptorHeap>		        m_descriptorHeapDSV				= nullptr;
+		std::shared_ptr<DescriptorHeap>		        m_descriptorHeapCBVSRVUAV		= nullptr;
+
+		ComPtr<ID3D12RootSignature>                 m_rootSignature                 = nullptr;
+		ComPtr<ID3D12PipelineState>                 m_pipelineState                 = nullptr;
+
+		dxhandle_t				                    m_constantBufferHandle = 0;
+
+		DXGI_FORMAT									m_backBufferFormat              = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		UINT										m_backBufferCount				= 0;
 		ComPtr<ID3D12Resource>				        m_backBufferRenderTargets[MAX_BACK_BUFFERS]{};
 		UINT										m_backBufferIndex				= 0;
+		D3D12_RESOURCE_STATES                       m_backBufferRenderTargetStates[MAX_BACK_BUFFERS] = {};
+		dxhandle_t                                  m_backBufferRTVHandles[MAX_BACK_BUFFERS] = {};
 
 		D3D12_VIEWPORT								m_viewport{};
 		D3D12_RECT									m_scissorRect{};
@@ -104,6 +110,9 @@ namespace dx12
 		double										m_frameTimeEMA					= 0.0;
 		double										m_frameRateEMA					= 0.0;
 
+		Shader						                m_shaderVertex;
+		Shader						                m_shaderPixel;
+
 		void										FillFeatureLevelArray(void);
 
 		bool										InitFactory(HWND hWnd);
@@ -111,19 +120,21 @@ namespace dx12
 		bool										InitDeviceDebug();
 		bool										InitDevice(HWND hWnd);
 		bool										InitFences();
+		bool										InitRootSignature();
+		bool										InitSwapPipelineState();
 		bool										InitCommandObjects();
 		bool										InitSwapChain(HWND hWnd);
 		bool										InitDescriptorHeaps();
 		bool										InitBackBufferRenderTargets();
 		bool										InitViewport();
 		bool										InitScissorRect();
+		bool										InitConstantBuffer();
 
-		void										WaitForGPU();
+		std::unique_ptr<TestTriangle>               m_testTriangle = nullptr;
 
 		void										D3D_Shutdown();
 
 		friend void dx12::Draw::Fill(int x, int y, int w, int h, int c);
-		friend void dx12::ImageManager::UpdateTexture2DFromRaw(std::shared_ptr<dx12::Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR *palette);
 
 	public:
 		std::unique_ptr<Subsystem2D>				subsystem2D;
@@ -131,9 +142,7 @@ namespace dx12
 		std::unique_ptr<SubsystemText>				subsystemText;
 
 	protected:
-		ComPtr<ID3D12DescriptorHeap>		        GetHeapRTV() { return m_descriptorHeapRTV; };
-		ComPtr<ID3D12DescriptorHeap>		        GetHeapDSV() { return m_descriptorHeapDSV; };
-		ComPtr<ID3D12DescriptorHeap>		        GetHeapCBVSRVUAV() { return m_descriptorHeapCBVSRVUAV; };
+		void										WaitForGPU();
 
 	public:
 													Dx();
@@ -145,8 +154,15 @@ namespace dx12
 		void										RenderFrame(refdef_t *fd);
 		void										EndFrame();
 
+		ComPtr<ID3D12Device5>                       Device() { return m_d3dDevice; };
+		std::shared_ptr<DescriptorHeap>		        HeapRTV() { return m_descriptorHeapRTV; };
+		std::shared_ptr<DescriptorHeap>		        HeapDSV() { return m_descriptorHeapDSV; };
+		std::shared_ptr<DescriptorHeap>		        HeapCBVSRVUAV() { return m_descriptorHeapCBVSRVUAV; };
+
+		D3D_FEATURE_LEVEL                           FeatureLevel() { return m_featureLevel; };
+
 		// Commands
-		void										D3D_Strings_f();
+	 	void										D3D_Strings_f() const;
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

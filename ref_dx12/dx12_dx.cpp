@@ -25,11 +25,11 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
+static D3D_FEATURE_LEVEL FeatureLevelForString(std::wstring featureLevelString)
 {
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_2;
 
-	std::map<std::string, D3D_FEATURE_LEVEL> featureLevelMap;
+	std::map<std::wstring, D3D_FEATURE_LEVEL> featureLevelMap;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_2)] = D3D_FEATURE_LEVEL_12_2;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_1)] = D3D_FEATURE_LEVEL_12_1;
 	featureLevelMap[STR(D3D_FEATURE_LEVEL_12_0)] = D3D_FEATURE_LEVEL_12_0;
@@ -50,11 +50,11 @@ D3D_FEATURE_LEVEL FeatureLevelForString(std::string featureLevelString)
 	return featureLevel;
 }
 
-std::string StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
+static std::wstring StringForFeatureLevel(D3D_FEATURE_LEVEL  featureLevel)
 {
-	std::string featureLevelString = "D3D_FEATURE_LEVEL_12_2";
+	std::wstring featureLevelString = L"D3D_FEATURE_LEVEL_12_2";
 
-	std::map<D3D_FEATURE_LEVEL, std::string> featureLevelMap;
+	std::map<D3D_FEATURE_LEVEL, std::wstring> featureLevelMap;
 	featureLevelMap[D3D_FEATURE_LEVEL_12_2] = STR(D3D_FEATURE_LEVEL_12_2);
 	featureLevelMap[D3D_FEATURE_LEVEL_12_1] = STR(D3D_FEATURE_LEVEL_12_1);
 	featureLevelMap[D3D_FEATURE_LEVEL_12_0] = STR(D3D_FEATURE_LEVEL_12_0);
@@ -113,11 +113,7 @@ dx12::Dx::Dx()
 	}
 
 	m_commandQueue = nullptr;
-	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
-	{
-		m_directCmdListAllocs[i] = nullptr;
-	}
-	m_commandListGfx = nullptr;
+	m_commandListSwap = nullptr;
 
 	m_multisampleCount = ref->cvars->samplesPerPixel->UInt();
 	m_swapChain = nullptr;
@@ -125,14 +121,8 @@ dx12::Dx::Dx()
 	m_descriptorHeapRTV = nullptr;
 	m_descriptorHeapDSV = nullptr;
 	m_descriptorHeapCBVSRVUAV = nullptr;
-	m_descriptorsAllocatedRTV = 0;
-	m_descriptorsAllocatedDSV = 0;
-	m_descriptorsAllocatedCBVSRVUAV = 0;
-	m_descriptorSizeRTV = 0;
-	m_descriptorSizeDSV = 0;
-	m_descriptorSizeCBVSRVUAV = 0;
 
-	m_backBufferCount = ref->cvars->bufferCount->Int();
+	m_backBufferCount = ref->cvars->bufferCount->UInt();
 	if (m_backBufferCount < MIN_BACK_BUFFERS)
 	{
 		m_backBufferCount = MIN_BACK_BUFFERS;
@@ -146,6 +136,7 @@ dx12::Dx::Dx()
 	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
 	{
 		m_backBufferRenderTargets[i] = nullptr;
+		m_backBufferRenderTargetStates[i] = D3D12_RESOURCE_STATE_COMMON;
 	}
 	m_backBufferIndex = 0;
 
@@ -163,6 +154,8 @@ void dx12::Dx::BeginFrame(void)
 {
 	LOG_FUNC();
 
+	HRESULT hr = E_UNEXPECTED;
+
 	// Timing
 	if ((ref->sys->m_clockFrequencyObtained) && (QueryPerformanceCounter(&m_clockFrameStart) == TRUE))
 	{
@@ -173,39 +166,50 @@ void dx12::Dx::BeginFrame(void)
 		m_clockRunning = false;
 	}
 
-	DX::ThrowIfFailed(m_directCmdListAllocs[m_backBufferIndex]->Reset());
-
-	DX::ThrowIfFailed(m_commandListGfx->Reset(m_directCmdListAllocs[m_backBufferIndex].Get(), nullptr));
-
-	//m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-	m_commandListGfx->RSSetViewports(1, &m_viewport);
-	m_commandListGfx->RSSetScissorRects(1, &m_scissorRect);
-
-	// Indicate that the back buffer will be used as a render target.
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	m_commandListGfx->ResourceBarrier(1, &barrier);
-
-	if (ref->cvars->clear->Bool())
+	if (m_commandListSwap)
 	{
-		float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+		m_commandListSwap->Prepare();
 
-		/*
-		// Induce Seizures to visualize back buffer flip
-		if (m_backBufferIndex % 2)
+		if (m_backBufferRenderTargetStates[m_backBufferIndex] != D3D12_RESOURCE_STATE_RENDER_TARGET)
 		{
-			clearColor[0] = 0.4f;
-			clearColor[2] = 0.0f;
+			// Indicate that the back buffer will be used as a render target.
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), m_backBufferRenderTargetStates[m_backBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET);
+			m_commandListSwap->List()->ResourceBarrier(1, &barrier);
+			m_backBufferRenderTargetStates[m_backBufferIndex] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		}
-		*/
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_descriptorHeapRTV->GetCPUDescriptorHandleForHeapStart(), m_backBufferIndex, m_descriptorSizeRTV);
-		m_commandListGfx->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		// Set the render target
+		auto rtvHandle = m_descriptorHeapRTV->GetCPUDescriptorHandle(m_backBufferRTVHandles[m_backBufferIndex]);
+		m_commandListSwap->List()->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+		m_commandListSwap->SetPipelineState(m_pipelineState.Get());
+	}
+
+	if (m_commandListSwap && m_commandListSwap->IsOpen()) {
+
+		if (ref->cvars->clear->Bool())
+		{
+			float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+
+#if defined(DEBUG) || defined (_DEBUG)			
+			// Visualize back buffer flip
+			if (m_backBufferIndex % 2)
+			{
+				clearColor[0] = 0.4f;
+				clearColor[2] = 0.0f;
+			}
+#endif			
+
+			m_commandListSwap->List()->ClearRenderTargetView(m_descriptorHeapRTV->GetCPUDescriptorHandle(m_backBufferRTVHandles[m_backBufferIndex]), clearColor, 0, nullptr);
+		}
 	}
 
 	if (subsystem2D)
 	{
 		subsystem2D->Update();
 		subsystem2D->Clear();
+
+		ref->draw->BeginFrame();
 	}
 
 	if (subsystem3D)
@@ -239,24 +243,28 @@ void dx12::Dx::EndFrame(void)
 {
 	LOG_FUNC();
 
+	HRESULT hr = E_UNEXPECTED;
+
 	if (subsystem2D)
 	{
+		ref->draw->EndFrame();
+
 		// Draw 2D
 		subsystem2D->Render();
 	}
 
-	// Indicate that the back buffer will now be used to present.
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	m_commandListGfx->ResourceBarrier(1, &barrier);
-
-	// Cloase the command list
-	m_commandListGfx->Close();
-
-	if (m_commandQueue)
+	if (m_commandQueue && m_commandListSwap)
 	{
-		// Execute the command list.
-		ID3D12CommandList* ppCommandLists[] = { m_commandListGfx.Get()};
-		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		if (m_backBufferRenderTargetStates[m_backBufferIndex] != D3D12_RESOURCE_STATE_PRESENT)
+		{
+			// Indicate that the back buffer will now be used to present.
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_backBufferRenderTargets[m_backBufferIndex].Get(), m_backBufferRenderTargetStates[m_backBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
+			m_commandListSwap->List()->ResourceBarrier(1, &barrier);
+			m_backBufferRenderTargetStates[m_backBufferIndex] = D3D12_RESOURCE_STATE_PRESENT;
+		}
+
+		m_commandListSwap->Close();
+		m_commandListSwap->Execute();
 	}
 
 	if (m_swapChain)
@@ -264,22 +272,9 @@ void dx12::Dx::EndFrame(void)
 		// Switch the back buffer and the front buffer
 		m_swapChain->Present(ref->cvars->Vsync->UInt(), 0);
 
-		// Schedule a Signal command in the queue.
-		const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
-		DX::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
-
-		// Update the frame index.
+		WaitForGPU();
+		
 		m_backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-		// If the next frame is not ready to be rendered yet, wait until it is ready.
-		if (m_fence->GetCompletedValue() < m_fenceValues[m_backBufferIndex])
-		{
-			DX::ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent));
-			WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
-		}
-
-		// Set the fence value for the next frame.
-		m_fenceValues[m_backBufferIndex] = currentFenceValue + 1;
 	}
 
 	// Timing
@@ -293,7 +288,7 @@ void dx12::Dx::EndFrame(void)
 		m_clockFrameEndPrevious = m_clockFrameEndCurrent;
 
 		//LOG(trace) << "Frame <rate> " << m_frameRateEMA << " fps <time> " << m_frameTime << " ms";
-#ifdef _DEBUG
+#if defined(DEBUG) || defined (_DEBUG)
 		// https://github.com/d3dcoder/d3d12book/blob/master/Common/d3dApp.cpp
 		static unsigned int frameCount = 0;
 		static double timeElapsed = 0.0f;
@@ -327,46 +322,46 @@ void dx12::Dx::EndFrame(void)
 #endif
 }
 
-void dx12::Dx::D3D_Strings_f()
+void dx12::Dx::D3D_Strings_f() const
 {
 	LOG_FUNC();
 
 	if ((m_adapterDesc.VendorId == 0x1414) && (m_adapterDesc.DeviceId == 0x8c))
 	{
 		// Microsoft Basic Render Driver
-		ref->client->Con_Printf(PRINT_ALL, "WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
+		ref->client->Con_Printf(PRINT_ALL, L"WARNING: Microsoft Basic Render Driver is active.\n Performance of this application may be unsatisfactory.\n Please ensure that your video card is Direct3D10/11 capable\n and has the appropriate driver installed.");
 	}
 
-	ref->client->Con_Printf(PRINT_ALL, "D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
+	ref->client->Con_Printf(PRINT_ALL, L"D3D Feature Level: " + StringForFeatureLevel(m_featureLevel));
 
-	std::stringstream hexValue;
+	std::wstringstream hexValue;
 
-	ref->client->Con_Printf(PRINT_ALL, "    Adapter Description: " + ref->sys->ToString(m_adapterDesc.Description));
-	ref->client->Con_Printf(PRINT_ALL, "");
+	ref->client->Con_Printf(PRINT_ALL, L"    Adapter Description: " + ref->sys->ToWideString(m_adapterDesc.Description));
+	ref->client->Con_Printf(PRINT_ALL, L"");
 
-	hexValue.str(std::string());
+	hexValue.str(std::wstring());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.VendorId;
-	ref->client->Con_Printf(PRINT_ALL, "              Vendor ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, L"              Vendor ID: " + hexValue.str());
 
-	hexValue.str(std::string());
+	hexValue.str(std::wstring());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.DeviceId;
-	ref->client->Con_Printf(PRINT_ALL, "              Device ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, L"              Device ID: " + hexValue.str());
 
-	hexValue.str(std::string());
+	hexValue.str(std::wstring());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.SubSysId;
-	ref->client->Con_Printf(PRINT_ALL, "           Subsystem ID: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, L"           Subsystem ID: " + hexValue.str());
 
-	hexValue.str(std::string());
+	hexValue.str(std::wstring());
 	hexValue.clear();
 	hexValue << std::hex << std::showbase << m_adapterDesc.Revision;
-	ref->client->Con_Printf(PRINT_ALL, "               Revision: " + hexValue.str());
+	ref->client->Con_Printf(PRINT_ALL, L"               Revision: " + hexValue.str());
 
-	ref->client->Con_Printf(PRINT_ALL, " Dedicated Video Memory: " + std::to_string(m_adapterDesc.DedicatedVideoMemory));
-	ref->client->Con_Printf(PRINT_ALL, "Dedicated System Memory: " + std::to_string(m_adapterDesc.DedicatedSystemMemory));
-	ref->client->Con_Printf(PRINT_ALL, "   Shared System Memory: " + std::to_string(m_adapterDesc.SharedSystemMemory));
+	ref->client->Con_Printf(PRINT_ALL, L" Dedicated Video Memory: " + std::to_wstring(m_adapterDesc.DedicatedVideoMemory));
+	ref->client->Con_Printf(PRINT_ALL, L"Dedicated System Memory: " + std::to_wstring(m_adapterDesc.DedicatedSystemMemory));
+	ref->client->Con_Printf(PRINT_ALL, L"   Shared System Memory: " + std::to_wstring(m_adapterDesc.SharedSystemMemory));
 }
 
 extern "C" __declspec(dllexport) void SHIM_D3D_Strings_f(void)
@@ -417,27 +412,21 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		return false;
 	}
 
-	if (!InitCommandObjects())
+	if (!InitRootSignature())
 	{
-		LOG(error) << "Failed to create command objects.";
+		LOG(error) << "Failed to create main root signature.";
 		return false;
 	}
 
-	if (!InitSwapChain(hWnd))
+	if (!InitSwapPipelineState())
 	{
-		LOG(error) << "Failed to create Swap Chain.";
+		LOG(error) << "Failed to create swap pipeline state.";
 		return false;
 	}
 
 	if (!InitDescriptorHeaps())
 	{
 		LOG(error) << "Failed to create descriptor heap.";
-		return false;
-	}
-
-	if (!InitBackBufferRenderTargets())
-	{
-		LOG(error) << "Failed to create back buffers.";
 		return false;
 	}
 
@@ -453,14 +442,37 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		return false;
 	}
 
-	/*
+	if (!InitConstantBuffer())
+	{
+		LOG(error) << "Failed to initialize constant buffer.";
+		return false;
+	}
+
+	if (!InitCommandObjects())
+	{
+		LOG(error) << "Failed to create command objects.";
+		return false;
+	}
+
+	if (!InitSwapChain(hWnd))
+	{
+		LOG(error) << "Failed to create Swap Chain.";
+		return false;
+	}
+
+	if (!InitBackBufferRenderTargets())
+	{
+		LOG(error) << "Failed to create back buffers.";
+		return false;
+	}
+
 	if ((!subsystem2D) || (!subsystem2D->Initialize()))
 	{
 		LOG(error) << "Failed to create 2D overlay subsystem (GUI)";
 		return false;
 	}
 
-	if ((!subsystemText) || (!subsystemText->Initialize()))
+	/*if ((!subsystemText) || (!subsystemText->Initialize()))
 	{
 		LOG(error) << "Failed to create text subsystem.";
 		return false;
@@ -472,6 +484,9 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		return false;
 	}*/
 
+	m_testTriangle = std::make_unique<TestTriangle>();
+	m_testTriangle->Initialize(m_windowWidth, m_windowHeight);
+
 	WaitForGPU();
 
 	return true;
@@ -480,6 +495,11 @@ bool dx12::Dx::Initialize(HWND hWnd)
 void dx12::Dx::Shutdown()
 {
 	LOG_FUNC();
+
+	if (m_testTriangle) {
+		m_testTriangle->Shutdown();
+		SAFE_RELEASE(m_testTriangle);
+	}
 
 	if (subsystem2D)
 	{
@@ -564,7 +584,7 @@ bool dx12::Dx::InitAdapter()
 			D3D_Strings_f();
 
 			// Create command
-			ref->client->Cmd_AddCommand("dx12_strings", SHIM_D3D_Strings_f);
+			ref->client->Cmd_AddCommand(L"dx12_strings", SHIM_D3D_Strings_f);
 		}
 	}
 
@@ -582,20 +602,38 @@ bool dx12::Dx::InitDeviceDebug()
 {
 #if defined(DEBUG) || defined (_DEBUG)
 
+	HRESULT hr = E_UNEXPECTED;
+
 	if (m_d3dDevice)
 	{
 		// Obtain global debug device
-		if (SUCCEEDED(m_d3dDevice->QueryInterface(__uuidof(ID3D12DebugDevice), reinterpret_cast<void**>(&d3dDebugDev))))
+		hr = m_d3dDevice->QueryInterface(IID_PPV_ARGS(&d3dDebugDev));
+		if (SUCCEEDED(hr))
 		{
 			LOG(info) << "DEBUG: Successfully created D3D Debug Device.";
 
-			if (SUCCEEDED(d3dDebugDev->QueryInterface(__uuidof(ID3D12InfoQueue), (void**)&d3dInfoQueue)))
+			hr = d3dDebugDev->QueryInterface(IID_PPV_ARGS(&d3dInfoQueue));
+			if (SUCCEEDED(hr))
 			{
 				LOG(info) << "DEBUG: Successfully created D3D Debug Info Queue.";
 
-				d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-				d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
-				//d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+				hr = d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+
+				if (FAILED(hr)) {
+					LOG(error) << "DEBUG: Unable to set Info Queue break on severity CORRUPTION: " << GetD3D12ErrorMessage(hr);
+				}
+
+				hr = d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+
+				if (FAILED(hr)) {
+					LOG(error) << "DEBUG: Unable to set Info Queue break on severity ERROR: " << GetD3D12ErrorMessage(hr);
+				}
+
+				/*hr = d3dInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+
+				if (FAILED(hr)) {
+					LOG(error) << "DEBUG: Unable to set Info Queue break on severity WARNING: " << GetD3D12ErrorMessage(hr);
+				}*/
 
 				D3D12_MESSAGE_ID hide[] =
 				{
@@ -606,14 +644,26 @@ bool dx12::Dx::InitDeviceDebug()
 				ZeroMemory(&filter, sizeof(D3D12_INFO_QUEUE_FILTER));
 				filter.DenyList.NumIDs = _countof(hide);
 				filter.DenyList.pIDList = hide;
-				d3dInfoQueue->AddStorageFilterEntries(&filter);
+				hr = d3dInfoQueue->AddStorageFilterEntries(&filter);
+
+				if (FAILED(hr)) {
+					LOG(error) << "DEBUG: Unable to add Info Queue storage filter entries: " << GetD3D12ErrorMessage(hr);
+				}
 
 				return true;
 			}
+			else 
+			{
+				LOG(error) << "DEBUG: Unable to create D3D Debug Info Queue: " << GetD3D12ErrorMessage(hr);
+			}
+		}
+		else
+		{
+			LOG(error) << "DEBUG: Unable to create D3D Debug Device: " << GetD3D12ErrorMessage(hr);
 		}
 	}
 
-	LOG(error) << "Unable to create D3D device debug objects.";
+	LOG(error) << "Unable to create D3D device debug objects: " << GetD3D12ErrorMessage(hr);
 #endif
 	return false;
 }
@@ -630,18 +680,18 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 	if (FAILED(hr))
 	{
-		LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_2, so trying D3D_FEATURE_LEVEL_12_1.";
+		LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_2, so trying D3D_FEATURE_LEVEL_12_1: " << GetD3D12ErrorMessage(hr);
 
 		hr = D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
 
 		if (FAILED(hr))
 		{
-			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so trying D3D_FEATURE_LEVEL_12_0.";
+			LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_1, so trying D3D_FEATURE_LEVEL_12_0: " << GetD3D12ErrorMessage(hr);
 			hr = D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_d3dDevice));
 
 			if (FAILED(hr))
 			{
-				LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_0, so attempt to create WARP device.";
+				LOG(warning) << "Failed to create device at D3D_FEATURE_LEVEL_12_0, so attempt to create WARP device: " << GetD3D12ErrorMessage(hr);
 
 				ComPtr<IDXGIFactory6> dxgiFactory;
 				CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
@@ -649,26 +699,44 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 				ComPtr<IDXGIAdapter> pWarpAdapter;
 				dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter));
 
-				hr = D3D12CreateDevice(pWarpAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_d3dDevice));
+				hr = D3D12CreateDevice(pWarpAdapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_d3dDevice));
 				if (FAILED(hr))
 				{
-					LOG(warning) << "Failed to create WARP device!";
+					LOG(error) << "Failed to create WARP device: " << GetD3D12ErrorMessage(hr);
+				}
+				else
+				{
+					m_featureLevel = D3D_FEATURE_LEVEL_12_2;
 				}
 			}
+			else
+			{
+				m_featureLevel = D3D_FEATURE_LEVEL_12_0;
+			}
+		}
+		else
+		{
+			m_featureLevel = D3D_FEATURE_LEVEL_12_1;
 		}
 	}
+	else 
+	{
+		m_featureLevel = D3D_FEATURE_LEVEL_12_2;
+	}
+
+	ref->cvars->featureLevel->Set(StringForFeatureLevel(m_featureLevel));
 
 	if (SUCCEEDED(hr))
 	{
-		LOG(info) << "Successfully created DirectX 12 device.";
+		LOG(info) << "Successfully created DirectX 12 device at " << StringForFeatureLevel(m_featureLevel);
 	}
 	else
 	{
-		LOG(error) << "Unable to create D3D12 device.";
+		LOG(error) << "Unable to create D3D12 device: " << GetD3D12ErrorMessage(hr);
 		return false;
 	}
 
-#ifdef _DEBUG
+#if defined(DEBUG) || defined (_DEBUG)
 	InitDeviceDebug();
 #endif
 
@@ -712,6 +780,172 @@ bool dx12::Dx::InitFences()
 	return false;
 }
 
+bool dx12::Dx::InitRootSignature()
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	// Describe the root parameter
+	CD3DX12_DESCRIPTOR_RANGE1 srvRange = {};
+	CD3DX12_ROOT_PARAMETER1 rootParameters[3];
+
+	rootParameters[0].InitAsConstantBufferView(0);
+
+	srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
+	rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	CD3DX12_DESCRIPTOR_RANGE1 samplerRange = {};
+	samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 1, D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
+	rootParameters[2].InitAsDescriptorTable(		1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	// Create a static sampler
+	D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	samplerDesc.ShaderRegister = 0;
+	samplerDesc.RegisterSpace = 0;
+	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// Describe and create the root signature
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC  rootSignatureDesc = {};
+	rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+
+	// This is the highest version supported. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+	featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+	if (FAILED(ref->sys->dx->m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+	{
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+	}
+
+	// Serialize and create the root signature
+	LOG(info) << "Serializing main root signature...";
+
+	ComPtr<ID3DBlob> signatureBlob;
+	ComPtr<ID3DBlob> errorBlob;
+	hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signatureBlob, &errorBlob);
+	if (FAILED(hr))
+	{
+		LOG(error) << "Failed serializing main root signature: " << GetD3D12ErrorMessage(hr) << " : " << ((char*)errorBlob->GetBufferPointer());
+		return false;
+	}
+
+	LOG(info) << "Creating main root signature...";
+
+	hr = m_d3dDevice->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
+	if (FAILED(hr))
+	{
+		LOG(error) << "Unable to create main root signature: " << GetD3D12ErrorMessage(hr);
+		return false;
+	}
+
+	return true;
+}
+
+bool dx12::Dx::InitSwapPipelineState()
+{
+	LOG_FUNC();
+
+	HRESULT hr = E_UNEXPECTED;
+
+	try 
+	{
+		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
+			// Position
+			{
+				"POSITION",  // SemanticName
+				0,           // SemanticIndex
+				DXGI_FORMAT_R32G32B32A32_FLOAT, // Format
+				0,           // InputSlot
+				0,           // AlignedByteOffset
+				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+				0            // InstanceDataStepRate
+			},
+			// Color
+			{
+				"COLOR",     // SemanticName
+				0,           // SemanticIndex
+				DXGI_FORMAT_R32G32B32A32_FLOAT, // Format
+				0,           // InputSlot
+				D3D12_APPEND_ALIGNED_ELEMENT, // AlignedByteOffset
+				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+				0            // InstanceDataStepRate
+			},
+			// Texture Coordinate 0
+			{
+				"TEXCOORD",  // SemanticName
+				0,           // SemanticIndex
+				DXGI_FORMAT_R32G32_FLOAT, // Format
+				0,           // InputSlot
+				D3D12_APPEND_ALIGNED_ELEMENT, // AlignedByteOffset
+				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass
+				0            // InstanceDataStepRate
+			}
+		};
+
+		LOG(info) << "Compiling Swap Chain Vertex Shader...";
+
+		if (!m_shaderVertex.Compile(ref->cvars->shaderVertexSwap->String(), SHADER_TARGET_VERTEX))
+		{
+			LOG(error) << "Unable to compile Swap Chain Vertex Shader!";
+			return false;
+		}
+
+		LOG(info) << "Compiling Swap Chain Pixel Shader...";
+
+		if (!m_shaderPixel.Compile(ref->cvars->shaderPixelSwap->String(), SHADER_TARGET_PIXEL))
+		{
+			LOG(error) << "Unable to compile Swap Chain Pixel Shader!";
+			return false;
+		}
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+		psoDesc.pRootSignature = m_rootSignature.Get();
+		psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_shaderVertex.Blob().Get());
+		psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_shaderPixel.Blob().Get());
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.DepthStencilState.DepthEnable = FALSE;
+		psoDesc.DepthStencilState.StencilEnable = FALSE;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = m_backBufferCount;
+		for (int i = 0; i < m_backBufferCount; i++)
+		{
+			psoDesc.RTVFormats[i] = m_backBufferFormat;
+		}
+		psoDesc.SampleDesc.Count = 1;
+
+		LOG(info) << "Creating Swap Chain Graphics Pipeline State Object...";
+
+		hr = ref->sys->dx->m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+
+		if (FAILED(hr))
+		{
+			LOG(error) << "Unable to create Swap Chain Graphics Pipeline State Object: " << GetD3D12ErrorMessage(hr);
+			return false;
+		}
+	}
+	catch (const std::exception& e)
+	{
+		LOG(error) << "Failed to create Swap Chain Graphics Pipeline State Object: " << e.what();
+		return false;
+	}
+	return true;
+}
+
 bool dx12::Dx::InitCommandObjects()
 {
 	LOG_FUNC();
@@ -732,46 +966,9 @@ bool dx12::Dx::InitCommandObjects()
 
 		if (SUCCEEDED(hr))
 		{
-			LOG(info) << "Creating Command Allocators";
+			LOG(info) << "Creating Swap Command List";
 
-			for (unsigned int i = 0; i < m_backBufferCount; i++)
-			{
-				hr = m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_directCmdListAllocs[i]));
-				if (FAILED(hr))
-				{
-					LOG(error) << "Failed to create Command Allocator " << i + 1 << ".";
-				}
-			}
-
-			if (SUCCEEDED(hr))
-			{
-				LOG(info) << "Creating Graphics Command List";
-
-				hr = m_d3dDevice->CreateCommandList(
-					0,
-					D3D12_COMMAND_LIST_TYPE_DIRECT,
-					m_directCmdListAllocs[0].Get(), // Associated command allocator
-					nullptr,                   // Initial PipelineStateObject
-					__uuidof(ID3D12GraphicsCommandList), static_cast<void**>(&m_commandListGfx));
-
-				if (SUCCEEDED(hr))
-				{
-					LOG(info) << "Closing Graphics Command List";
-
-					// Start off in a closed state.  This is because the first time we refer 
-					// to the command list we will Reset it, and it needs to be closed before
-					// calling Reset.
-					m_commandListGfx->Close();
-				}
-				else
-				{
-					LOG(error) << "Failed to create Graphics Command List.";
-				}
-			}
-			else
-			{
-				LOG(error) << "Failed to create Command Allocators.";
-			}
+			m_commandListSwap = std::make_shared<CommandList>(L"Swap", m_rootSignature, m_pipelineState, m_viewport, m_scissorRect, m_constantBufferHandle);
 		}
 		else
 		{
@@ -807,12 +1004,12 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 		swapChainDesc.BufferCount = m_backBufferCount;
 		swapChainDesc.Width = m_windowWidth;
 		swapChainDesc.Height = m_windowHeight;
-		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDesc.Format = m_backBufferFormat;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.SampleDesc.Count = m_multisampleCount;
 
-		IDXGISwapChain1* pSwapChain = nullptr;
+		ComPtr<IDXGISwapChain1> pSwapChain = nullptr;
 		hr = m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue.Get(), hWnd, &swapChainDesc, nullptr, nullptr, &pSwapChain);
 
 		if (SUCCEEDED(hr))
@@ -843,30 +1040,12 @@ bool dx12::Dx::InitDescriptorHeaps()
 
 	if (m_d3dDevice)
 	{
-		// Get descriptor sizes
-		LOG(info) << "Obtaining descriptor heap element sizes...";
-		m_descriptorSizeRTV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_RTV: " << m_descriptorSizeRTV;
-
-		m_descriptorSizeDSV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_DSV: " << m_descriptorSizeDSV;
-
-		m_descriptorSizeCBVSRVUAV = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		LOG(info) << "D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: " << m_descriptorSizeCBVSRVUAV;
-
 		// Create descriptor heaps
-		LOG(info) << "Creating descriptor heap for back buffer RTVs...";
+		LOG(info) << "Creating descriptor heap for RTVs...";
 
-		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescRTV = {};
+		m_descriptorHeapRTV = std::make_shared<DescriptorHeap>(DescriptorHeap(m_d3dDevice, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1024, false));
 
-		descriptorHeapDescRTV.NumDescriptors = m_backBufferCount;
-		descriptorHeapDescRTV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		descriptorHeapDescRTV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		descriptorHeapDescRTV.NodeMask = 0;
-
-		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescRTV, IID_PPV_ARGS(&m_descriptorHeapRTV));
-
-		if (SUCCEEDED(hr))
+		if (m_descriptorHeapRTV != nullptr)
 		{
 			LOG(info) << "Successfully created RTV descriptor heap.";
 		}
@@ -876,18 +1055,11 @@ bool dx12::Dx::InitDescriptorHeaps()
 			return false;
 		}
 
-		LOG(info) << "Creating descriptor heap for back buffer DSVs...";
+		LOG(info) << "Creating descriptor heap for DSVs...";
 
-		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescDSV = {};
+		m_descriptorHeapDSV = std::make_shared<DescriptorHeap>(DescriptorHeap(m_d3dDevice, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1024, false));
 
-		descriptorHeapDescDSV.NumDescriptors = m_backBufferCount;
-		descriptorHeapDescDSV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-		descriptorHeapDescDSV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		descriptorHeapDescDSV.NodeMask = 0;
-
-		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescDSV, IID_PPV_ARGS(&m_descriptorHeapDSV));
-
-		if (SUCCEEDED(hr))
+		if (m_descriptorHeapDSV != nullptr)
 		{
 			LOG(info) << "Successfully created DSV descriptor heap.";
 		}
@@ -897,18 +1069,11 @@ bool dx12::Dx::InitDescriptorHeaps()
 			return false;
 		}
 
-		LOG(info) << "Creating descriptor heap for back buffer CBV_SRV_UAVs...";
+		LOG(info) << "Creating descriptor heap for CBV_SRV_UAVs...";
 
-		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDescCBV_SRV_UAV = {};
+		m_descriptorHeapCBVSRVUAV = std::make_shared<DescriptorHeap>(DescriptorHeap(m_d3dDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8192, true));
 
-		descriptorHeapDescCBV_SRV_UAV.NumDescriptors = m_backBufferCount;
-		descriptorHeapDescCBV_SRV_UAV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptorHeapDescCBV_SRV_UAV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		descriptorHeapDescCBV_SRV_UAV.NodeMask = 0;
-
-		hr = m_d3dDevice->CreateDescriptorHeap(&descriptorHeapDescCBV_SRV_UAV, IID_PPV_ARGS(&m_descriptorHeapCBVSRVUAV));
-
-		if (SUCCEEDED(hr))
+		if (m_descriptorHeapCBVSRVUAV != nullptr)
 		{
 			LOG(info) << "Successfully created CBV_SRV_UAV descriptor heap.";
 		}
@@ -935,10 +1100,8 @@ bool dx12::Dx::InitBackBufferRenderTargets()
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		rtvDesc.Format = m_backBufferFormat;
 		rtvDesc.Texture2D.MipSlice = 0;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_descriptorHeapRTV->GetCPUDescriptorHandleForHeapStart();
 
 		// Create a RTV for each back buffer.
 		for (UINT i = 0; i < m_backBufferCount; i++)
@@ -949,8 +1112,8 @@ bool dx12::Dx::InitBackBufferRenderTargets()
 				return false;
 			}
 
-			m_d3dDevice->CreateRenderTargetView(m_backBufferRenderTargets[i].Get(), &rtvDesc, rtvHandle);
-			rtvHandle.ptr += m_descriptorSizeRTV;
+			m_backBufferRTVHandles[i] = m_descriptorHeapRTV->Allocate();
+			m_d3dDevice->CreateRenderTargetView(m_backBufferRenderTargets[i].Get(), &rtvDesc, m_descriptorHeapRTV->GetCPUDescriptorHandle(m_backBufferRTVHandles[i]));
 		}
 	}
 
@@ -996,17 +1159,65 @@ bool dx12::Dx::InitScissorRect()
 	return true;
 }
 
+bool dx12::Dx::InitConstantBuffer()
+{
+	// Create an orthographic projection matrix for 2D rendering.
+	auto orthoMatrix = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), 0.0f, 0.0f, 1.0f);
+
+	// Create the constants buffer
+	auto constantBuffer = ref->res->CreateResource<ConstantBuffer2D>(L"ConstantBufferSwap");
+
+	if (constantBuffer)
+	{
+		m_constantBufferHandle = constantBuffer->GetHandle();
+
+		ShaderConstants2D constants = {};
+
+		// Set values
+		XMStoreFloat4x4(&constants.world, XMMatrixTranspose(XMMatrixIdentity()));
+		XMStoreFloat4x4(&constants.view, XMMatrixTranspose(XMMatrixIdentity()));
+		XMStoreFloat4x4(&constants.projection, XMMatrixTranspose(orthoMatrix));
+		constants.brightness = 0.0f;
+		constants.contrast = 1.0f;
+
+		// Create the constants buffer.
+		constantBuffer->CreateConstantBuffer(&constants, sizeof(constants));
+
+		return true;
+	}
+
+	return false;
+}
+
 void dx12::Dx::WaitForGPU()
 {
-	// Schedule a Signal command in the queue.
-	DX::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_backBufferIndex]));
+	LOG_FUNC();
 
-	// Wait until the fence has been processed.
-	DX::ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent));
-	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+	if (m_commandQueue && m_fence) {
+		HRESULT hr = E_UNEXPECTED;
 
-	// Increment the fence value for the current frame.
-	m_fenceValues[m_backBufferIndex]++;
+		// Schedule a Signal command in the queue.
+		hr = m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_backBufferIndex]);
+
+		if (FAILED(hr)) {
+			LOG(error) << "Unable to set signal fence: " << GetD3D12ErrorMessage(hr);
+		}
+
+		// Check if we are already done with the current procedure.
+		if (m_fence->GetCompletedValue() < m_fenceValues[m_backBufferIndex])
+		{
+			hr = m_fence->SetEventOnCompletion(m_fenceValues[m_backBufferIndex], m_fenceEvent);
+
+			if (FAILED(hr)) {
+				LOG(error) << "Unable to set event fence: " << GetD3D12ErrorMessage(hr);
+			}
+
+			WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+		}
+
+		// Increment the fence value.
+		m_fenceValues[m_backBufferIndex]++;
+	}
 }
 
 void dx12::Dx::D3D_Shutdown()
@@ -1015,15 +1226,20 @@ void dx12::Dx::D3D_Shutdown()
 
 	LOG(info) << "Shutting down D3D.";
 
+	WaitForGPU();
+
 	if (m_swapChain)
 	{
 		LOG(info) << "Switching to windowed mode to allow proper cleanup.";
 		m_swapChain->SetFullscreenState(FALSE, nullptr);
 	}
 
-	WaitForGPU();
+	if (m_commandListSwap)
+	{
+		m_commandListSwap->Close();
+	}
 
-	CloseHandle(m_fenceEvent);
+	WaitForGPU();
 
 	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
 	{
@@ -1033,8 +1249,6 @@ void dx12::Dx::D3D_Shutdown()
 	SAFE_RELEASE(m_descriptorHeapRTV);
 	SAFE_RELEASE(m_descriptorHeapDSV);
 	SAFE_RELEASE(m_descriptorHeapCBVSRVUAV);
-
-	SAFE_RELEASE(m_swapChain);
 
 	if (subsystemText)
 	{
@@ -1051,16 +1265,36 @@ void dx12::Dx::D3D_Shutdown()
 		subsystem3D->Shutdown();
 	}
 
-	SAFE_RELEASE(m_commandListGfx);
+	WaitForGPU();
+
+	SAFE_RELEASE(m_commandListSwap);
+
+	SAFE_RELEASE(m_pipelineState);
+
+	SAFE_RELEASE(m_rootSignature);
+
+	m_shaderVertex.Shutdown();
+
+	m_shaderPixel.Shutdown();
+
+	if (ref && ref->res)
+	{
+		ref->res->Shutdown();
+	}
 
 	for (unsigned int i = 0; i < MAX_BACK_BUFFERS; i++)
 	{
-		SAFE_RELEASE(m_directCmdListAllocs[i]);
+		SAFE_RELEASE(m_backBufferRenderTargets[i]);
 	}
+
+	WaitForGPU();
 
 	SAFE_RELEASE(m_commandQueue);
 
 	SAFE_RELEASE(m_fence);
+	CloseHandle(m_fenceEvent);
+
+	SAFE_RELEASE(m_swapChain);
 
 	SAFE_RELEASE(m_d3dDevice);
 

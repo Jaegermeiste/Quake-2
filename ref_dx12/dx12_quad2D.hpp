@@ -31,19 +31,12 @@ ref_dx12
 
 namespace dx12
 {
-	__declspec(align(16)) class Quad2D {
+	__declspec(align(16)) class Quad2D: public IndexedGeometry {
 		friend class System;
 		friend class SubsystemText;
 		friend class Subsystem2D;
 		friend class Draw;
 	private:
-		//ID3D12DeviceContext*		m_context = nullptr;
-		//ID3D12Buffer*				m_vertexBuffer = nullptr;
-		//ID3D12Buffer*				m_indexBuffer = nullptr;
-		
-		unsigned int				m_vertexCount = 0,
-									m_indexCount = 0;
-
 		int							m_xPrev = -1,
 									m_yPrev = -1,
 									m_widthPrev = -1,
@@ -54,28 +47,21 @@ namespace dx12
 									m_u2Prev = -1,
 									m_v2Prev = -1;
 
-		byte						m_padding[12];
-
 		DirectX::XMVECTORF32		m_colorPrev = DirectX::Colors::White;
 
-		bool						InitializeBuffers();
+		bool						InitializeBuffers() override;
+		bool						InitializeBuffers(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 
-		bool						UpdateBuffers(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
-
-		void						RenderBuffers() const;
+		bool						UpdateBuffers(std::shared_ptr<CommandList> commandList, int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 
 	public:
 									Quad2D();
 
-		//bool						Initialize(ID3D12DeviceContext* context, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
+		bool						Initialize(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
-		void						Render(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
-
-		void						Render(int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
-
-		unsigned int				IndexCount() { return m_indexCount; };
-
-		void						Shutdown();
+		using IndexedGeometry::Render;
+		void						Render(std::shared_ptr<CommandList> commandList, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
+		void						Render(std::shared_ptr<CommandList> commandList, int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

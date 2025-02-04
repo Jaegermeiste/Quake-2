@@ -74,7 +74,7 @@ void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette,
 		|| pcx->xmax >= 640
 		|| pcx->ymax >= 480)
 	{
-		ref->client->Con_Printf(PRINT_ALL, "Bad PCX file.");
+		ref->client->Con_Printf(PRINT_ALL, L"Bad PCX file.");
 		return;
 	}
 
@@ -115,7 +115,7 @@ void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette,
 
 	if (raw - reinterpret_cast<byte *>(pcx) > len)
 	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, "PCX file was malformed.");
+		ref->client->Con_Printf(PRINT_DEVELOPER, L"PCX file was malformed.");
 		delete[] * pic;
 		*pic = nullptr;
 	}

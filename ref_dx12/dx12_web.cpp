@@ -40,13 +40,13 @@ bool dx12::Web::Initialize()
 	return true;
 }
 
-bool dx12::Web::DownloadFile(std::string downloadURL, std::string destinationPath)
+bool dx12::Web::DownloadFile(std::wstring downloadURL, std::wstring destinationPath)
 {
 	LOG_FUNC();
 
 	HRESULT hr = E_UNEXPECTED;
 
-	hr = URLDownloadToFile(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
+	hr = URLDownloadToFileW(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
 
 	if (hr == E_OUTOFMEMORY) {
 		LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";

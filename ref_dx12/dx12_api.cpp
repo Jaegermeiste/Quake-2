@@ -42,7 +42,11 @@ inline model_s* SHIM_R_RegisterModel(char *name)
 		std::string modelName(name);
 
 		// In the client, the addresses of the returned values are compared in equality tests (etc.), so can't return nullptr. Still an opaque type.
-		model = reinterpret_cast<struct model_s *>(dx12::ref->res->GetResourceHandleQuake2(dx12::ref->media->model->Load(modelName).get()->GetHandle()));
+		auto resource = dx12::ref->media->model->Load(modelName);
+
+		if (resource) {
+			model = reinterpret_cast<struct model_s*>(dx12::ref->res->GetResourceHandleQuake2(resource->GetHandle()));
+		}
 	}
 
 	return model;
@@ -54,7 +58,7 @@ inline struct image_s	*SHIM_R_RegisterSkin(char *name)
 
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr) && (dx12::ref->media->img != nullptr))
 	{
-		dx12::ref->media->img->Load(name, it_skin);
+		dx12::ref->media->img->Load(dx12::ref->sys->ToWideString(name), it_skin);
 	}
 
 	return image;
@@ -66,7 +70,7 @@ inline image_s	*SHIM_R_RegisterPic(char *name)
 
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr) && (dx12::ref->media->img != nullptr))
 	{
-		dx12::ref->media->img->Load(name, it_pic);
+		dx12::ref->media->img->Load(dx12::ref->sys->ToWideString(name), it_pic);
 	}
 
 	return image;
@@ -76,7 +80,7 @@ inline void SHIM_R_SetSky(char *name, float rotate, vec3_t axis)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->media != nullptr) && (dx12::ref->media->img != nullptr))
 	{
-		dx12::ref->media->img->Load(name, it_sky);
+		dx12::ref->media->img->Load(dx12::ref->sys->ToWideString(name), it_sky);
 	}
 }
 
@@ -102,7 +106,7 @@ inline void	SHIM_Draw_GetPicSize(int *w, int *h, char *name)
 	{
 		unsigned int	width = 0,
 			height = 0;
-		dx12::ref->draw->GetPicSize(width, height, name);
+		dx12::ref->draw->GetPicSize(width, height, dx12::ref->sys->ToWideString(name));
 		*w = msl::utilities::SafeInt<int>(width);
 		*h = msl::utilities::SafeInt<int>(height);
 	}
@@ -112,7 +116,7 @@ inline void	SHIM_Draw_Pic(int x, int y, char *name)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		dx12::ref->draw->Pic(x, y, name);
+		dx12::ref->draw->Pic(x, y, dx12::ref->sys->ToWideString(name));
 	}
 }
 
@@ -124,7 +128,7 @@ inline void	SHIM_Draw_StretchPic(int x, int y, int w, int h, char *name)
 			msl::utilities::SafeInt<int>(y),
 			msl::utilities::SafeInt<int>(w),
 			msl::utilities::SafeInt<int>(h),
-			name);
+			dx12::ref->sys->ToWideString(name));
 	}
 }
 
@@ -146,11 +150,11 @@ inline void	SHIM_Draw_TileClear(int x, int y, int w, int h, char *name)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		dx12::ref->draw->TileClear(msl::utilities::SafeInt<unsigned int>(x),
-			msl::utilities::SafeInt<unsigned int>(y),
-			msl::utilities::SafeInt<unsigned int>(w),
-			msl::utilities::SafeInt<unsigned int>(h),
-			name);
+		dx12::ref->draw->TileClear(msl::utilities::SafeInt<int>(x),
+			msl::utilities::SafeInt<int>(y),
+			msl::utilities::SafeInt<int>(w),
+			msl::utilities::SafeInt<int>(h),
+			dx12::ref->sys->ToWideString(name));
 	}
 }
 
@@ -158,10 +162,10 @@ inline void	SHIM_Draw_Fill(int x, int y, int w, int h, int c)
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		dx12::ref->draw->Fill(msl::utilities::SafeInt<unsigned int>(x),
-			msl::utilities::SafeInt<unsigned int>(y),
-			msl::utilities::SafeInt<unsigned int>(w),
-			msl::utilities::SafeInt<unsigned int>(h),
+		dx12::ref->draw->Fill(msl::utilities::SafeInt<int>(x),
+			msl::utilities::SafeInt<int>(y),
+			msl::utilities::SafeInt<int>(w),
+			msl::utilities::SafeInt<int>(h),
 			c);
 	}
 }
@@ -178,10 +182,10 @@ inline void	SHIM_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows,
 {
 	if ((dx12::ref != nullptr) && (dx12::ref->draw != nullptr))
 	{
-		dx12::ref->draw->StretchRaw(msl::utilities::SafeInt<unsigned int>(x),
-			msl::utilities::SafeInt<unsigned int>(y),
-			msl::utilities::SafeInt<unsigned int>(w),
-			msl::utilities::SafeInt<unsigned int>(h),
+		dx12::ref->draw->StretchRaw(msl::utilities::SafeInt<int>(x),
+			msl::utilities::SafeInt<int>(y),
+			msl::utilities::SafeInt<int>(w),
+			msl::utilities::SafeInt<int>(h),
 			msl::utilities::SafeInt<unsigned int>(cols),
 			msl::utilities::SafeInt<unsigned int>(rows),
 			data);
@@ -274,7 +278,7 @@ extern "C" __declspec(dllexport) refexport_t GetRefAPI(refimport_t rimp)
 {
 	LOG_FUNC();
 
-	refexport_t	re;
+	refexport_t	re = {};
 
 	if (dx12::log == nullptr)
 	{
