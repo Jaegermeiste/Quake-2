@@ -62,7 +62,7 @@ typedef struct
 	byte		multicast_buf[MAX_MSGLEN];
 
 	// demo server information
-	FILE		*demofile;
+	file_t		*demofile;
 	qboolean	timedemo;		// don't time sync
 } server_t;
 
@@ -123,8 +123,8 @@ typedef struct client_s
 	client_frame_t	frames[UPDATE_BACKUP];	// updates can be delta'd from here
 
 	byte			*download;			// file being downloaded
-	int				downloadsize;		// total bytes (can't use EOF because of paks)
-	int				downloadcount;		// bytes sent
+	size_t			downloadsize;		// total bytes (can't use EOF because of paks)
+	size_t			downloadcount;		// bytes sent
 
 	int				lastmessage;		// sv.framenum when packet was last received
 	int				lastconnect;
@@ -175,7 +175,7 @@ typedef struct
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
 
 	// serverrecord values
-	FILE		*demofile;
+	file_t        *demofile;
 	sizebuf_t	demo_multicast;
 	byte		demo_multicast_buf[MAX_MSGLEN];
 } server_static_t;

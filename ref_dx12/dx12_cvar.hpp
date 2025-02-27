@@ -80,7 +80,9 @@ namespace dx12
 		std::shared_ptr<Cvar>  vid_fullscreen;
 		std::shared_ptr<Cvar>  vid_gamma;
 
-		std::shared_ptr<Cvar>  r_mode;
+		std::shared_ptr<Cvar>  scr_drawall;
+
+		std::shared_ptr<Cvar>  dxr_mode;
 		std::shared_ptr<Cvar>  r_customWidth;
 		std::shared_ptr<Cvar>  r_customHeight;
 
@@ -98,11 +100,17 @@ namespace dx12
 		std::shared_ptr<Cvar>  shaderPixelSwap;
 		std::shared_ptr<Cvar>  shaderVertex2D;
 		std::shared_ptr<Cvar>  shaderPixel2D;
+		std::shared_ptr<Cvar>  shaderRaygen3D;
+		std::shared_ptr<Cvar>  shaderMiss3D;
+		std::shared_ptr<Cvar>  shaderHit3D;
+		std::shared_ptr<Cvar>  shaderCommon3D;
 
 		std::shared_ptr<Cvar>  zNear2D;
 		std::shared_ptr<Cvar>  zNear3D;
 		std::shared_ptr<Cvar>  zFar2D;
 		std::shared_ptr<Cvar>  zFar3D;
+
+		std::shared_ptr<Cvar>  dxrMaxRecursionDepth;
 
 		std::shared_ptr<Cvar>  overlayScale;
 		std::shared_ptr<Cvar>  overlayBrightness;

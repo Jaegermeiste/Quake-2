@@ -27,35 +27,46 @@ ref_dx12
 
 size_t dx12::BSP::LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length)
 {
-	// inputs are float[3]
-	float*			inputArray	= reinterpret_cast<float*>(*(&data + offset));
-	unsigned int	i           = 0;
-	size_t          count       = length / sizeof(float[3]);
-
-	// Clear any existing data
-	if (m_vertices != nullptr)
+	try
 	{
-		delete[] m_vertices;
-		m_vertices = nullptr;
+		// inputs are float[3]
+		float* inputArray = reinterpret_cast<float*>(*(&data + offset));
+		unsigned int	i = 0;
+		size_t          count = length / sizeof(float[3]);
+
+		// Clear any existing data
+		if (m_vertices != nullptr)
+		{
+			delete[] m_vertices;
+			m_vertices = nullptr;
+		}
+		m_numVertices = 0;
+
+		if (length % sizeof(float[3]))
+		{
+			ref->client->Sys_Error(ERR_DROP, L"Unexpected lump size.");
+			return 0;
+		}
+
+		m_vertices = new Vertex3D[count];
+
+		for (i = 0; i < count; i += 3)
+		{
+			m_vertices[i].position.x = LittleFloat(inputArray[i + 0]);
+			m_vertices[i].position.y = LittleFloat(inputArray[i + 1]);
+			m_vertices[i].position.z = LittleFloat(inputArray[i + 2]);
+		}
+
+		m_numVertices = count;
+
+		return count;
 	}
-	m_numVertices = 0;
-
-	if (length % sizeof(float[3]))
-	{
-		ref->client->Sys_Error(ERR_DROP, L"Unexpected lump size.");
-		return 0;
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
-	m_vertices = new dxVertex[count];
-
-	for (i = 0; i < count; i += 3)
-	{
-		m_vertices[i].position.x = LittleFloat(inputArray[i + 0]);
-		m_vertices[i].position.y = LittleFloat(inputArray[i + 1]);
-		m_vertices[i].position.z = LittleFloat(inputArray[i + 2]);
-	}
-
-	m_numVertices = count;
-
-	return count;
+	return 0;
 }

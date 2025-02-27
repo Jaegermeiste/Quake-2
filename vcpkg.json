@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "cglm",
+    "minizip",
+    "stringzilla",
+    "zlib"
+  ]
+}

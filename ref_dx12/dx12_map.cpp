@@ -46,69 +46,80 @@ void dx12::Map::Load(std::wstring mapName)
 {
 	LOG_FUNC();
 
-	unsigned int*	fileBuffer = nullptr;
-
-	if (mapName.empty())
+	try
 	{
-		ref->client->Sys_Error(ERR_DROP, L"Empty filename provided.");
-	}
+		unsigned int* fileBuffer = nullptr;
 
-	if (mapName == m_mapName)
-	{
-		// This is the currently loaded map
-		return;
-	}
-
-	//
-	// load the file
-	//
-	int fileLen = ref->client->FS_LoadFile(mapName, reinterpret_cast<void**>(&fileBuffer));
-	if ((fileLen < 1) || (!fileBuffer))
-	{
-		ref->client->Sys_Error(ERR_DROP, L"Map " + mapName + L" not found.");
-		return;
-	}
-
-	// call the apropriate loader
-	if (LittleULong(*fileBuffer) == IDBSPHEADER)
-	{
-		disk_bsp_header_s* header = reinterpret_cast<disk_bsp_header_s *>(fileBuffer);
-
-		int bspVersion = LittleLong(header->version);
-
-		switch (bspVersion)
+		if (mapName.empty())
 		{
-		case BSP38_VERSION:
-			// Quake 2
-			//m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
-
-			// Lighting
-			m_lights = xpLit::Load(mapName);
-
-			// If we got nothing back from xpLit, load from the BSP
-			if ((m_lights.size() == 0) && (m_bsp))
-			{
-				m_lights = m_bsp->LoadLighting();
-			}
-			break;
-		case BSP46_VERSION:
-			// Quake 3
-			break;
-		case BSP47_VERSION:
-			// RTCW
-			break;
-		default:
-			break;
+			ref->client->Sys_Error(ERR_DROP, L"Empty filename provided.");
 		}
-	}
-	else if (LittleULong(*fileBuffer) == 29)
-	{
-		// Quake 1 BSP
-	}
-	else
-	{
-		ref->client->Sys_Error(ERR_DROP, L"Unknown file type for " + mapName);
-	}
 
-	ref->client->FS_FreeFile(fileBuffer);
+		if (mapName == m_mapName)
+		{
+			// This is the currently loaded map
+			return;
+		}
+
+		//
+		// load the file
+		//
+		int fileLen = ref->client->FS_LoadFile(mapName, reinterpret_cast<void**>(&fileBuffer));
+		if ((fileLen < 1) || (!fileBuffer))
+		{
+			ref->client->Sys_Error(ERR_DROP, L"Map " + mapName + L" not found.");
+			return;
+		}
+
+		// call the appropriate loader
+		if (LittleULong(*fileBuffer) == IDBSPHEADER)
+		{
+			disk_bsp_header_s* header = reinterpret_cast<disk_bsp_header_s*>(fileBuffer);
+
+			int bspVersion = LittleLong(header->version);
+
+			switch (bspVersion)
+			{
+			case BSP38_VERSION:
+				// Quake 2
+				m_bsp = std::make_unique<BSP38>(mapName, fileBuffer);
+
+				// Lighting
+				/*m_lights = xpLit::Load(mapName);
+
+				// If we got nothing back from xpLit, load from the BSP
+				if ((m_lights.size() == 0) && (m_bsp))
+				{
+					m_bsp->LoadLighting();
+				}*/
+				//m_bsp->Upload(ref->sys->dx->subsystem3D->CommandList());
+
+				break;
+			case BSP46_VERSION:
+				// Quake 3
+				break;
+			case BSP47_VERSION:
+				// RTCW
+				break;
+			default:
+				break;
+			}
+		}
+		else if (LittleULong(*fileBuffer) == 29)
+		{
+			// Quake 1 BSP
+		}
+		else
+		{
+			ref->client->Sys_Error(ERR_DROP, L"Unknown file type for " + mapName);
+		}
+
+		ref->client->FS_FreeFile(fileBuffer);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

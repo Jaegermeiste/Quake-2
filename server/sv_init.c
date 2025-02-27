@@ -117,7 +117,7 @@ SV_CheckForSavegame
 void SV_CheckForSavegame (void)
 {
 	char		name[MAX_OSPATH];
-	FILE		*f;
+	file_t		*f = NULL;
 	int			i;
 
 	if (sv_noreload->value)
@@ -126,12 +126,13 @@ void SV_CheckForSavegame (void)
 	if (Cvar_VariableValue ("deathmatch"))
 		return;
 
-	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sav", FS_Gamedir(), sv.name);
-	f = fopen (name, "rb");
+	Com_sprintf (name, sizeof(name), "/save/current/%s.sav", sv.name);
+	FS_FOpenFileRead (name, &f);
 	if (!f)
 		return;		// no savegame
 
-	fclose (f);
+	FS_FCloseFile (f);
+	f = NULL;
 
 	SV_ClearWorld ();
 
@@ -168,8 +169,8 @@ clients along with it.
 */
 void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate, qboolean attractloop, qboolean loadgame)
 {
-	int			i;
-	unsigned	checksum;
+	int			i = 0;
+	unsigned	checksum = 0;
 
 	if (attractloop)
 		Cvar_Set ("paused", "0");
@@ -178,7 +179,10 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 
 	Com_DPrintf ("SpawnServer: %s\n",server);
 	if (sv.demofile)
-		fclose (sv.demofile);
+	{
+		FS_FCloseFile(sv.demofile);
+		sv.demofile = NULL;
+	}
 
 	svs.spawncount++;		// any partially connected client will be
 							// restarted
@@ -393,8 +397,8 @@ another level:
 void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 {
 	char	level[MAX_QPATH];
-	char	*ch;
-	int		l;
+	char	*ch = NULL;
+	size_t		l = 0;
 	char	spawnpoint[MAX_QPATH];
 
 	sv.loadgame = loadgame;

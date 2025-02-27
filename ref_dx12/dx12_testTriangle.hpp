@@ -31,7 +31,7 @@ ref_dx12
 
 namespace dx12
 {
-	__declspec(align(16)) class TestTriangle : public IndexedGeometry {
+	__declspec(align(16)) class TestTriangle : public IndexedGeometry2D {
 		friend class System;
 		friend class SubsystemText;
 		friend class Subsystem2D;
@@ -46,7 +46,7 @@ namespace dx12
 
 		bool						Initialize(int width, int height);
 
-		using IndexedGeometry::Render;
+		using IndexedGeometry2D::Render;
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

@@ -212,7 +212,7 @@ void CL_ParseDownload (void)
 		if (cls.download)
 		{
 			// if here, we tried to resume a file but the server said no
-			fclose (cls.download);
+			FS_FCloseFile (cls.download);
 			cls.download = NULL;
 		}
 		CL_RequestNextDownload ();
@@ -226,7 +226,7 @@ void CL_ParseDownload (void)
 
 		FS_CreatePath (name);
 
-		cls.download = fopen (name, "wb");
+		cls.download = FS_FOpenFileWrite (name);
 		if (!cls.download)
 		{
 			net_message.readcount += size;
@@ -236,7 +236,7 @@ void CL_ParseDownload (void)
 		}
 	}
 
-	fwrite (net_message.data + net_message.readcount, 1, size, cls.download);
+	FS_Write (net_message.data + net_message.readcount, size, cls.download);
 	net_message.readcount += size;
 
 	if (percent != 100)
@@ -263,7 +263,7 @@ void CL_ParseDownload (void)
 
 //		Com_Printf ("100%%\n");
 
-		fclose (cls.download);
+		FS_FCloseFile (cls.download);
 
 		// rename the temp file to it's final name
 		CL_DownloadFileName(oldn, sizeof(oldn), cls.downloadtempname);
@@ -298,8 +298,8 @@ CL_ParseServerData
 void CL_ParseServerData (void)
 {
 	extern cvar_t	*fs_gamedirvar;
-	char	*str;
-	int		i;
+	char	*str = NULL;
+	int		i = 0;
 	
 	Com_DPrintf ("Serverdata packet received.\n");
 //
@@ -651,9 +651,9 @@ CL_ParseServerMessage
 */
 void CL_ParseServerMessage (void)
 {
-	int			cmd;
-	char		*s;
-	int			i;
+	int			cmd = 0;
+	char		*s = NULL;
+	int			i = 0;
 
 //
 // if recording demos, copy the message out
@@ -710,7 +710,7 @@ void CL_ParseServerMessage (void)
 			Com_Printf ("Server disconnected, reconnecting\n");
 			if (cls.download) {
 				//ZOID, close download
-				fclose (cls.download);
+				FS_FCloseFile (cls.download);
 				cls.download = NULL;
 			}
 			cls.state = ca_connecting;

@@ -73,7 +73,8 @@ static int CDAudio_GetAudioDiskInfo(void)
 	cdValid = false;
 
 	mciStatusParms.dwItem = MCI_STATUS_READY;
-    dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD) (LPVOID) &mciStatusParms);
+    //dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD) (LPVOID) &mciStatusParms);
+	dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, &mciStatusParms);
 	if (dwReturn)
 	{
 		Com_DPrintf("CDAudio: drive ready test - get status failed\n");
@@ -86,7 +87,8 @@ static int CDAudio_GetAudioDiskInfo(void)
 	}
 
 	mciStatusParms.dwItem = MCI_STATUS_NUMBER_OF_TRACKS;
-    dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD) (LPVOID) &mciStatusParms);
+    //dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD) (LPVOID) &mciStatusParms);
+	dwReturn = mciSendCommand(wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, &mciStatusParms);
 	if (dwReturn)
 	{
 		Com_DPrintf("CDAudio: get tracks - status failed\n");
@@ -446,7 +448,8 @@ int CDAudio_Init(void)
 		return -1;
 
 	mciOpenParms.lpstrDeviceType = "cdaudio";
-	if (dwReturn = mciSendCommand(0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_SHAREABLE, (DWORD) (LPVOID) &mciOpenParms))
+	//if (dwReturn = mciSendCommand(0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_SHAREABLE, (DWORD) (LPVOID) &mciOpenParms))
+	if (dwReturn = mciSendCommand(0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_SHAREABLE, &mciOpenParms))
 	{
 		Com_Printf("CDAudio_Init: MCI_OPEN failed (%i)\n", dwReturn);
 		return -1;
@@ -455,10 +458,11 @@ int CDAudio_Init(void)
 
     // Set the time format to track/minute/second/frame (TMSF).
     mciSetParms.dwTimeFormat = MCI_FORMAT_TMSF;
-    if (dwReturn = mciSendCommand(wDeviceID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD)(LPVOID) &mciSetParms))
+    //if (dwReturn = mciSendCommand(wDeviceID, MCI_SET, MCI_SET_TIME_FORMAT, (DWORD)(LPVOID) &mciSetParms))
+	if (dwReturn = mciSendCommand(wDeviceID, MCI_SET, MCI_SET_TIME_FORMAT, &mciSetParms))
     {
 		Com_Printf("MCI_SET_TIME_FORMAT failed (%i)\n", dwReturn);
-        mciSendCommand(wDeviceID, MCI_CLOSE, 0, (DWORD)NULL);
+        mciSendCommand(wDeviceID, MCI_CLOSE, 0, NULL);
 		return -1;
     }
 
@@ -487,7 +491,7 @@ void CDAudio_Shutdown(void)
 	if (!initialized)
 		return;
 	CDAudio_Stop();
-	if (mciSendCommand(wDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)NULL))
+	if (mciSendCommand(wDeviceID, MCI_CLOSE, MCI_WAIT, NULL))
 		Com_DPrintf("CDAudio_Shutdown: MCI_CLOSE failed\n");
 }
 

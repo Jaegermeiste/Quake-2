@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ref_dx12
-2019 Bleeding Eye Studios
+2025 Bleeding Eye Studios
 */
 
 #ifndef __DX12_BSP_HPP__
@@ -41,106 +41,150 @@ namespace dx12
 	class BSP
 	{
 	protected:
-		std::string					m_name;
+		std::wstring				m_name;
 		unsigned int				m_version;
 
 		size_t				        m_numVertices;
-		dxVertex*					m_vertices;
+		Vertex3D*					m_vertices;
+
+		std::vector<int>            m_indices;
 
 		bsp_disk_header*			m_header = nullptr;
 
-		virtual size_t		        LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length) = 0;
-		virtual unsigned int		LoadVertices(bsp_disk_header* header) = 0;
+		size_t		                LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length);
+		virtual size_t      		LoadVertices() = 0;
 
 	public:
-		virtual std::vector<Light>	LoadLighting() { return std::vector<Light>(); };
+		virtual size_t      	    LoadLighting() { return 0; };
+		virtual void                Upload(std::shared_ptr<CommandList> commandList) = 0;
 	};
 
-#define BSP38_VERSION			38
-#define	BSP38_LUMP_ENTITIES		0
-#define	BSP38_LUMP_PLANES		1
-#define	BSP38_LUMP_VERTEXES		2
-#define	BSP38_LUMP_VISIBILITY	3
-#define	BSP38_LUMP_NODES		4
-#define	BSP38_LUMP_TEXINFO		5
-#define	BSP38_LUMP_FACES		6
-#define	BSP38_LUMP_LIGHTING		7
-#define	BSP38_LUMP_LEAFS		8
-#define	BSP38_LUMP_LEAFFACES	9
-#define	BSP38_LUMP_LEAFBRUSHES	10
-#define	BSP38_LUMP_EDGES		11
-#define	BSP38_LUMP_SURFEDGES	12
-#define	BSP38_LUMP_MODELS		13
-#define	BSP38_LUMP_BRUSHES		14
-#define	BSP38_LUMP_BRUSHSIDES	15
-#define	BSP38_LUMP_POP			16
-#define	BSP38_LUMP_AREAS		17
-#define	BSP38_LUMP_AREAPORTALS	18
-#define	BSP38_HEADER_LUMPS		19
+constexpr auto  BSP38_VERSION          = 38;
+constexpr auto	BSP38_LUMP_ENTITIES    = 0;
+constexpr auto  BSP38_LUMP_PLANES      = 1;
+constexpr auto  BSP38_LUMP_VERTEXES    = 2;
+constexpr auto	BSP38_LUMP_VISIBILITY  = 3;
+constexpr auto	BSP38_LUMP_NODES		   = 4;
+constexpr auto	BSP38_LUMP_TEXINFO	   = 5;
+constexpr auto	BSP38_LUMP_FACES		   = 6;
+constexpr auto	BSP38_LUMP_LIGHTING	   = 7;
+constexpr auto	BSP38_LUMP_LEAFS		   = 8;
+constexpr auto	BSP38_LUMP_LEAFFACES	   = 9;
+constexpr auto	BSP38_LUMP_LEAFBRUSHES = 10;
+constexpr auto	BSP38_LUMP_EDGES		   = 11;
+constexpr auto	BSP38_LUMP_SURFEDGES	   = 12;
+constexpr auto	BSP38_LUMP_MODELS	   = 13;
+constexpr auto	BSP38_LUMP_BRUSHES	   = 14;
+constexpr auto	BSP38_LUMP_BRUSHSIDES  = 15;
+constexpr auto	BSP38_LUMP_POP		   = 16;
+constexpr auto	BSP38_LUMP_AREAS		   = 17;
+constexpr auto	BSP38_LUMP_AREAPORTALS = 18;
+constexpr auto	BSP38_HEADER_LUMPS	   = 19;
 
+typedef struct disk_bsp38_header_s
+{
+	int			ident;
+	int			version;
+	lump_t      lumps[BSP38_HEADER_LUMPS];
+} bsp38_disk_header;
 
+typedef struct disk_bsp38_plane_s
+{
+	float	normal[3];
+	float	dist;
+	int		type;
+} bsp38_plane_t;
+
+typedef struct disk_bsp38_edge_s
+{
+	unsigned short	index[2];
+	unsigned int	cachedEdgeOffset;
+} bsp38_edge_t;
+
+typedef struct disk_bsp38_vis_s
+{
+	int			numclusters;
+	int** bitofs;// [] [2] ;	// bitofs[numclusters][2]
+} bsp38_vis_t;
+
+typedef struct bsp38_leaf_geometry_s
+{
+	size_t                     index = 0;
+	int			               cluster = 0;
+	int			               area = 0;
+	std::vector<Vertex3D>      vertices;     // A collection of unique vertices in the leaf
+	std::vector<unsigned long> indices;  // Indices forming triangles from the vertex list
+} bsp38_leaf_geometry_t;
 
 	class BSP38 : public BSP
 	{
 	private:
-		static bool			DownloadXPLitForMap(std::string mapName);
+		// DISK
+		bsp38_disk_header*                 m_header38 = nullptr;
 
-		DirectX::XMFLOAT3A*		d_vertices = nullptr;
-		unsigned int			d_numVertices = 0;
+		std::vector<DirectX::XMFLOAT3A>	   m_diskVertices;
 
-		texinfo_t*				d_texInfo = nullptr;
-		unsigned int			d_numTexInfo = 0;
+		std::vector<dedge_t>               m_diskEdges;
 
-		unsigned int			LoadTexInfo(bsp_disk_header* header);
+		std::vector<int>                   m_diskSurfEdges;
 
-	protected:
-		//
-		// brush model
-		//
-		/*unsigned int		m_firstModelSurface, 
-							m_numModelSurfaces;
-		unsigned int		m_lightmap;		// only for submodels
+		std::vector<dx12::Light>           m_lights;
 
-		unsigned int		m_numSubModels;
-		mmodel_t*			m_subModels;
+		std::vector<bsp38_plane_t>         m_diskPlanes;
 
-		unsigned int		m_numPlanes;
-		cplane_t*			m_planes;
+		std::vector<texinfo_t>		       m_diskTexInfo;
 
-		unsigned int		m_numLeafs;		// number of visible leafs, not counting 0
-		mleaf_t*			m_leafs;
+		std::vector<dface_t>               m_diskFaces;
 
-		unsigned int		m_numEdges;
-		medge_t*			m_edges;
+		std::vector<short>                 m_diskLeafFaces;
 
-		unsigned int		m_numNodes;
-		unsigned int		m_firstNode;
-		mnode_t*			m_nodes;
+		bsp38_vis_t                        m_diskCompressedVis = {};
 
-		unsigned int		m_numTexInfo;
-		mtexinfo_t*			m_texInfo;
+		std::vector<dleaf_t>               m_diskLeafs;
 
-		unsigned int		m_numSurfaces;
-		msurface_t*			m_surfaces;
+		std::vector<dnode_t>               m_diskNodes;
 
-		unsigned int		m_numSurfEdges;
-		int*				m_surfEdges;
+		std::vector<dmodel_t>              m_diskSubModels;
 
-		unsigned int		m_numMarkSurfaces;
-		msurface_t**		m_markSurfaces;*/
+		// COMPUTE
+		std::vector<bsp38_leaf_geometry_t> m_leafGeometry;
 
-		dvis_t*				m_vis;
+		std::vector<BottomLevelAccelerationStructure> m_leafAccelStructures;
+
+		// Functions
+		size_t                             LoadVertices() override;
+		size_t                             LoadEdges();
+		size_t                             LoadSurfEdges();
+		size_t                             LoadLighting();
+		size_t                             LoadPlanes();
+		size_t                             LoadTexInfo();
+		size_t                             LoadFaces();
+		size_t                             LoadLeafFaces();
+		size_t                             LoadVisibility();
+		size_t                             LoadLeafs();
+		size_t                             LoadNodes();
+		size_t                             LoadSubModels();
+
+		void                               CollectLeafGeometry();
+		void                               UploadLeafGeometry();
+		void                               GenerateBottomLevelAS(std::shared_ptr<CommandList> commandList);
+		void                               GenerateTopLevelAS(std::shared_ptr<CommandList> commandList);
+		
 	public:
-							BSP38(std::string name, unsigned int* buffer);
-							~BSP38();
+							               BSP38(std::wstring name, unsigned int* buffer);
+							               ~BSP38();
 
-							unsigned int LoadVertices(bsp_disk_header * header);
+	    void                               ClearDiskData();
 
-		std::vector<Light>	LoadLighting();
+		void                               Shutdown();
+
+		void                               ComputeIndices();
+
+		void                               Upload(std::shared_ptr<CommandList> commandList) override;
 	};
 
-#define BSP46_VERSION	46
-#define BSP47_VERSION	47
+constexpr auto BSP46_VERSION = 46;
+constexpr auto BSP47_VERSION = 47;
 }
 
 #endif // !__DX12_BSP_HPP__

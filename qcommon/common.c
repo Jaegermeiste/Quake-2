@@ -109,7 +109,7 @@ void Com_Printf (char *fmt, ...)
 
 	if (rd_target)
 	{
-		if ((strlen (msg) + strlen(rd_buffer)) > (rd_buffersize - 1))
+		if ((strlen (msg) + strlen(rd_buffer)) > ((unsigned long long)rd_buffersize - 1))
 		{
 			rd_flush(rd_target, rd_buffer);
 			*rd_buffer = 0;
@@ -454,7 +454,7 @@ void MSG_WriteDir (sizebuf_t *sb, vec3_t dir)
 
 void MSG_ReadDir (sizebuf_t *sb, vec3_t dir)
 {
-	int		b;
+	int		b = 0;
 
 	b = MSG_ReadByte (sb);
 	if (b >= NUMVERTEXNORMALS)
@@ -680,7 +680,7 @@ void MSG_BeginReading (sizebuf_t *msg)
 // returns -1 if no more characters are available
 int MSG_ReadChar (sizebuf_t *msg_read)
 {
-	int	c;
+	int	c = 0;
 	
 	if (msg_read->readcount+1 > msg_read->cursize)
 		c = -1;
@@ -693,7 +693,7 @@ int MSG_ReadChar (sizebuf_t *msg_read)
 
 int MSG_ReadByte (sizebuf_t *msg_read)
 {
-	int	c;
+	int	c = 0;
 	
 	if (msg_read->readcount+1 > msg_read->cursize)
 		c = -1;
@@ -706,7 +706,7 @@ int MSG_ReadByte (sizebuf_t *msg_read)
 
 int MSG_ReadShort (sizebuf_t *msg_read)
 {
-	int	c;
+	int	c = 0;
 	
 	if (msg_read->readcount+2 > msg_read->cursize)
 		c = -1;
@@ -721,7 +721,7 @@ int MSG_ReadShort (sizebuf_t *msg_read)
 
 int MSG_ReadLong (sizebuf_t *msg_read)
 {
-	int	c;
+	int	c = 0;
 	
 	if (msg_read->readcount+4 > msg_read->cursize)
 		c = -1;
@@ -873,7 +873,7 @@ void MSG_ReadData (sizebuf_t *msg_read, void *data, int len)
 
 //===========================================================================
 
-void SZ_Init (sizebuf_t *buf, byte *data, int length)
+void SZ_Init (sizebuf_t *buf, byte *data, size_t length)
 {
 	memset (buf, 0, sizeof(*buf));
 	buf->data = data;
@@ -886,7 +886,7 @@ void SZ_Clear (sizebuf_t *buf)
 	buf->overflowed = false;
 }
 
-void *SZ_GetSpace (sizebuf_t *buf, int length)
+void *SZ_GetSpace (sizebuf_t *buf, size_t length)
 {
 	void	*data;
 	
@@ -909,14 +909,14 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 	return data;
 }
 
-void SZ_Write (sizebuf_t *buf, void *data, int length)
+void SZ_Write (sizebuf_t *buf, void *data, size_t length)
 {
 	memcpy (SZ_GetSpace(buf,length),data,length);		
 }
 
 void SZ_Print (sizebuf_t *buf, char *data)
 {
-	int		len;
+	size_t		len = 0;
 	
 	len = strlen(data)+1;
 
@@ -1055,7 +1055,7 @@ void Info_Print (char *s)
 		l = o - key;
 		if (l < 20)
 		{
-			memset (o, ' ', 20-l);
+			memset (o, ' ', 20 - (size_t)l);
 			key[20] = 0;
 		}
 		else
@@ -1099,11 +1099,11 @@ typedef struct zhead_s
 	struct zhead_s	*prev, *next;
 	short	magic;
 	short	tag;			// for group free
-	int		size;
+	size_t	size;
 } zhead_t;
 
 zhead_t		z_chain;
-int		z_count, z_bytes;
+size_t		z_count, z_bytes;
 
 /*
 ========================
@@ -1160,27 +1160,34 @@ void Z_FreeTags (int tag)
 Z_TagMalloc
 ========================
 */
-void *Z_TagMalloc (int size, int tag)
+void *Z_TagMalloc (size_t size, int tag)
 {
 	zhead_t	*z;
 	
 	size = size + sizeof(zhead_t);
 	z = malloc(size);
 	if (!z)
-		Com_Error (ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes",size);
-	memset (z, 0, size);
-	z_count++;
-	z_bytes += size;
-	z->magic = Z_MAGIC;
-	z->tag = tag;
-	z->size = size;
+	{
+		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes", size);
+	}
+	else
+	{
+		memset(z, 0, size);
+		z_count++;
+		z_bytes += size;
+		z->magic = Z_MAGIC;
+		z->tag = tag;
+		z->size = size;
 
-	z->next = z_chain.next;
-	z->prev = &z_chain;
-	z_chain.next->prev = z;
-	z_chain.next = z;
+		z->next = z_chain.next;
+		z->prev = &z_chain;
+		z_chain.next->prev = z;
+		z_chain.next = z;
 
-	return (void *)(z+1);
+		return (void*)(z + 1);
+	}
+
+	return NULL;
 }
 
 /*
@@ -1188,7 +1195,7 @@ void *Z_TagMalloc (int size, int tag)
 Z_Malloc
 ========================
 */
-void *Z_Malloc (int size)
+void *Z_Malloc (size_t size)
 {
 	return Z_TagMalloc (size, 0);
 }
@@ -1389,6 +1396,15 @@ void Com_Error_f (void)
 	Com_Error (ERR_FATAL, "%s", Cmd_Argv(1));
 }
 
+void Z_Init(void)
+{
+	memset(&z_chain, 0, sizeof(zhead_t));
+
+	z_chain.next = z_chain.prev = &z_chain;
+
+	z_count = 0;
+	z_bytes = 0;
+}
 
 /*
 =================
@@ -1402,7 +1418,7 @@ void Qcommon_Init (int argc, char **argv)
 	if (setjmp (abortframe) )
 		Sys_Error ("Error during initialization");
 
-	z_chain.next = z_chain.prev = &z_chain;
+	
 
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management

@@ -31,7 +31,7 @@ ref_dx12
 
 namespace dx12
 {
-	__declspec(align(16)) class Quad2D: public IndexedGeometry {
+	__declspec(align(16)) class Quad2D: public IndexedGeometry2D {
 		friend class System;
 		friend class SubsystemText;
 		friend class Subsystem2D;
@@ -59,7 +59,7 @@ namespace dx12
 
 		bool						Initialize(int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 
-		using IndexedGeometry::Render;
+		using IndexedGeometry2D::Render;
 		void						Render(std::shared_ptr<CommandList> commandList, int x, int y, int width, int height, DirectX::XMVECTORF32 color);
 		void						Render(std::shared_ptr<CommandList> commandList, int x, int y, int width, int height, float u1, float v1, float u2, float v2, DirectX::XMVECTORF32 color);
 

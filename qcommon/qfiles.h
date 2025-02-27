@@ -31,6 +31,11 @@ The .pak files are just a linear collapse of a directory tree
 ========================================================================
 */
 
+typedef struct file_s {
+	void** zipHandle;					// zip archive
+	FILE*  fileHandle;					// pak or actual file
+} file_t;
+
 #define IDPAKHEADER		(('K'<<24)+('C'<<16)+('A'<<8)+'P')
 
 typedef struct

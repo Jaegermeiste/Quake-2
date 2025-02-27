@@ -27,8 +27,19 @@ ref_dx12
 
 inline dxhandle_t dx12::ResourceManager::GenerateHandleForString(std::wstring string)
 {
-	// Resources should never have the same name and path, so hashes should (almost) never collide
-	return std::hash<std::wstring>{}(string);
+	try
+	{
+		// Resources should never have the same name and path, so hashes should (almost) never collide
+		return std::hash<std::wstring>{}(string);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return 0;
 }
 
 bool dx12::ResourceManager::Initialize()
@@ -42,11 +53,20 @@ void dx12::ResourceManager::Shutdown()
 {
 	LOG_FUNC();
 
-	// Destroy m_handlesQ2
-	m_handlesQ2.clear();
+	try
+	{
+		// Destroy m_handlesQ2
+		m_handlesQ2.clear();
 
-	// Destroy resources
-	m_resources.clear();
+		// Destroy resources
+		m_resources.clear();
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }
 
 /*std::shared_ptr<dx12::Resource> dx12::ResourceManager::GetResource(dxhandle_t handle)
@@ -74,7 +94,7 @@ void dx12::ResourceManager::Shutdown()
 	catch (const std::exception& e) {
 		LOG(error) << "General Exception: " << e.what();
 	}
-	
+
 	return nullptr;
 }*/
 
@@ -89,7 +109,7 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(dxhandle_t handle)
 
 			if (result != m_resources.get<tag_handle>().end())
 			{
-				auto resource = *result;
+				std::shared_ptr<Resource> resource = *result;
 				auto dummy = std::make_shared<T>(L"dummy");
 
 				// Found the resource, see if it is the right type
@@ -98,6 +118,8 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(dxhandle_t handle)
 				}
 
 				LOG(warning) << "Resource for handle " << handle << " found, but wrong type.";
+
+				return std::dynamic_pointer_cast<T>(resource);
 			}
 			else
 			{
@@ -129,9 +151,20 @@ std::shared_ptr<T> dx12::ResourceManager::GetResource(std::wstring name)
 {
 	LOG_FUNC();
 
-	dxhandle_t handle = GenerateHandleForString(name);
+	try
+	{
+		dxhandle_t handle = GenerateHandleForString(name);
 
-	return GetResource<T>(handle);
+		return GetResource<T>(handle);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return nullptr;
 }
 
 template<DerivedFrom<dx12::Resource> T>
@@ -139,26 +172,37 @@ std::shared_ptr<T> dx12::ResourceManager::GetOrCreateResource(std::wstring name)
 {
 	LOG_FUNC();
 
-	std::shared_ptr<T> resource = nullptr;
-
-	resource = GetResource<T>(name);
-
-	if (resource == nullptr)
+	try
 	{
-		// Resource not found
-		resource = CreateResource<T>(name);
+		std::shared_ptr<T> resource = nullptr;
+
+		resource = GetResource<T>(name);
+
+		if (resource == nullptr)
+		{
+			// Resource not found
+			resource = CreateResource<T>(name);
+		}
+
+		return resource;
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return resource;
+	return nullptr;
 }
 
-resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t handle, bool validate)
+resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t handle)
 {
 	LOG_FUNC();
 
 	resourceHandleQ2_t* q2handle = nullptr;
 
-	if (validate)
+	try
 	{
 		// Check if handle is a valid resource
 		auto resource = GetResource<Resource>(handle);
@@ -171,6 +215,18 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 
 				return nullptr;
 			}
+
+			// At this point, assume the handle is good and create the flyweight struct
+			m_handlesQ2.insert({ handle, std::make_shared<resourceHandleQ2_t>() });
+
+			// Set the handle
+			m_handlesQ2.at(handle)->m_handle = handle;
+
+			// Name it, because the client does evil things to the handle for skins
+			sz::memcpy(m_handlesQ2.at(handle)->m_name, ref->sys->ToString(resource->GetName()).c_str(), MAX_QPATH);
+
+			// Retrieve a raw pointer to the flyweight
+			q2handle = m_handlesQ2.at(handle).get();
 		}
 		else
 		{
@@ -179,16 +235,15 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 
 			return nullptr;
 		}
+
+		
 	}
-	
-	// At this point, assume the handle is good and create the flyweight struct
-	m_handlesQ2.insert({ handle, std::make_shared<resourceHandleQ2_t>()});
-
-	// Set the handle
-	m_handlesQ2.at(handle)->m_handle = handle;
-
-	// Retrieve a raw pointer to the flyweight
-	q2handle = m_handlesQ2.at(handle).get();
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 
 	return q2handle;
 }

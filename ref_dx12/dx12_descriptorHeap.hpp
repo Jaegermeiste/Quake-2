@@ -69,7 +69,7 @@ namespace dx12
 
 		UINT GetDescriptorSize() const { return m_descriptorSize; }
 		UINT GetDescriptorCount() const { return m_descriptorCount; }
-		UINT GetAllocatedCount() const { return m_handles.size(); }
+		size_t GetAllocatedCount() const { return m_handles.size(); }
 
 		D3D12_DESCRIPTOR_HEAP_TYPE GetType() const { return m_type; }
 

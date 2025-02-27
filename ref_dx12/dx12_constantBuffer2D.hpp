@@ -59,7 +59,7 @@ namespace dx12
 			return UpdateBuffer(commandList, bufferData, bufferSize);
 		}
 
-		unsigned int		ConstantCount() { return m_count; };
+		size_t		ConstantCount() { return m_count; };
 	};
 }
 

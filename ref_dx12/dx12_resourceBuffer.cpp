@@ -37,7 +37,7 @@ bool dx12::ResourceBuffer::UploadBuffer(T* bufferData, size_t bufferSize)
 
 			CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU
 
-			UINT8* pDataBegin;
+			UINT8* pDataBegin = nullptr;
 			//hr = m_resource->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin));
 			hr = m_resource->Map(0, nullptr, reinterpret_cast<void**>(&pDataBegin));
 
@@ -78,49 +78,59 @@ bool dx12::ResourceBuffer::UpdateBuffer(std::shared_ptr<CommandList> commandList
 
 	bool retVal = false;
 
-	if (commandList && commandList->IsOpen())
+	try
 	{
-		// Assume commandList is a valid ID3D12GraphicsCommandList pointer
-		/*D3D12_RESOURCE_BARRIER barrier = {};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = m_resource.Get();
-		
-		if (m_type == RESOURCE_INDEXBUFFER)
+
+		if (commandList && commandList->IsOpen())
 		{
-			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+			// Assume commandList is a valid ID3D12GraphicsCommandList pointer
+			/*D3D12_RESOURCE_BARRIER barrier = {};
+			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			barrier.Transition.pResource = m_resource.Get();
+
+			if (m_type == RESOURCE_INDEXBUFFER)
+			{
+				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+			}
+			else
+			{
+				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+			}
+
+			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+			barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;*/
+
+			// Transition to COPY_DEST
+			//commandList->List()->ResourceBarrier(1, &barrier);
+
+			// Perform the update...
+			retVal = UploadBuffer(bufferData, bufferSize);
+
+			//commandList->Execute();
+			//commandList->Prepare();
+
+			// Transition back
+			/*barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+
+
+			if (m_type == RESOURCE_INDEXBUFFER)
+			{
+				barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+			}
+			else
+			{
+				barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+			}*/
+
+			//commandList->List()->ResourceBarrier(1, &barrier);
 		}
-		else
-		{
-			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-		}
-
-		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
-		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;*/
-
-		// Transition to COPY_DEST
-		//commandList->List()->ResourceBarrier(1, &barrier);
-
-		// Perform the update...
-		retVal = UploadBuffer(bufferData, bufferSize);
-
-		//commandList->Execute();
-		//commandList->Prepare();
-
-		// Transition back
-		/*barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-		
-
-		if (m_type == RESOURCE_INDEXBUFFER)
-		{
-			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-		}
-		else
-		{
-			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-		}*/
-
-		//commandList->List()->ResourceBarrier(1, &barrier);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
 	return retVal;
@@ -140,12 +150,22 @@ bool dx12::ResourceBuffer::CreateBuffer(T* bufferData, size_t bufferSize)
 		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
 		// Create buffer
-		D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		hr = ref->sys->dx->Device()->CreateCommittedResource(
+		D3D12_RESOURCE_DESC1 bufferDesc = {};
+		
+		if (ref->sys->dx->HasTightAlignment())
+		{
+			bufferDesc = CD3DX12_RESOURCE_DESC1::Buffer(bufferSize, D3D12_RESOURCE_FLAG_USE_TIGHT_ALIGNMENT);
+		}
+		else
+		{
+			bufferDesc = CD3DX12_RESOURCE_DESC1::Buffer(bufferSize);
+		}
+		hr = ref->sys->dx->Device()->CreateCommittedResource2(
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
 			&bufferDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
 			nullptr,
 			IID_PPV_ARGS(&m_resource)
 		);

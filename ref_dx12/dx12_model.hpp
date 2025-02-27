@@ -29,15 +29,6 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-typedef struct dxVertex_s {
-	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT3 normal;
-	DirectX::XMFLOAT4 tangent;
-	DirectX::XMFLOAT4 color;
-	DirectX::XMFLOAT2 textureCoordinate0;
-	DirectX::XMFLOAT2 textureCoordinate1;
-} dxVertex;
-
 namespace dx12
 {
 	class ModelManager
@@ -48,7 +39,7 @@ namespace dx12
 		bool						Initialize();
 		void						Shutdown();
 
-		std::shared_ptr<Resource>	Load(std::string modelName);
+		std::shared_ptr<Resource>	Load(std::wstring modelName);
 	};
 }
 

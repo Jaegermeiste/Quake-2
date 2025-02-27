@@ -23,15 +23,15 @@ ref_dx12
 2025 Bleeding Eye Studios
 */
 
-#ifndef __DX12_INDEXEDGEOMETRY_HPP__
-#define __DX12_INDEXEDGEOMETRY_HPP__
+#ifndef __DX12_INDEXEDGEOMETRY2D_HPP__
+#define __DX12_INDEXEDGEOMETRY2D_HPP__
 #pragma once
 
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	__declspec(align(16)) class IndexedGeometry {
+	__declspec(align(16)) class IndexedGeometry2D {
 		friend class System;
 		friend class SubsystemText;
 		friend class Subsystem2D;
@@ -55,13 +55,15 @@ namespace dx12
 		void						RenderBuffers(std::shared_ptr<CommandList> commandList) const;
 
 	public:
-		                            IndexedGeometry();
-									~IndexedGeometry();
+		                            IndexedGeometry2D();
+									~IndexedGeometry2D();
 
 		virtual void				Render(std::shared_ptr<CommandList> commandList);
 
-		virtual unsigned int		VertexCount() { if (m_vertexBuffer) { return m_vertexBuffer->VertexCount(); } return 0; };
-		virtual unsigned int		IndexCount() { if (m_indexBuffer) { return m_indexBuffer->IndexCount(); } return 0; };
+		virtual size_t      		VertexCount() { if (m_vertexBuffer) { return m_vertexBuffer->VertexCount(); } return 0; };
+		virtual size_t      		IndexCount() { if (m_indexBuffer) { return m_indexBuffer->IndexCount(); } return 0; };
+
+		std::wstring                GetUUID() { return m_uuid7; };
 
 		virtual void				Shutdown();
 
@@ -69,4 +71,4 @@ namespace dx12
 	};
 }
 
-#endif // !__DX12_INDEXEDGEOMETRY_HPP__
+#endif // !__DX12_INDEXEDGEOMETRY2D_HPP__

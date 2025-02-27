@@ -43,58 +43,78 @@ bool dx12::Initialize()
 {
 	LOG_FUNC();
 
-	if (dx12::ref->client != nullptr)
+	try
 	{
-		dx12::ref->client->Con_Printf(PRINT_ALL, L"ref_dx12 version: " REF_VERSION);
-	}
+		if (dx12::ref->client != nullptr)
+		{
+			dx12::ref->client->Con_Printf(PRINT_ALL, L"ref_dx12 version: " REF_VERSION);
+		}
 
-	// Initialize the critical section one time only.
-	if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
-	{
-		return false;
-	}
+		// Initialize the critical section one time only.
+		if (!InitializeCriticalSectionAndSpinCount(&CriticalSection, 0x00000400))
+		{
+			return false;
+		}
 
 #if defined(DEBUG) || defined (_DEBUG)
-	HRESULT hr = E_UNEXPECTED;
+		HRESULT hr = E_UNEXPECTED;
 
-	hr = D3D12GetDebugInterface(IID_PPV_ARGS(&d3dDebug));
+		hr = D3D12GetDebugInterface(IID_PPV_ARGS(&d3dDebug));
 
-	if (FAILED(hr)) {
-		LOG(warning) << "Failed to get debug interface: " << GetD3D12ErrorMessage(hr);
-	}
+		if (FAILED(hr)) {
+			LOG(warning) << "Failed to get debug interface: " << GetD3D12ErrorMessage(hr);
+		}
 
-	if (d3dDebug != nullptr)
-	{
-		d3dDebug->EnableDebugLayer();
-	}
+		if (d3dDebug != nullptr)
+		{
+			d3dDebug->EnableDebugLayer();
+		}
 #endif//DEBUG
 
 
-	return true;
+		return true;
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return false;
 }
 
 void dx12::DumpD3DDebugMessagesToLog()
 {
 #if defined(DEBUG) || defined (_DEBUG)
-	if (d3dInfoQueue)
+	try
 	{
-		UINT64 numDebugMsgs = d3dInfoQueue->GetNumStoredMessages();
-
-		for (UINT64 i = 0; i < numDebugMsgs; i++)
+		if (d3dInfoQueue)
 		{
-			// Get the size of the message
-			SIZE_T messageLength = 0;
-			HRESULT hr = d3dInfoQueue->GetMessage(i, NULL, &messageLength);
+			UINT64 numDebugMsgs = d3dInfoQueue->GetNumStoredMessages();
 
-			// Allocate space and get the message
-			D3D12_MESSAGE * pMessage = (D3D12_MESSAGE*)malloc(messageLength);
-			hr = d3dInfoQueue->GetMessage(i, pMessage, &messageLength);
+			for (UINT64 i = 0; i < numDebugMsgs; i++)
+			{
+				// Get the size of the message
+				SIZE_T messageLength = 0;
+				HRESULT hr = d3dInfoQueue->GetMessage(i, NULL, &messageLength);
 
-			// Log the message
-			LOG(debug) << "Category: " << pMessage->Category << " Severity: " << pMessage->Severity << " Description: " << pMessage->pDescription;
+				// Allocate space and get the message
+				D3D12_MESSAGE* pMessage = (D3D12_MESSAGE*)malloc(messageLength);
+				hr = d3dInfoQueue->GetMessage(i, pMessage, &messageLength);
+
+				// Log the message
+				LOG(debug) << "Category: " << pMessage->Category << " Severity: " << pMessage->Severity << " Description: " << pMessage->pDescription;
+			}
+
+			d3dInfoQueue->ClearStoredMessages();
 		}
-
-		d3dInfoQueue->ClearStoredMessages();
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 #endif
 }
@@ -108,20 +128,28 @@ void dx12::Shutdown()
 {
 	LOG_FUNC();
 
-	// Release resources used by the critical section object.
-	DeleteCriticalSection(&CriticalSection);
+	try
+	{
+		// Release resources used by the critical section object.
+		DeleteCriticalSection(&CriticalSection);
 
 #if defined(DEBUG) || defined (_DEBUG)
-	if (d3dDebugDev != nullptr)
-	{
-		d3dDebugDev->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
-	}
+		if (d3dDebugDev != nullptr)
+		{
+			d3dDebugDev->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
+		}
 
-	SAFE_RELEASE(d3dInfoQueue);
+		SAFE_RELEASE(d3dInfoQueue);
 
-	SAFE_RELEASE(d3dDebugDev);
+		SAFE_RELEASE(d3dDebugDev);
 
-	SAFE_RELEASE(d3dDebug);
+		SAFE_RELEASE(d3dDebug);
 #endif
-
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

@@ -39,7 +39,7 @@ LIGHT STYLE MANAGEMENT
 
 typedef struct
 {
-	int		length;
+	size_t	length;
 	float	value[3];
 	float	map[MAX_QPATH];
 } clightstyle_t;
@@ -91,8 +91,8 @@ void CL_RunLightStyles (void)
 
 void CL_SetLightstyle (int i)
 {
-	char	*s;
-	int		j, k;
+	char	*s = NULL;
+	size_t		j = 0, k = 0;
 
 	s = cl.configstrings[i+CS_LIGHTS];
 
@@ -900,9 +900,17 @@ void CL_ClearParticles (void)
 	free_particles = &particles[0];
 	active_particles = NULL;
 
-	for (i=0 ;i<cl_numparticles ; i++)
-		particles[i].next = &particles[i+1];
-	particles[cl_numparticles-1].next = NULL;
+	if (cl_numparticles > MAX_PARTICLES)
+	{
+		cl_numparticles = MAX_PARTICLES;
+	}
+
+	for (i = 0; i < cl_numparticles; i++)
+	{
+		particles[i].next = &particles[i + 1];
+	}
+
+	particles[MAX_PARTICLES-1].next = NULL;
 }
 
 
@@ -915,9 +923,9 @@ Wall impact puffs
 */
 void CL_ParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 {
-	int			i, j;
-	cparticle_t	*p;
-	float		d;
+	int			i = 0, j = 0;
+	cparticle_t	*p = NULL;
+	float		d = 0.0f;
 
 	for (i=0 ; i<count ; i++)
 	{
@@ -2181,12 +2189,12 @@ CL_AddParticles
 */
 void CL_AddParticles (void)
 {
-	cparticle_t		*p, *next;
-	float			alpha;
-	float			time, time2;
+	cparticle_t		*p = NULL, *next = NULL;
+	float			alpha = 0.0f;
+	float			time = 0.0f, time2 = 0.0f;
 	vec3_t			org;
-	int				color;
-	cparticle_t		*active, *tail;
+	int				color = 0;
+	cparticle_t		*active = NULL, *tail = NULL;
 
 	active = NULL;
 	tail = NULL;

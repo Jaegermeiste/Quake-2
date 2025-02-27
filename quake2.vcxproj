@@ -5,21 +5,41 @@
       <Configuration>Debug Alpha</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug Alpha|x64">
+      <Configuration>Debug Alpha</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release Alpha|Win32">
       <Configuration>Release Alpha</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Release Alpha|x64">
+      <Configuration>Release Alpha</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Template|Win32">
       <Configuration>Template</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|x64">
+      <Configuration>Template</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -33,7 +53,16 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
@@ -43,12 +72,27 @@
     <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
@@ -59,7 +103,14 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
@@ -67,11 +118,23 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
@@ -81,21 +144,38 @@
     <IntDir>.\DebugAxp\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.</OutDir>
     <IntDir>.\debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <SourcePath>$(SourcePath)</SourcePath>
+    <OutDir>$(SolutionDir)</OutDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\release\</OutDir>
     <IntDir>.\release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'">
     <OutDir>.\ReleaseAXP\</OutDir>
     <IntDir>.\ReleaseAXP\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'">
     <ClCompile>
@@ -119,6 +199,45 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <RedirectOutputAndErrors>NUL</RedirectOutputAndErrors>
       <TargetEnvironment>Win32</TargetEnvironment>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\DebugAxp\quake2.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OutputFile>.\DebugAxp\quake2.exe</OutputFile>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <Optimization>Disabled</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;C_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\DebugAxp\</AssemblerListingLocation>
+      <PrecompiledHeaderOutputFile>.\DebugAxp\quake2.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\DebugAxp\</ObjectFileName>
+      <ProgramDataBaseFileName>.\DebugAxp\</ProgramDataBaseFileName>
+      <AdditionalOptions> /QA21164 /MTd /QAieee1 </AdditionalOptions>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\DebugAxp\quake2.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <RedirectOutputAndErrors>NUL</RedirectOutputAndErrors>
     </Midl>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -179,6 +298,52 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>Disabled</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\debug\</AssemblerListingLocation>
+      <BrowseInformation>true</BrowseInformation>
+      <PrecompiledHeaderOutputFile>.\debug\quake2.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\debug\</ObjectFileName>
+      <ProgramDataBaseFileName>.\debug\</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\debug\quake2.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\debug\quake2.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OutputFile>.\quake2.exe</OutputFile>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -201,6 +366,45 @@
       <TypeLibraryName>.\release\quake2.tlb</TypeLibraryName>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <TargetEnvironment>Win32</TargetEnvironment>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\release\quake2.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OutputFile>.\release\quake2.exe</OutputFile>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>MaxSpeed</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\release\</AssemblerListingLocation>
+      <PrecompiledHeaderOutputFile>.\release\quake2.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\release\</ObjectFileName>
+      <ProgramDataBaseFileName>.\release\</ProgramDataBaseFileName>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\release\quake2.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
     </Midl>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -260,202 +464,341 @@
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>MaxSpeed</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;C_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\ReleaseAXP\</AssemblerListingLocation>
+      <PrecompiledHeaderOutputFile>.\ReleaseAXP\quake2.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\ReleaseAXP\</ObjectFileName>
+      <ProgramDataBaseFileName>.\ReleaseAXP\</ProgramDataBaseFileName>
+      <AdditionalOptions> /QA21164 /QAieee1 </AdditionalOptions>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\ReleaseAXP\quake2.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <RedirectOutputAndErrors>NUL</RedirectOutputAndErrors>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\ReleaseAXP\quake2.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <OutputFile>.\ReleaseAXP\quake2.exe</OutputFile>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="client\cl_camera.c" />
     <ClCompile Include="client\cl_cin.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_ents.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_fx.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_input.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_inv.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_main.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_newfx.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_parse.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_pred.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_scrn.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_tent.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\cl_view.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\console.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\keys.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\menu.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\qmenu.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\snd_dma.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\snd_mem.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\snd_mix.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="client\x86.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="game\m_flash.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="game\q_shared.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</SupportJustMyCode>
     </ClCompile>
     <ClCompile Include="qcommon\cmd.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\cmodel.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\common.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\crc.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\cvar.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\files.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\md4.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\net_chan.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="qcommon\pmove.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_ccmds.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_ents.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_game.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_init.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_main.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_send.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_user.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="server\sv_world.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\cd_win.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\conproc.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\in_win.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\net_wins.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\q_shwin.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\snd_win.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\sys_win.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\vid_dll.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
     <ClCompile Include="win32\vid_menu.c">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|Win32'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug Alpha|x64'"> /QA21164 /MTd /QAieee1   /QA21164 /MTd /QAieee1 </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|Win32'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release Alpha|x64'"> /QA21164 /QAieee1   /QA21164 /QAieee1 </AdditionalOptions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\anorms.h" />
+    <ClInclude Include="client\camera.h" />
     <ClInclude Include="client\cdaudio.h" />
     <ClInclude Include="client\client.h" />
     <ClInclude Include="client\console.h" />
@@ -489,6 +832,20 @@
   <ItemGroup>
     <Text Include="win32\icon license.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg-configuration.json" />
+    <None Include="vcpkg.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets" Condition="Exists('packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" />
+    <Import Project="packages\zlib_native.1.2.11\build\native\zlib_native.targets" Condition="Exists('packages\zlib_native.1.2.11\build\native\zlib_native.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets'))" />
+    <Error Condition="!Exists('packages\zlib_native.1.2.11\build\native\zlib_native.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib_native.1.2.11\build\native\zlib_native.targets'))" />
+  </Target>
 </Project>

@@ -29,7 +29,7 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-constexpr auto NUM_INITIAL_DRAW_QUADS = 1024;
+constexpr auto NUM_INITIAL_DRAW_QUADS = 2048;
 
 namespace dx12
 {

@@ -639,9 +639,9 @@ static menuaction_s		s_keys_help_computer_action;
 
 static void M_UnbindCommand (char *command)
 {
-	int		j;
-	int		l;
-	char	*b;
+	int		j = 0;
+	size_t	l = 0;
+	char	*b = NULL;
 
 	l = strlen(command);
 
@@ -657,10 +657,10 @@ static void M_UnbindCommand (char *command)
 
 static void M_FindKeysForCommand (char *command, int *twokeys)
 {
-	int		count;
-	int		j;
-	int		l;
-	char	*b;
+	int		count = 0;
+	int		j = 0;
+	size_t		l = 0;
+	char	*b = NULL;
 
 	twokeys[0] = twokeys[1] = -1;
 	l = strlen(command);
@@ -709,7 +709,7 @@ static void DrawKeyBindingFunc( void *self )
 
 		Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, name );
 
-		x = strlen(name) * 8;
+		x = (int)(strlen(name) * 8);
 
 		if (keys[1] != -1)
 		{
@@ -1767,7 +1767,7 @@ void M_Credits_MenuDraw( void )
 	*/
 	for ( i = 0, y = viddef.height - ( ( cls.realtime - credits_start_time ) / 40.0F ); credits[i] && y < viddef.height; y += 10, i++ )
 	{
-		int j, stringoffset = 0;
+		size_t j, stringoffset = 0;
 		int bold = false;
 
 		if ( y <= -8 )
@@ -1788,7 +1788,7 @@ void M_Credits_MenuDraw( void )
 		{
 			int x;
 
-			x = ( viddef.width - strlen( credits[i] ) * 8 - stringoffset * 8 ) / 2 + ( j + stringoffset ) * 8;
+			x = (int)(( viddef.width - strlen( credits[i] ) * 8 - stringoffset * 8 ) / 2 + ( j + stringoffset ) * 8);
 
 			if ( bold )
 				re.DrawChar( x, y, credits[i][j+stringoffset] + 128 );
@@ -2046,13 +2046,13 @@ qboolean	m_savevalid[MAX_SAVEGAMES];
 void Create_Savestrings (void)
 {
 	int		i;
-	FILE	*f;
+	file_t	*f;
 	char	name[MAX_OSPATH];
 
 	for (i=0 ; i<MAX_SAVEGAMES ; i++)
 	{
-		Com_sprintf (name, sizeof(name), "%s/save/save%i/server.ssv", FS_Gamedir(), i);
-		f = fopen (name, "rb");
+		Com_sprintf (name, sizeof(name), "/save/save%i/server.ssv", i);
+		FS_FOpenFileRead (name, &f);
 		if (!f)
 		{
 			strcpy (m_savestrings[i], "<EMPTY>");
@@ -2061,7 +2061,8 @@ void Create_Savestrings (void)
 		else
 		{
 			FS_Read (m_savestrings[i], sizeof(m_savestrings[i]), f);
-			fclose (f);
+			FS_FCloseFile(f);
+			f = NULL;
 			m_savevalid[i] = true;
 		}
 	}
@@ -2378,7 +2379,7 @@ START SERVER MENU
 */
 static menuframework_s s_startserver_menu;
 static char **mapnames;
-static int	  nummaps;
+static size_t	  nummaps;
 
 static menuaction_s	s_startserver_start_action;
 static menuaction_s	s_startserver_dmoptions_action;
@@ -2524,33 +2525,26 @@ void StartServer_MenuInit( void )
 	};
 //PGM
 //=======
-	char *buffer;
-	char  mapsname[1024];
-	char *s;
-	int length;
-	int i;
-	FILE *fp;
+	char *buffer = NULL;
+	char *s = NULL;
+	size_t length = 0;
+	int i = 0;
+	file_t *fp = NULL;
 
 	/*
 	** load the list of map names
 	*/
-	Com_sprintf( mapsname, sizeof( mapsname ), "%s/maps.lst", FS_Gamedir() );
-	if ( ( fp = fopen( mapsname, "rb" ) ) == 0 )
+	if ( ( FS_FOpenFileRead("maps.lst", &fp ) ) == 0 )
 	{
 		if ( ( length = FS_LoadFile( "maps.lst", ( void ** ) &buffer ) ) == -1 )
 			Com_Error( ERR_DROP, "couldn't find maps.lst\n" );
 	}
 	else
 	{
-#ifdef _WIN32
-		length = _filelength( _fileno( fp  ) );
-#else
-		fseek(fp, 0, SEEK_END);
-		length = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
-#endif
+		length = FS_FileLength(fp);
+
 		buffer = malloc( length );
-		fread( buffer, length, 1, fp );
+		FS_Read( buffer, length, fp );
 	}
 
 	s = buffer;
@@ -2576,7 +2570,7 @@ void StartServer_MenuInit( void )
     char  shortname[MAX_TOKEN_CHARS];
     char  longname[MAX_TOKEN_CHARS];
 		char  scratch[200];
-		int		j, l;
+		size_t		j = 0, l = 0;
 
 		strcpy( shortname, COM_Parse( &s ) );
 		l = strlen(shortname);
@@ -2592,7 +2586,7 @@ void StartServer_MenuInit( void )
 
 	if ( fp != 0 )
 	{
-		fp = 0;
+		FS_FCloseFile(fp);
 		free( buffer );
 	}
 	else
@@ -3370,7 +3364,7 @@ static menuaction_s		s_player_download_action;
 
 typedef struct
 {
-	int		nskins;
+	size_t	nskins;
 	char	**skindisplaynames;
 	char	displayname[MAX_DISPLAYNAME];
 	char	directory[MAX_QPATH];
@@ -3481,7 +3475,7 @@ static qboolean PlayerConfig_ScanDirectories( void )
 		char **pcxnames;
 		char **skinnames;
 		int npcxfiles;
-		int nskins = 0;
+		size_t nskins = 0;
 
 		if ( dirnames[i] == 0 )
 			continue;
@@ -3812,7 +3806,7 @@ void PlayerConfig_MenuDraw( void )
 
 		Menu_Draw( &s_player_config_menu );
 
-		M_DrawTextBox( ( refdef.x ) * ( 320.0F / viddef.width ) - 8, ( viddef.height / 2 ) * ( 240.0F / viddef.height) - 77, refdef.width / 8, refdef.height / 8 );
+		M_DrawTextBox( ( refdef.x ) * ( 320.0F / viddef.width ) - 8, ( viddef.height / 2.0f ) * ( 240.0F / viddef.height) - 77, refdef.width / 8, refdef.height / 8 );
 		refdef.height += 4;
 
 		re.RenderFrame( &refdef );

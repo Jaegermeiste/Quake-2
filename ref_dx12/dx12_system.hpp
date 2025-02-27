@@ -60,7 +60,7 @@ namespace dx12
 		bool						Initialize(HINSTANCE hInstance, WNDPROC wndProc);
 		void						Shutdown();
 
-		void						AppActivate(bool active);
+		void						AppActivate(bool active) const;
 
 		std::wstring				GetCurrentWorkingDirectory();
 		bool						SetCurrentWorkingDirectory(std::wstring directory);
@@ -68,8 +68,10 @@ namespace dx12
 		bool						DoesFileExist(std::wstring fileName);
 
 		std::wstring				ToWideString(std::string inStr);
+		std::wstring				ToWideString(std::string_view inStr);
 		std::wstring				ToWideString(WCHAR* inWideStr);
 		std::wstring				ToWideString(const WCHAR* inWideStr);
+		std::wstring				ToWideString(const char* inStr);
 		std::string					ToString(std::wstring inStr);
 		std::string					ToString(WCHAR* inWideStr);
 

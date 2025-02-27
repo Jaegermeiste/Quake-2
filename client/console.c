@@ -303,6 +303,7 @@ Con_Init
 */
 void Con_Init (void)
 {
+	con.text = Z_Malloc(CON_TEXTSIZE);
 	con.linewidth = -1;
 
 	Con_CheckResize ();
@@ -321,6 +322,15 @@ void Con_Init (void)
 	Cmd_AddCommand ("clear", Con_Clear_f);
 	Cmd_AddCommand ("condump", Con_Dump_f);
 	con.initialized = true;
+}
+
+void Con_Shutdown(void)
+{
+	if (con.text)
+	{
+		Z_Free(con.text);
+		con.text = NULL;
+	}
 }
 
 
@@ -426,7 +436,7 @@ Con_CenteredPrint
 */
 void Con_CenteredPrint (char *text)
 {
-	int		l;
+	size_t		l;
 	char	buffer[1024];
 
 	l = strlen(text);
@@ -626,8 +636,20 @@ void Con_DrawConsole (float frac)
 			
 		text = con.text + (row % con.totallines)*con.linewidth;
 
-		for (x=0 ; x<con.linewidth ; x++)
-			re.DrawChar ( (x+1)<<3, y, text[x]);
+		x = 0;
+		for (int index = 0; index < con.linewidth; index++)
+		{
+			if (text[index] == '\t')
+			{
+				// Tab = 4 spaces
+				x += 4;
+			}
+			else
+			{
+				re.DrawChar((x + 1) << 3, y, text[index]);
+				x++;
+			}
+		}
 	}
 
 //ZOID

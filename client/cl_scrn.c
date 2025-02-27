@@ -610,14 +610,19 @@ int entitycmpfnc( const entity_t *a, const entity_t *b )
 	/*
 	** all other models are sorted by model then skin
 	*/
-	if ( a->model == b->model )
+	if (a && b)
 	{
-		return ( ( int ) a->skin - ( int ) b->skin );
+		if (a->model == b->model)
+		{
+			return ((int)a->skin - (int)b->skin);
+		}
+		else
+		{
+			return ((int)a->model - (int)b->model);
+		}
 	}
-	else
-	{
-		return ( ( int ) a->model - ( int ) b->model );
-	}
+
+	return 0;
 }
 
 void SCR_TimeRefresh_f (void)

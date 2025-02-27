@@ -1,0 +1,16 @@
+{
+  "dependencies": [
+    "directxmath",
+    "directxmesh",
+    {
+      "name": "directxtex",
+      "features": [
+        "dx12",
+        "openexr"
+      ]
+    },
+    "directxtk12",
+    "stringzilla",
+    "magic-enum"
+  ]
+}

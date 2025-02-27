@@ -454,10 +454,10 @@ void CL_SendCmd (void)
 {
 	sizebuf_t	buf;
 	byte		data[128];
-	int			i;
-	usercmd_t	*cmd, *oldcmd;
+	int			i = 0;
+	usercmd_t	*cmd = NULL, *oldcmd = NULL;
 	usercmd_t	nullcmd;
-	int			checksumIndex;
+	size_t		checksumIndex = 0;
 
 	// build a command even if not connected
 

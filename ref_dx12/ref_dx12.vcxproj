@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.props" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -43,6 +44,8 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -72,6 +75,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>..</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)</OutDir>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
@@ -86,9 +96,10 @@
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;d3d12.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;d3d12.lib;advapi32.lib;dxcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -98,10 +109,22 @@
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ALLOW_RTCc_IN_STL;WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CompileAs>Default</CompileAs>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>false</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,7 +159,7 @@
     <ClInclude Include="..\qcommon\qcommon.h" />
     <ClInclude Include="..\qcommon\qfiles.h" />
     <ClInclude Include="..\win32\winquake.h" />
-    <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="dx12_bottomLevelAccelerationStructure.hpp" />
     <ClInclude Include="dx12_bsp.hpp" />
     <ClInclude Include="dx12_client.hpp" />
     <ClInclude Include="dx12_commandList.hpp" />
@@ -145,45 +168,65 @@
     <ClInclude Include="dx12_descriptorHeap.hpp" />
     <ClInclude Include="dx12_draw.hpp" />
     <ClInclude Include="dx12_dx.hpp" />
+    <ClInclude Include="dx12_dxrGlobalConstantsBuffer.hpp" />
+    <ClInclude Include="dx12_entity.hpp" />
     <ClInclude Include="dx12_image.hpp" />
     <ClInclude Include="dx12_indexBuffer.hpp" />
-    <ClInclude Include="dx12_indexedGeometry.hpp" />
+    <ClInclude Include="dx12_indexedGeometry2D.hpp" />
+    <ClInclude Include="dx12_indexedGeometry3D.hpp" />
     <ClInclude Include="dx12_light.hpp" />
     <ClInclude Include="dx12_local.hpp" />
     <ClInclude Include="dx12_log.hpp" />
     <ClInclude Include="dx12_map.hpp" />
+    <ClInclude Include="dx12_material.hpp" />
     <ClInclude Include="dx12_media.hpp" />
     <ClInclude Include="dx12_model.hpp" />
+    <ClInclude Include="dx12_particle.hpp" />
     <ClInclude Include="dx12_quad2D.hpp" />
     <ClInclude Include="dx12_ref.hpp" />
     <ClInclude Include="dx12_resource.hpp" />
+    <ClInclude Include="dx12_BLASBuffer.hpp" />
     <ClInclude Include="dx12_resourceBuffer.hpp" />
+    <ClInclude Include="dx12_raytracingBuffer.hpp" />
+    <ClInclude Include="dx12_renderTarget.hpp" />
+    <ClInclude Include="dx12_shaderBindingTable.hpp" />
     <ClInclude Include="dx12_shader.hpp" />
     <ClInclude Include="dx12_subsystem2D.hpp" />
     <ClInclude Include="dx12_subsystem3D.hpp" />
     <ClInclude Include="dx12_subsystemText.hpp" />
     <ClInclude Include="dx12_system.hpp" />
     <ClInclude Include="dx12_testTriangle.hpp" />
-    <ClInclude Include="dx12_texture2D.hpp" />
+    <ClInclude Include="dx12_texture.hpp" />
     <ClInclude Include="dx12_vertexBuffer.hpp" />
     <ClInclude Include="dx12_web.hpp" />
     <ClInclude Include="dx12_xplit.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\game\q_shared.c">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="..\win32\q_shwin.c">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="dx12_api.cpp" />
+    <ClCompile Include="dx12_bottomLevelAccelerationStructure.cpp" />
     <ClCompile Include="dx12_bsp.cpp" />
+    <ClCompile Include="dx12_bsp_v38.cpp" />
     <ClCompile Include="dx12_client.cpp" />
     <ClCompile Include="dx12_commandList.cpp" />
     <ClCompile Include="dx12_cvar.cpp" />
     <ClCompile Include="dx12_descriptorHeap.cpp" />
     <ClCompile Include="dx12_draw.cpp" />
     <ClCompile Include="dx12_dx.cpp" />
+    <ClCompile Include="dx12_dxrGlobalConstantsBuffer.cpp" />
     <ClCompile Include="dx12_image.cpp" />
     <ClCompile Include="dx12_image_manager.cpp" />
     <ClCompile Include="dx12_image_pcx.cpp" />
+    <ClCompile Include="dx12_image_tga.cpp" />
     <ClCompile Include="dx12_image_wal.cpp" />
-    <ClCompile Include="dx12_indexedGeometry.cpp" />
+    <ClCompile Include="dx12_indexedGeometry2D.cpp" />
+    <ClCompile Include="dx12_indexedGeometry3D.cpp" />
     <ClCompile Include="dx12_log.cpp" />
     <ClCompile Include="dx12_main.cpp" />
     <ClCompile Include="dx12_map.cpp" />
@@ -197,7 +240,11 @@
     <ClCompile Include="dx12_model_mdl.cpp" />
     <ClCompile Include="dx12_quad2D.cpp" />
     <ClCompile Include="dx12_ref.cpp" />
+    <ClCompile Include="dx12_BLASBuffer.cpp" />
     <ClCompile Include="dx12_resourceBuffer.cpp" />
+    <ClCompile Include="dx12_raytracingBuffer.cpp" />
+    <ClCompile Include="dx12_renderTarget.cpp" />
+    <ClCompile Include="dx12_shaderBindingTable.cpp" />
     <ClCompile Include="dx12_resource_manager.cpp" />
     <ClCompile Include="dx12_shader.cpp" />
     <ClCompile Include="dx12_subsystem2D.cpp" />
@@ -205,21 +252,22 @@
     <ClCompile Include="dx12_subsystemText.cpp" />
     <ClCompile Include="dx12_system.cpp" />
     <ClCompile Include="dx12_testTriangle.cpp" />
-    <ClCompile Include="dx12_texture2D.cpp" />
+    <ClCompile Include="dx12_texture.cpp" />
     <ClCompile Include="dx12_web.cpp" />
     <ClCompile Include="dx12_xplit.cpp" />
-    <ClCompile Include="q_shared.cpp" />
-    <ClCompile Include="q_shwin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="vcpkg-configuration.json" />
+    <None Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\game\game.vcxproj">
+      <Project>{84324601-e9c8-4ef0-a1cb-da27d63d4703}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\directxtk12_desktop_2019.2024.10.29.1\build\native\directxtk12_desktop_2019.targets" Condition="Exists('..\packages\directxtk12_desktop_2019.2024.10.29.1\build\native\directxtk12_desktop_2019.targets')" />
-    <Import Project="..\packages\directxmath.2024.10.15.1\build\native\directxmath.targets" Condition="Exists('..\packages\directxmath.2024.10.15.1\build\native\directxmath.targets')" />
-    <Import Project="..\packages\directxmesh_desktop_win10.2024.10.29.1\build\native\directxmesh_desktop_win10.targets" Condition="Exists('..\packages\directxmesh_desktop_win10.2024.10.29.1\build\native\directxmesh_desktop_win10.targets')" />
-    <Import Project="..\packages\directxtex_desktop_win10.2024.10.29.1\build\native\directxtex_desktop_win10.targets" Condition="Exists('..\packages\directxtex_desktop_win10.2024.10.29.1\build\native\directxtex_desktop_win10.targets')" />
     <Import Project="..\packages\boost_charconv-vc143.1.87.0\build\boost_charconv-vc143.targets" Condition="Exists('..\packages\boost_charconv-vc143.1.87.0\build\boost_charconv-vc143.targets')" />
     <Import Project="..\packages\boost.1.87.0\build\boost.targets" Condition="Exists('..\packages\boost.1.87.0\build\boost.targets')" />
     <Import Project="..\packages\boost_atomic-vc143.1.87.0\build\boost_atomic-vc143.targets" Condition="Exists('..\packages\boost_atomic-vc143.1.87.0\build\boost_atomic-vc143.targets')" />
@@ -268,15 +316,12 @@
     <Import Project="..\packages\boost_wserialization-vc143.1.87.0\build\boost_wserialization-vc143.targets" Condition="Exists('..\packages\boost_wserialization-vc143.1.87.0\build\boost_wserialization-vc143.targets')" />
     <Import Project="..\packages\boost_zlib-vc143.1.87.0\build\boost_zlib-vc143.targets" Condition="Exists('..\packages\boost_zlib-vc143.1.87.0\build\boost_zlib-vc143.targets')" />
     <Import Project="..\packages\boost-vc143.1.87.0\build\boost-vc143.targets" Condition="Exists('..\packages\boost-vc143.1.87.0\build\boost-vc143.targets')" />
+    <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.targets" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\directxtk12_desktop_2019.2024.10.29.1\build\native\directxtk12_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk12_desktop_2019.2024.10.29.1\build\native\directxtk12_desktop_2019.targets'))" />
-    <Error Condition="!Exists('..\packages\directxmath.2024.10.15.1\build\native\directxmath.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxmath.2024.10.15.1\build\native\directxmath.targets'))" />
-    <Error Condition="!Exists('..\packages\directxmesh_desktop_win10.2024.10.29.1\build\native\directxmesh_desktop_win10.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxmesh_desktop_win10.2024.10.29.1\build\native\directxmesh_desktop_win10.targets'))" />
-    <Error Condition="!Exists('..\packages\directxtex_desktop_win10.2024.10.29.1\build\native\directxtex_desktop_win10.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_desktop_win10.2024.10.29.1\build\native\directxtex_desktop_win10.targets'))" />
     <Error Condition="!Exists('..\packages\boost_charconv-vc143.1.87.0\build\boost_charconv-vc143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_charconv-vc143.1.87.0\build\boost_charconv-vc143.targets'))" />
     <Error Condition="!Exists('..\packages\boost.1.87.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.87.0\build\boost.targets'))" />
     <Error Condition="!Exists('..\packages\boost_atomic-vc143.1.87.0\build\boost_atomic-vc143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_atomic-vc143.1.87.0\build\boost_atomic-vc143.targets'))" />
@@ -325,5 +370,7 @@
     <Error Condition="!Exists('..\packages\boost_wserialization-vc143.1.87.0\build\boost_wserialization-vc143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_wserialization-vc143.1.87.0\build\boost_wserialization-vc143.targets'))" />
     <Error Condition="!Exists('..\packages\boost_zlib-vc143.1.87.0\build\boost_zlib-vc143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_zlib-vc143.1.87.0\build\boost_zlib-vc143.targets'))" />
     <Error Condition="!Exists('..\packages\boost-vc143.1.87.0\build\boost-vc143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost-vc143.1.87.0\build\boost-vc143.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.716.1-preview\build\native\Microsoft.Direct3D.D3D12.targets'))" />
   </Target>
 </Project>

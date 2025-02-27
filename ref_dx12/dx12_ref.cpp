@@ -34,10 +34,19 @@ void	dx12::Ref::Init(refimport_t rimp)
 {
 	LOG_FUNC();
 
-	client	= std::make_unique<Client>(rimp);
-	cvars	= std::make_unique<Cvars>();
-	res		= std::make_unique<ResourceManager>();
-	media	= std::make_unique<Media>();
-	draw	= std::make_unique<Draw>();
-	sys		= std::make_unique<System>();
+	try
+	{
+		client = std::make_unique<Client>(rimp);
+		cvars = std::make_unique<Cvars>();
+		res = std::make_unique<ResourceManager>();
+		media = std::make_unique<Media>();
+		draw = std::make_unique<Draw>();
+		sys = std::make_unique<System>();
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

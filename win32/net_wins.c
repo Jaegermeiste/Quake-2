@@ -182,7 +182,7 @@ idnewt:28000
 #define DO(src,dest)	\
 	copy[0] = s[src];	\
 	copy[1] = s[src + 1];	\
-	sscanf (copy, "%x", &val);	\
+	{ int __ = sscanf (copy, "%x", &val); }	\
 	((struct sockaddr_ipx *)sadr)->dest = val
 
 qboolean	NET_StringToSockaddr (char *s, struct sockaddr *sadr)
@@ -191,6 +191,7 @@ qboolean	NET_StringToSockaddr (char *s, struct sockaddr *sadr)
 	char	*colon;
 	int		val;
 	char	copy[128];
+	int _ = 0;
 	
 	memset (sadr, 0, sizeof(*sadr));
 
@@ -198,17 +199,17 @@ qboolean	NET_StringToSockaddr (char *s, struct sockaddr *sadr)
 	{
 		((struct sockaddr_ipx *)sadr)->sa_family = AF_IPX;
 		copy[2] = 0;
-		DO(0, sa_netnum[0]);
-		DO(2, sa_netnum[1]);
-		DO(4, sa_netnum[2]);
-		DO(6, sa_netnum[3]);
-		DO(9, sa_nodenum[0]);
-		DO(11, sa_nodenum[1]);
-		DO(13, sa_nodenum[2]);
-		DO(15, sa_nodenum[3]);
-		DO(17, sa_nodenum[4]);
-		DO(19, sa_nodenum[5]);
-		sscanf (&s[22], "%u", &val);
+		_ = DO(0, sa_netnum[0]);
+		_ = DO(2, sa_netnum[1]);
+		_ = DO(4, sa_netnum[2]);
+		_ = DO(6, sa_netnum[3]);
+		_ = DO(9, sa_nodenum[0]);
+		_ = DO(11, sa_nodenum[1]);
+		_ = DO(13, sa_nodenum[2]);
+		_ = DO(15, sa_nodenum[3]);
+		_ = DO(17, sa_nodenum[4]);
+		_ = DO(19, sa_nodenum[5]);
+		_ = sscanf (&s[22], "%u", &val);
 		((struct sockaddr_ipx *)sadr)->sa_socket = htons((unsigned short)val);
 	}
 	else
@@ -351,7 +352,7 @@ qboolean	NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_messag
 			continue;
 
 		fromlen = sizeof(from);
-		ret = recvfrom (net_socket, net_message->data, net_message->maxsize
+		ret = recvfrom (net_socket, net_message->data, (int)net_message->maxsize
 			, 0, (struct sockaddr *)&from, &fromlen);
 		if (ret == -1)
 		{
@@ -383,11 +384,11 @@ qboolean	NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_messag
 
 //=============================================================================
 
-void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to)
+void NET_SendPacket (netsrc_t sock, size_t length, void *data, netadr_t to)
 {
-	int		ret;
+	int		ret = 0;
 	struct sockaddr	addr;
-	int		net_socket;
+	int		net_socket = 0;
 
 	if ( to.type == NA_LOOPBACK )
 	{

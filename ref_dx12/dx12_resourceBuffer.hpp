@@ -35,7 +35,7 @@ namespace dx12
 	{
 		friend class ResourceManager;
 	protected:
-		unsigned int       m_count = 0;
+		size_t       m_count = 0;
 
 		template <typename T>
 		bool CreateBuffer(T* bufferData, size_t bufferSize);

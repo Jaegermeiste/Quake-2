@@ -33,35 +33,48 @@ namespace dx12
 {
 	typedef std::wstring shaderTarget;
 
-#define SHADER_TARGET_VERTEX	L"vs"
-#define SHADER_TARGET_PIXEL		L"ps"
-#define SHADER_TARGET_COMPUTE	L"cs"
-#define SHADER_TARGET_DOMAIN	L"ds"
-#define SHADER_TARGET_GEOMETRY	L"gs"
-#define SHADER_TARGET_HULL		L"hs"
-#define SHADER_TARGET_LIBRARY	L"lib"
+constexpr auto SHADER_TARGET_VERTEX          = L"vs";
+constexpr auto SHADER_TARGET_PIXEL           = L"ps";
+constexpr auto SHADER_TARGET_COMPUTE         = L"cs";
+constexpr auto SHADER_TARGET_DOMAIN          = L"ds";
+constexpr auto SHADER_TARGET_GEOMETRY        = L"gs";
+constexpr auto SHADER_TARGET_HULL            = L"hs";
+constexpr auto SHADER_TARGET_LIBRARY         = L"lib";
+constexpr auto SHADER_TARGET_DXR_COMMON      = L"dxr_common_lib";
+constexpr auto SHADER_TARGET_DXR_MISS        = L"dxr_miss_lib";
+constexpr auto SHADER_TARGET_DXR_HIT         = L"dxr_hit_lib";
+constexpr auto SHADER_TARGET_DXR_RAYGEN      = L"dxr_raygen_lib";
 
-#define SHADER_ENTRY_POINT_VERTEX	L"VSMain"
-#define SHADER_ENTRY_POINT_PIXEL	L"PSMain"
-#define SHADER_ENTRY_POINT_COMPUTE	L"CSMain"
-#define SHADER_ENTRY_POINT_DOMAIN	L"DSMain"
-#define SHADER_ENTRY_POINT_GEOMETRY	L"GSMain"
-#define SHADER_ENTRY_POINT_HULL		L"HSMain"
-#define SHADER_ENTRY_POINT_LIBRARY	L"LIBMain"
+constexpr auto SHADER_ENTRY_POINT_VERTEX     = L"VSMain";
+constexpr auto SHADER_ENTRY_POINT_PIXEL      = L"PSMain";
+constexpr auto SHADER_ENTRY_POINT_COMPUTE    = L"CSMain";
+constexpr auto SHADER_ENTRY_POINT_DOMAIN     = L"DSMain";
+constexpr auto SHADER_ENTRY_POINT_GEOMETRY   = L"GSMain";
+constexpr auto SHADER_ENTRY_POINT_HULL       = L"HSMain";
+constexpr auto SHADER_ENTRY_POINT_LIBRARY    = L"LIBMain";
+constexpr auto SHADER_ENTRY_POINT_DXR_COMMON = L"Common";
+constexpr auto SHADER_ENTRY_POINT_DXR_MISS   = L"Miss";
+constexpr auto SHADER_ENTRY_POINT_DXR_HIT    = L"Hit";
+constexpr auto SHADER_ENTRY_POINT_DXR_RAYGEN = L"RayGen";
 
 	class Shader 
 	{
 	private:
-		ComPtr<ID3DBlob>			m_shaderBlob = nullptr;
+		ComPtr<IDxcBlob>			m_dxcBlob = nullptr;
+		ComPtr<ID3DBlob>			m_d3dBlob = nullptr;
 
-		void						OutputShaderErrorMessage(ComPtr<ID3DBlob> errorMessage, std::wstring shaderFilename);
+		ComPtr<IDxcBlob>            DxcCompileShaderFromFile(const std::wstring& filePath, const std::wstring& entryPoint, const std::wstring& target);
+
+		void						OutputCompilerErrorMessages(ComPtr<IDxcResult> result, std::wstring shaderFilename);
+		void                        OutputCompilerErrorMessages(ComPtr<ID3DBlob> errorMessage, std::wstring shaderFilename);
 
 	public:
 									Shader();
 
 		bool						Compile(std::wstring shaderFilename, shaderTarget target);
 
-		ComPtr<ID3DBlob>			Blob() { return m_shaderBlob; };
+		ComPtr<IDxcBlob>			DxcBlob() { return m_dxcBlob; };
+		ComPtr<ID3DBlob>			D3DBlob();
 
 		void						Shutdown();
 	};

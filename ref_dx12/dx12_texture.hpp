@@ -23,15 +23,15 @@ ref_dx12
 2019 Bleeding Eye Studios
 */
 
-#ifndef __DX12_TEXTURE2D_HPP__
-#define __DX12_TEXTURE2D_HPP__
+#ifndef __DX12_TEXTURE_HPP__
+#define __DX12_TEXTURE_HPP__
 #pragma once
 
 #include "dx12_local.hpp"
 
 namespace dx12
 {
-	class Texture2D : public Resource
+	class Texture : public Resource
 	{
 		friend class ResourceManager;
 		friend class ImageManager;
@@ -39,34 +39,41 @@ namespace dx12
 	private:
 		dxhandle_t               	m_srvHandle = 0;
 		D3D12_CPU_DESCRIPTOR_HANDLE m_cachedD3D12SRVHandle = {};
+		bool                        m_cubemap = false;
 
+		std::vector<D3D12_SUBRESOURCE_DATA> m_subresources;
+		
 		void                        RefreshSRV();
 
 	public:
-		imagetype_t					m_imageType;
-		std::wstring				m_format;
+		imagetype_t					m_imageType = it_pic;
+		std::wstring				m_fileFormat = L"";
+		
 
 		unsigned int				m_registrationSequence = 0;
 
-		Texture2D(std::wstring name) : Resource(name) 
+		Texture(std::wstring name) : Resource(name) 
 		{ 
-			m_type      = RESOURCE_TEXTURE2D;
-			m_imageType = it_pic;
-			m_format    = L"UNKNOWN";
-			m_srvHandle = {};
+			m_type       = RESOURCE_TEXTURE;
+			m_imageType  = it_pic;
+			m_fileFormat = L"UNKNOWN";
+			m_srvHandle  = {};
 		};
 
 		unsigned int				GetWidth() { return m_resourceDesc.Width; };
 		unsigned int				GetHeight() { return m_resourceDesc.Height; };
+
+		DXGI_FORMAT                 GetDXGIFormat() { return m_resourceDesc.Format; };
+		bool                        IsCubemap() { return m_cubemap; };
 
 		void                        CreateSRV();
 		void                        BindSRV(std::shared_ptr<CommandList> commandList);
 	};
 }
 
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::CreateResource<dx12::Texture2D>(std::wstring name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetOrCreateResource<dx12::Texture2D>(std::wstring name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(std::wstring name);
-template std::shared_ptr<dx12::Texture2D> dx12::ResourceManager::GetResource<dx12::Texture2D>(dxhandle_t handle);
+template std::shared_ptr<dx12::Texture> dx12::ResourceManager::CreateResource<dx12::Texture>(std::wstring name);
+template std::shared_ptr<dx12::Texture> dx12::ResourceManager::GetOrCreateResource<dx12::Texture>(std::wstring name);
+template std::shared_ptr<dx12::Texture> dx12::ResourceManager::GetResource<dx12::Texture>(std::wstring name);
+template std::shared_ptr<dx12::Texture> dx12::ResourceManager::GetResource<dx12::Texture>(dxhandle_t handle);
 
-#endif//__DX12_TEXTURE2D_HPP__
+#endif//__DX12_TEXTURE_HPP__

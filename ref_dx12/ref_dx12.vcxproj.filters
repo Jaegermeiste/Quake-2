@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\d3dx">
-      <UniqueIdentifier>{fe11c4b7-9bd4-4b5b-8dbf-47221f943aeb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Q2base">
       <UniqueIdentifier>{ea1eb121-d409-4c62-8c39-f12a0f5b35cf}</UniqueIdentifier>
     </Filter>
@@ -69,226 +66,282 @@
     <ClInclude Include="..\win32\winquake.h">
       <Filter>Header Files\Q2base\win32</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_local.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_client.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_system.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_cvar.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_ref.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Header Files\d3dx</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_model.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_log.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_media.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_web.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_xplit.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_light.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_subsystemText.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_dx.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_quad2D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_shader.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_subsystem2D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_subsystem3D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_map.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_bsp.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_texture2D.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_resource.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dx12_draw.hpp">
       <Filter>Header Files\Frontend</Filter>
     </ClInclude>
     <ClInclude Include="dx12_image.hpp">
       <Filter>Header Files\Frontend</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_descriptorHeap.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="dx12_xplit.hpp">
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_indexedGeometry.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="dx12_resource.hpp">
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_testTriangle.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_vertexBuffer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx12_indexBuffer.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="dx12_BLASBuffer.hpp">
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
     <ClInclude Include="dx12_resourceBuffer.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
-    <ClInclude Include="dx12_constantBuffer2D.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="dx12_shader.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_subsystem2D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_subsystem3D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_subsystemText.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_system.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_testTriangle.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_texture.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_vertexBuffer.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_web.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_bottomLevelAccelerationStructure.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_bsp.hpp">
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
     <ClInclude Include="dx12_commandList.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_constantBuffer2D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_descriptorHeap.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_dx.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_indexBuffer.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_indexedGeometry2D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_indexedGeometry3D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_light.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_local.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_log.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_map.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_model.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_quad2D.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_client.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_cvar.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_media.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_ref.hpp">
+      <Filter>Header Files\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_raytracingBuffer.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_renderTarget.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_shaderBindingTable.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_dxrGlobalConstantsBuffer.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_entity.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_particle.hpp">
+      <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_material.hpp">
+      <Filter>Header Files\Backend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dx12_main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_system.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_cvar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_ref.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_image.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_web.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_xplit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_subsystemText.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_dx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_quad2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_subsystem2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_subsystem3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_md2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_md3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_md4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_md5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_mdl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_map.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_bsp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_image_pcx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_image_wal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_media.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_image_manager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_model_manager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx12_resource_manager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dx12_api.cpp">
       <Filter>Source Files\Frontend</Filter>
     </ClCompile>
     <ClCompile Include="dx12_draw.cpp">
       <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="q_shwin.cpp">
-      <Filter>Source Files\Q2base</Filter>
+    <ClCompile Include="dx12_media.cpp">
+      <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="q_shared.cpp">
-      <Filter>Source Files\Q2base</Filter>
+    <ClCompile Include="dx12_system.cpp">
+      <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_descriptorHeap.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="dx12_cvar.cpp">
+      <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_indexedGeometry.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="dx12_client.cpp">
+      <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_testTriangle.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="dx12_ref.cpp">
+      <Filter>Source Files\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_resourceBuffer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="dx12_bottomLevelAccelerationStructure.cpp">
+      <Filter>Source Files\Backend</Filter>
     </ClCompile>
-    <ClCompile Include="dx12_texture2D.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="dx12_bsp.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_bsp_v38.cpp">
+      <Filter>Source Files\Backend</Filter>
     </ClCompile>
     <ClCompile Include="dx12_commandList.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_descriptorHeap.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_dx.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image_manager.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image_pcx.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image_wal.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_indexedGeometry2D.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_indexedGeometry3D.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_log.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_main.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_map.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_manager.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_md2.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_md3.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_md4.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_md5.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_model_mdl.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_quad2D.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_resource_manager.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_BLASBuffer.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_resourceBuffer.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_shader.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_subsystem2D.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_subsystem3D.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_subsystemText.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_testTriangle.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_texture.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_web.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_xplit.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_shaderBindingTable.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_raytracingBuffer.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_renderTarget.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_image_tga.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_dxrGlobalConstantsBuffer.cpp">
+      <Filter>Source Files\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\q_shared.c">
+      <Filter>Source Files\Q2base\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\win32\q_shwin.c">
+      <Filter>Source Files\Q2base\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="vcpkg.json" />
+    <None Include="vcpkg-configuration.json" />
   </ItemGroup>
 </Project>

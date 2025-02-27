@@ -50,7 +50,7 @@ namespace dx12
 			return UpdateBuffer(commandList, bufferData, bufferSize);
 		}
 
-		unsigned int		IndexCount() { return m_count; };
+		size_t		IndexCount() { return m_count; };
 	};
 }
 

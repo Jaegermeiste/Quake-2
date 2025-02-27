@@ -30,93 +30,102 @@ ref_dx12
 LoadPCX
 ==============
 */
-void dx12::ImageManager::LoadPCX(byte* raw, int len, byte **pic, byte **palette, UINT64 &width, unsigned int &height)
+void dx12::ImageManager::LoadPCX(byte* raw, size_t bufferLength, byte** pic, byte** palette, size_t& width, size_t& height)
 {
 	LOG_FUNC();
 
-	pcx_t	*pcx = nullptr;
-	byte	dataByte = 0;
-	int		runLength = 0;
-	byte	*out = nullptr,
-			*pix = nullptr;
-
-	*pic = nullptr;
-	*palette = nullptr;
-	width = 0;
-	height = 0;
-
-	if ((!raw) || (len <= 0))
+	try
 	{
-		LOG(warning) << "Empty buffer passed.";
-		return;
-	}
+		pcx_t* pcx = nullptr;
+		byte	dataByte = 0;
+		int		runLength = 0;
+		byte* out = nullptr,
+			* pix = nullptr;
 
-	//
-	// parse the PCX file
-	//
-	pcx = reinterpret_cast<pcx_t *>(raw);
+		*pic = nullptr;
+		*palette = nullptr;
+		width = 0;
+		height = 0;
 
-	pcx->xmin = LittleUShort(pcx->xmin);
-	pcx->ymin = LittleUShort(pcx->ymin);
-	pcx->xmax = LittleUShort(pcx->xmax);
-	pcx->ymax = LittleUShort(pcx->ymax);
-	pcx->hres = LittleUShort(pcx->hres);
-	pcx->vres = LittleUShort(pcx->vres);
-	pcx->bytes_per_line = LittleUShort(pcx->bytes_per_line);
-	pcx->palette_type = LittleUShort(pcx->palette_type);
-
-	raw = &pcx->data;
-
-	if (pcx->manufacturer != 0x0a
-		|| pcx->version != 5
-		|| pcx->encoding != 1
-		|| pcx->bits_per_pixel != 8
-		|| pcx->xmax >= 640
-		|| pcx->ymax >= 480)
-	{
-		ref->client->Con_Printf(PRINT_ALL, L"Bad PCX file.");
-		return;
-	}
-
-	out = new byte[(pcx->ymax + 1u) * (pcx->xmax + 1u)]();
-
-	*pic = out;
-
-	pix = out;
-
-	if (palette)
-	{
-		*palette = new byte[768]();
-		memcpy(*palette, reinterpret_cast<byte *>(pcx) + len - 768, 768);
-	}
-
-	width = msl::utilities::SafeInt<unsigned int>(pcx->xmax + 1);
-	height = msl::utilities::SafeInt<unsigned int>(pcx->ymax + 1);
-
-	for (unsigned short y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
-	{
-		for (unsigned short x = 0; x <= pcx->xmax; )
+		if ((!raw) || (bufferLength <= 0))
 		{
-			dataByte = *raw++;
-
-			if ((dataByte & 0xC0) == 0xC0)
-			{
-				runLength = dataByte & 0x3F;
-				dataByte = *raw++;
-			}
-			else
-				runLength = 1;
-
-			while (runLength-- > 0)
-				pix[x++] = dataByte;
+			LOG(warning) << "Empty buffer passed.";
+			return;
 		}
 
-	}
+		//
+		// parse the PCX file
+		//
+		pcx = reinterpret_cast<pcx_t*>(raw);
 
-	if (raw - reinterpret_cast<byte *>(pcx) > len)
-	{
-		ref->client->Con_Printf(PRINT_DEVELOPER, L"PCX file was malformed.");
-		delete[] * pic;
-		*pic = nullptr;
+		pcx->xmin = LittleUShort(pcx->xmin);
+		pcx->ymin = LittleUShort(pcx->ymin);
+		pcx->xmax = LittleUShort(pcx->xmax);
+		pcx->ymax = LittleUShort(pcx->ymax);
+		pcx->hres = LittleUShort(pcx->hres);
+		pcx->vres = LittleUShort(pcx->vres);
+		pcx->bytes_per_line = LittleUShort(pcx->bytes_per_line);
+		pcx->palette_type = LittleUShort(pcx->palette_type);
+
+		raw = &pcx->data;
+
+		if (pcx->manufacturer != 0x0a
+			|| pcx->version != 5
+			|| pcx->encoding != 1
+			|| pcx->bits_per_pixel != 8
+			|| pcx->xmax >= 640
+			|| pcx->ymax >= 480)
+		{
+			ref->client->Con_Printf(PRINT_ALL, L"Bad PCX file.");
+			return;
+		}
+
+		out = new byte[(pcx->ymax + 1u) * (pcx->xmax + 1u)]();
+
+		*pic = out;
+
+		pix = out;
+
+		if (palette)
+		{
+			*palette = new byte[768]();
+			memcpy(*palette, reinterpret_cast<byte*>(pcx) + bufferLength - 768, 768);
+		}
+
+		width = msl::utilities::SafeInt<unsigned int>(pcx->xmax + 1);
+		height = msl::utilities::SafeInt<unsigned int>(pcx->ymax + 1);
+
+		for (unsigned short y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
+		{
+			for (unsigned short x = 0; x <= pcx->xmax; )
+			{
+				dataByte = *raw++;
+
+				if ((dataByte & 0xC0) == 0xC0)
+				{
+					runLength = dataByte & 0x3F;
+					dataByte = *raw++;
+				}
+				else
+					runLength = 1;
+
+				while (runLength-- > 0)
+					pix[x++] = dataByte;
+			}
+
+		}
+
+		if (raw - reinterpret_cast<byte*>(pcx) > bufferLength)
+		{
+			ref->client->Con_Printf(PRINT_DEVELOPER, L"PCX file was malformed.");
+			delete[] * pic;
+			*pic = nullptr;
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }

@@ -27,63 +27,113 @@ ref_dx12
 
 dx12::Media::Media()
 {
-	m_inRegistration = false;
+	LOG_FUNC();
 
-	img = std::make_unique<ImageManager>();
-	model = std::make_unique<ModelManager>();
-	map = std::make_unique<Map>();
+	try
+	{
+		m_inRegistration = false;
+
+		img = std::make_unique<ImageManager>();
+		model = std::make_unique<ModelManager>();
+		map = std::make_unique<Map>();
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }
 
 bool dx12::Media::Initialize()
 {
-	if ((!img) || (!img->Initialize()))
+	LOG_FUNC();
+
+	try
 	{
-		LOG(error) << "Failed to create image subsystem.";
-		return false;
+		if ((!img) || (!img->Initialize()))
+		{
+			LOG(error) << "Failed to create image subsystem.";
+			return false;
+		}
+
+		if ((!model) || (!model->Initialize()))
+		{
+			LOG(error) << "Failed to create model subsystem.";
+			return false;
+		}
+
+		if ((!map) || (!map->Initialize()))
+		{
+			LOG(error) << "Failed to create map subsystem.";
+			return false;
+		}
+
+		return true;
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
-	if ((!model) || (!model->Initialize()))
-	{
-		LOG(error) << "Failed to create model subsystem.";
-		return false;
-	}
-
-	if ((!map) || (!map->Initialize()))
-	{
-		LOG(error) << "Failed to create map subsystem.";
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 void dx12::Media::Shutdown()
 {
 	LOG_FUNC();
 
-	if (map)
+	try
 	{
-		map->Shutdown();
-	}
+		if (map)
+		{
+			map->Shutdown();
+		}
 
-	if (model)
-	{
-		model->Shutdown();
-	}
+		if (model)
+		{
+			model->Shutdown();
+		}
 
-	if (img)
-	{
-		img->Shutdown();
+		if (img)
+		{
+			img->Shutdown();
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }
 
-void dx12::Media::BeginRegistration(std::string mapname)
+void dx12::Media::BeginRegistration(std::wstring mapName)
 {
 	LOG_FUNC();
 
-	if (!m_inRegistration)
+	try
 	{
-		m_inRegistration = true;
+		if (!m_inRegistration)
+		{
+			m_inRegistration = true;
+			m_registrationSequence++;
+		}
+
+		if (!(mapName.compare(L"") == 0))
+		{
+			std::wstring fileName = L"maps/" + mapName + L".bsp";
+
+			map->Load(fileName);
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }
 
@@ -91,8 +141,17 @@ void dx12::Media::EndRegistration()
 {
 	LOG_FUNC();
 
-	if (m_inRegistration)
+	try
 	{
-		m_inRegistration = false;
+		if (m_inRegistration)
+		{
+			m_inRegistration = false;
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }

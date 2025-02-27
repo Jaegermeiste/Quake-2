@@ -159,6 +159,9 @@
     <ClCompile Include="client\x86.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="client\cl_camera.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\anorms.h">
@@ -227,6 +230,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="client\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="win32\q2.ico">
@@ -242,5 +248,9 @@
     <Text Include="win32\icon license.txt">
       <Filter>Resource Files</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json" />
+    <None Include="vcpkg-configuration.json" />
   </ItemGroup>
 </Project>

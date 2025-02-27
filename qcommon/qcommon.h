@@ -20,6 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // qcommon.h -- definitions common between client and server, but not game.dll
 
+#ifndef __QCOMMON_H__
+#define __QCOMMON_H__
+
+#pragma once
+
 #include "../game/q_shared.h"
 
 
@@ -35,7 +40,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define BUILDSTRING "Win32 DEBUG"
 #endif
 
-#ifdef _M_IX86
+#ifdef _M_AMD64
+#define CPUSTRING   "x64"
+#elif _M_IA64
+#define CPUSTRING   "IA64"
+#elif _M_IX86
 #define	CPUSTRING	"x86"
 #elif defined _M_ALPHA
 #define	CPUSTRING	"AXP"
@@ -77,15 +86,15 @@ typedef struct sizebuf_s
 	qboolean	allowoverflow;	// if false, do a Com_Error
 	qboolean	overflowed;		// set to true if the buffer size failed
 	byte	*data;
-	int		maxsize;
-	int		cursize;
-	int		readcount;
+	size_t	maxsize;
+	size_t	cursize;
+	size_t	readcount;
 } sizebuf_t;
 
-void SZ_Init (sizebuf_t *buf, byte *data, int length);
+void SZ_Init (sizebuf_t *buf, byte *data, size_t length);
 void SZ_Clear (sizebuf_t *buf);
-void *SZ_GetSpace (sizebuf_t *buf, int length);
-void SZ_Write (sizebuf_t *buf, void *data, int length);
+void *SZ_GetSpace (sizebuf_t *buf, size_t length);
+void SZ_Write (sizebuf_t *buf, void *data, size_t length);
 void SZ_Print (sizebuf_t *buf, char *data);	// strcats onto the sizebuf
 
 //============================================================================
@@ -138,6 +147,11 @@ extern	int		BigLong (int l);
 extern	int		LittleLong (int l);
 extern	float	BigFloat (float l);
 extern	float	LittleFloat (float l);
+
+extern	unsigned short	BigUShort(unsigned short l);
+extern	unsigned short	LittleUShort(unsigned short l);
+extern	unsigned int	BigULong(unsigned int l);
+extern	unsigned int	LittleULong(unsigned int l);
 
 //============================================================================
 
@@ -547,7 +561,7 @@ void		NET_Shutdown (void);
 void		NET_Config (qboolean multiplayer);
 
 qboolean	NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message);
-void		NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to);
+void		NET_SendPacket (netsrc_t sock, size_t length, void *data, netadr_t to);
 
 qboolean	NET_CompareAdr (netadr_t a, netadr_t b);
 qboolean	NET_CompareBaseAdr (netadr_t a, netadr_t b);
@@ -605,7 +619,7 @@ void Netchan_Init (void);
 void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport);
 
 qboolean Netchan_NeedReliable (netchan_t *chan);
-void Netchan_Transmit (netchan_t *chan, int length, byte *data);
+void Netchan_Transmit (netchan_t *chan, size_t length, byte *data);
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data);
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, char *format, ...);
 qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg);
@@ -667,8 +681,8 @@ qboolean	CM_AreasConnected (int area1, int area2);
 int			CM_WriteAreaBits (byte *buffer, int area);
 qboolean	CM_HeadnodeVisible (int headnode, byte *visbits);
 
-void		CM_WritePortalState (FILE *f);
-void		CM_ReadPortalState (FILE *f);
+void		CM_WritePortalState (file_t *f);
+void		CM_ReadPortalState (file_t *f);
 
 /*
 ==============================================================
@@ -698,20 +712,26 @@ char	*FS_Gamedir (void);
 char	*FS_NextPath (char *prevpath);
 void	FS_ExecAutoexec (void);
 
-int		FS_FOpenFile (char *filename, FILE **file);
-void	FS_FCloseFile (FILE *f);
+size_t		FS_FOpenFileRead (char *filename, file_t **file);
+file_t*		FS_FOpenFileWrite(char* filename);
+void	FS_FCloseFile (file_t *f);
 // note: this can't be called from another DLL, due to MS libc issues
 
-int		FS_LoadFile (char *path, void **buffer);
+size_t		FS_LoadFile (char *path, void **buffer);
 // a null buffer will just return the file length without loading
 // a -1 length is not present
 
-void	FS_Read (void *buffer, int len, FILE *f);
+size_t	FS_Read (void *buffer, size_t len, file_t *f);
+size_t  FS_Write(const void* buffer, size_t len, file_t* f);
 // properly handles partial reads
+
+size_t FS_FileLength(file_t* f);
 
 void	FS_FreeFile (void *buffer);
 
 void	FS_CreatePath (char *path);
+
+qboolean FS_MatchPath(const char* findname, const char* name, char** output, unsigned musthave, unsigned canthave);
 
 
 /*
@@ -764,9 +784,11 @@ extern	int		time_before_ref;
 extern	int		time_after_ref;
 
 void Z_Free (void *ptr);
-void *Z_Malloc (int size);			// returns 0 filled memory
-void *Z_TagMalloc (int size, int tag);
+void *Z_Malloc (size_t size);			// returns 0 filled memory
+void *Z_TagMalloc (size_t size, int tag);
 void Z_FreeTags (int tag);
+
+void Z_Init(void);
 
 void Qcommon_Init (int argc, char **argv);
 void Qcommon_Frame (int msec);
@@ -824,3 +846,4 @@ void SV_Frame (int msec);
 
 
 
+#endif // __QCOMMON_H__

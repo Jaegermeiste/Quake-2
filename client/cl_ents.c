@@ -834,17 +834,17 @@ CL_AddPacketEntities
 void CL_AddPacketEntities (frame_t *frame)
 {
 	entity_t			ent;
-	entity_state_t		*s1;
+	entity_state_t		*s1 = NULL;
 	float				autorotate;
-	int					i;
-	int					pnum;
-	centity_t			*cent;
-	int					autoanim;
-	clientinfo_t		*ci;
-	unsigned int		effects, renderfx;
+	int					i = 0;
+	int					pnum = 0;
+	centity_t			*cent = NULL;
+	int					autoanim = 0;
+	clientinfo_t		*ci = NULL;
+	unsigned int		effects = 0, renderfx = 0;
 
 	// bonus items rotate at a fixed rate
-	autorotate = anglemod(cl.time/10);
+	autorotate = anglemod(cl.time/10.0f);
 
 	// brush models can auto animate their frames
 	autoanim = 2*cl.time/1000;
@@ -853,6 +853,8 @@ void CL_AddPacketEntities (frame_t *frame)
 
 	for (pnum = 0 ; pnum<frame->num_entities ; pnum++)
 	{
+		int isclientviewer = 0;	// NeVo
+
 		s1 = &cl_parse_entities[(frame->parse_entities+pnum)&(MAX_PARSE_ENTITIES-1)];
 
 		cent = &cl_entities[s1->number];
@@ -997,7 +999,7 @@ void CL_AddPacketEntities (frame_t *frame)
 		else if (effects & EF_SPINNINGLIGHTS)
 		{
 			ent.angles[0] = 0;
-			ent.angles[1] = anglemod(cl.time/2) + s1->angles[1];
+			ent.angles[1] = anglemod(cl.time/2.0f) + s1->angles[1];
 			ent.angles[2] = 180;
 			{
 				vec3_t forward;
@@ -1024,6 +1026,10 @@ void CL_AddPacketEntities (frame_t *frame)
 		{
 			ent.flags |= RF_VIEWERMODEL;	// only draw from mirrors
 			// FIXME: still pass to refresh
+			if (!cl.attractloop)
+			{
+				isclientviewer = 1;	// NeVo
+			}
 
 			if (effects & EF_FLAG1)
 				V_AddLight (ent.origin, 225, 1.0, 0.1, 0.1);
@@ -1034,7 +1040,8 @@ void CL_AddPacketEntities (frame_t *frame)
 			else if (effects & EF_TRACKERTRAIL)					//PGM
 				V_AddLight (ent.origin, 225, -1.0, -1.0, -1.0);	//PGM
 
-			continue;
+			if ((int)camdevice.GetOption(camdevice.GetCurrentCam(), CAM_TYPE) != CAMTYPE_THIRDPERSON)	// NeVo
+				continue;
 		}
 
 		// if set to invisible, skip
@@ -1109,6 +1116,10 @@ void CL_AddPacketEntities (frame_t *frame)
 			//PGM
 			else
 				ent.model = cl.model_draw[s1->modelindex2];
+
+			if (isclientviewer)
+				ent.flags |= RF_VIEWERMODEL;	// NeVo - only draw from mirrors
+
 			V_AddEntity (&ent);
 
 			//PGM - make sure these get reset.
@@ -1119,11 +1130,19 @@ void CL_AddPacketEntities (frame_t *frame)
 		if (s1->modelindex3)
 		{
 			ent.model = cl.model_draw[s1->modelindex3];
+
+			if (isclientviewer)
+				ent.flags |= RF_VIEWERMODEL;	// NeVo - only draw from mirrors
+
 			V_AddEntity (&ent);
 		}
 		if (s1->modelindex4)
 		{
 			ent.model = cl.model_draw[s1->modelindex4];
+
+			if (isclientviewer)
+				ent.flags |= RF_VIEWERMODEL;	// NeVo - only draw from mirrors
+
 			V_AddEntity (&ent);
 		}
 
@@ -1341,7 +1360,6 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 	V_AddEntity (&gun);
 }
 
-
 /*
 ===============
 CL_CalcViewValues
@@ -1466,7 +1484,15 @@ void CL_AddEntities (void)
 //	CL_AddDLights ();
 //	CL_AddLightStyles ();
 
-	CL_CalcViewValues ();
+	if (cl.attractloop)
+	{
+		CL_CalcViewValues();
+	}
+	else
+	{
+		camdevice.Think(0);	// NeVo
+	}
+
 	// PMM - moved this here so the heat beam has the right values for the vieworg, and can lock the beam to the gun
 	CL_AddPacketEntities (&cl.frame);
 #if 0

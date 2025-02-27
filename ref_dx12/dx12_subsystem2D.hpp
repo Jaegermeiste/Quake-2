@@ -38,45 +38,46 @@ namespace dx12
 		friend class Dx;
 		friend class Quad2D;
 	private:
-		UINT						        m_renderTargetWidth = 0;
-		UINT						        m_renderTargetHeight = 0;
+		ComPtr<ID3D12RootSignature>           m_rootSignature = nullptr;
+		std::shared_ptr<CommandList>    	  m_commandList = nullptr;
+		ComPtr<ID3D12PipelineState>           m_pipelineState = nullptr;
+		std::shared_ptr<RenderTarget> m_renderTarget = nullptr;
+		D3D12_VIEWPORT                        m_viewport = {};
+		D3D12_RECT                            m_scissorRect = {};
 
-		ComPtr<ID3D12RootSignature>         m_rootSignature = nullptr;
-		std::shared_ptr<CommandList>    	m_commandList = nullptr;
-		ComPtr<ID3D12PipelineState>         m_pipelineState = nullptr;
-		ComPtr<ID3D12Resource>		        m_2DrenderTargetTexture = nullptr;
-		D3D12_RESOURCE_STATES               m_2drenderTargetState = D3D12_RESOURCE_STATE_COMMON;
-		dxhandle_t                          m_2dRTVHandle = {};
-		dxhandle_t                          m_2dDSVHandle = {};
-		dxhandle_t                          m_2dSRVHandle = {};
-		D3D12_VIEWPORT                      m_viewport = {};
-		D3D12_RECT                          m_scissorRect = {};
+		DirectX::XMMATRIX			          m_2DorthographicMatrix;
 
-		DirectX::XMMATRIX			        m_2DorthographicMatrix;
+		Shader						          m_2DshaderVertex;
+		Shader						          m_2DshaderPixel;
 
-		Shader						        m_2DshaderVertex;
-		Shader						        m_2DshaderPixel;
+		Quad2D						          m_fadeScreenQuad;
 
-		Quad2D						        m_renderTargetQuad;
-		Quad2D						        m_generalPurposeQuad;
-		Quad2D						        m_fadeScreenQuad;
+		dxhandle_t				              m_constantBufferHandle = 0;
 
-		dxhandle_t				            m_constantBufferHandle = 0;
+		bool                                  CreateRootSignatures();
+
+		bool                                  CompileShaders();
+
+		bool                                  CreateGraphicsPipelineStateObject();
+
+		bool                                  CreateConstantsBuffer();
+
+		bool                                  CreateRenderTarget();
 
 	public:
-									        Subsystem2D();
+			  						          Subsystem2D();
 
-		bool						        Initialize();
+		bool						          Initialize();
 
-		void						        Clear();
+		void						          Clear();
 		 
-		void						        Update();
+		void						          Update();
 
-		void						        Render();
+		void						          Render(std::shared_ptr<CommandList> commandListSwap);
 
-		void						        FadeScreen();
+		void						          FadeScreen();
 
-		void						        Shutdown();
+		void						          Shutdown();
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

@@ -34,22 +34,25 @@ namespace dx12
 	class Media
 	{
 	private:
-		bool							m_inRegistration;
+		bool							m_inRegistration = false;
 
-		byte							mPadding[3];
+		UINT64                          m_registrationSequence = 0;
 
 	public:
 										Media();
 
-		std::unique_ptr<ImageManager>	img;
-		std::unique_ptr<ModelManager>	model;
-		std::unique_ptr<Map>			map;
+		std::unique_ptr<ImageManager>	img = nullptr;
+		std::unique_ptr<ModelManager>	model = nullptr;
+		std::unique_ptr<Map>			map = nullptr;
 
 		bool							Initialize();
 		void							Shutdown();
 
-		void							BeginRegistration(std::string mapName);
+		void							BeginRegistration(std::wstring mapName);
 		void							EndRegistration();
+
+		bool                            InRegistration() { return m_inRegistration; };
+		UINT64                          RegistrationSequence() { return m_registrationSequence; };
 	};
 }
 

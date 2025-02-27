@@ -397,6 +397,8 @@ qboolean SV_SendClientDatagram (client_t *client)
 	byte		msg_buf[MAX_MSGLEN];
 	sizebuf_t	msg;
 
+	memset(&msg, 0, sizeof(sizebuf_t));
+
 	SV_BuildClientFrame (client);
 
 	SZ_Init (&msg, msg_buf, sizeof(msg_buf));
@@ -441,7 +443,7 @@ void SV_DemoCompleted (void)
 {
 	if (sv.demofile)
 	{
-		fclose (sv.demofile);
+		FS_FCloseFile (sv.demofile);
 		sv.demofile = NULL;
 	}
 	SV_Nextserver ();
@@ -489,11 +491,11 @@ SV_SendClientMessages
 */
 void SV_SendClientMessages (void)
 {
-	int			i;
-	client_t	*c;
-	int			msglen;
+	int			i = 0;
+	client_t	*c = NULL;
+	int			msglen = 0;
 	byte		msgbuf[MAX_MSGLEN];
-	int			r;
+	size_t			r = 0;
 
 	msglen = 0;
 
@@ -505,8 +507,8 @@ void SV_SendClientMessages (void)
 		else
 		{
 			// get the next message
-			r = fread (&msglen, 4, 1, sv.demofile);
-			if (r != 1)
+			r = FS_Read (&msglen, 4, sv.demofile);
+			if (r != 4)
 			{
 				SV_DemoCompleted ();
 				return;
@@ -519,8 +521,8 @@ void SV_SendClientMessages (void)
 			}
 			if (msglen > MAX_MSGLEN)
 				Com_Error (ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
-			r = fread (msgbuf, msglen, 1, sv.demofile);
-			if (r != 1)
+			r = FS_Read (msgbuf, msglen, sv.demofile);
+			if (r != msglen)
 			{
 				SV_DemoCompleted ();
 				return;

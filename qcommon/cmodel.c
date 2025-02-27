@@ -498,42 +498,48 @@ void CMod_LoadAreaPortals (lump_t *l)
 	}
 }
 
-/*
-=================
-CMod_LoadVisibility
-=================
-*/
 void CMod_LoadVisibility (lump_t *l)
 {
-	int		i;
+    int i;
 
-	numvisibility = l->filelen;
-	if (l->filelen > MAX_MAP_VISIBILITY)
-		Com_Error (ERR_DROP, "Map has too large visibility lump");
+    numvisibility = l->filelen;
+    if (l->filelen > MAX_MAP_VISIBILITY)
+        Com_Error (ERR_DROP, "Map has too large visibility lump");
 
-	memcpy (map_visibility, cmod_base + l->fileofs, l->filelen);
-
-	map_vis->numclusters = LittleLong (map_vis->numclusters);
-	for (i=0 ; i<map_vis->numclusters ; i++)
+    // Ensure we do not write beyond the bounds of map_visibility
+	if (l->filelen > sizeof(map_visibility))
 	{
-		map_vis->bitofs[i][0] = LittleLong (map_vis->bitofs[i][0]);
-		map_vis->bitofs[i][1] = LittleLong (map_vis->bitofs[i][1]);
+		Com_Error(ERR_DROP, "Visibility lump size exceeds buffer size");
+	}
+	else
+	{
+		memcpy(map_visibility, cmod_base + l->fileofs, l->filelen);
+
+		map_vis->numclusters = LittleLong(map_vis->numclusters);
+		for (i = 0; i < map_vis->numclusters; i++)
+		{
+			map_vis->bitofs[i][0] = LittleLong(map_vis->bitofs[i][0]);
+			map_vis->bitofs[i][1] = LittleLong(map_vis->bitofs[i][1]);
+		}
 	}
 }
 
 
-/*
-=================
-CMod_LoadEntityString
-=================
-*/
 void CMod_LoadEntityString (lump_t *l)
 {
-	numentitychars = l->filelen;
-	if (l->filelen > MAX_MAP_ENTSTRING)
-		Com_Error (ERR_DROP, "Map has too large entity lump");
+    numentitychars = l->filelen;
+    if (l->filelen > MAX_MAP_ENTSTRING)
+        Com_Error (ERR_DROP, "Map has too large entity lump");
 
-	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
+    // Ensure we do not write beyond the bounds of map_entitystring
+    if (l->filelen > sizeof(map_entitystring))
+    {
+        Com_Error(ERR_DROP, "Entity string lump size exceeds buffer size");
+    }
+    else
+    {
+        memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
+    }
 }
 
 
@@ -547,11 +553,11 @@ Loads in the map and all submodels
 */
 cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 {
-	unsigned		*buf;
-	int				i;
+	unsigned		*buf = NULL;
+	int				i = 0;
 	dheader_t		header;
-	int				length;
-	static unsigned	last_checksum;
+	int				length = 0;
+	static unsigned	last_checksum = 0;
 
 	map_noareas = Cvar_Get ("map_noareas", "0", 0);
 
@@ -589,46 +595,53 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 	// load the file
 	//
 	length = FS_LoadFile (name, (void **)&buf);
+
 	if (!buf)
-		Com_Error (ERR_DROP, "Couldn't load %s", name);
+	{
+		Com_Error(ERR_DROP, "Couldn't load %s", name);
+	}
+	else
+	{
+		last_checksum = LittleLong(Com_BlockChecksum(buf, length));
+		*checksum = last_checksum;
 
-	last_checksum = LittleLong (Com_BlockChecksum (buf, length));
-	*checksum = last_checksum;
+		header = *(dheader_t*)buf;
+		for (i = 0; i < sizeof(dheader_t) / 4; i++)
+			((int*)&header)[i] = LittleLong(((int*)&header)[i]);
 
-	header = *(dheader_t *)buf;
-	for (i=0 ; i<sizeof(dheader_t)/4 ; i++)
-		((int *)&header)[i] = LittleLong ( ((int *)&header)[i]);
+		if (header.version != BSPVERSION)
+			Com_Error(ERR_DROP, "CMod_LoadBrushModel: %s has wrong version number (%i should be %i)"
+				, name, header.version, BSPVERSION);
 
-	if (header.version != BSPVERSION)
-		Com_Error (ERR_DROP, "CMod_LoadBrushModel: %s has wrong version number (%i should be %i)"
-		, name, header.version, BSPVERSION);
+		cmod_base = (byte*)buf;
 
-	cmod_base = (byte *)buf;
+		// load into heap
+		CMod_LoadSurfaces(&header.lumps[LUMP_TEXINFO]);
+		CMod_LoadLeafs(&header.lumps[LUMP_LEAFS]);
+		CMod_LoadLeafBrushes(&header.lumps[LUMP_LEAFBRUSHES]);
+		CMod_LoadPlanes(&header.lumps[LUMP_PLANES]);
+		CMod_LoadBrushes(&header.lumps[LUMP_BRUSHES]);
+		CMod_LoadBrushSides(&header.lumps[LUMP_BRUSHSIDES]);
+		CMod_LoadSubmodels(&header.lumps[LUMP_MODELS]);
+		CMod_LoadNodes(&header.lumps[LUMP_NODES]);
+		CMod_LoadAreas(&header.lumps[LUMP_AREAS]);
+		CMod_LoadAreaPortals(&header.lumps[LUMP_AREAPORTALS]);
+		CMod_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
+		CMod_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
 
-	// load into heap
-	CMod_LoadSurfaces (&header.lumps[LUMP_TEXINFO]);
-	CMod_LoadLeafs (&header.lumps[LUMP_LEAFS]);
-	CMod_LoadLeafBrushes (&header.lumps[LUMP_LEAFBRUSHES]);
-	CMod_LoadPlanes (&header.lumps[LUMP_PLANES]);
-	CMod_LoadBrushes (&header.lumps[LUMP_BRUSHES]);
-	CMod_LoadBrushSides (&header.lumps[LUMP_BRUSHSIDES]);
-	CMod_LoadSubmodels (&header.lumps[LUMP_MODELS]);
-	CMod_LoadNodes (&header.lumps[LUMP_NODES]);
-	CMod_LoadAreas (&header.lumps[LUMP_AREAS]);
-	CMod_LoadAreaPortals (&header.lumps[LUMP_AREAPORTALS]);
-	CMod_LoadVisibility (&header.lumps[LUMP_VISIBILITY]);
-	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
+		FS_FreeFile(buf);
 
-	FS_FreeFile (buf);
+		CM_InitBoxHull();
 
-	CM_InitBoxHull ();
+		memset(portalopen, 0, sizeof(portalopen));
+		FloodAreaConnections();
 
-	memset (portalopen, 0, sizeof(portalopen));
-	FloodAreaConnections ();
+		strcpy(map_name, name);
 
-	strcpy (map_name, name);
+		return &map_cmodels[0];
+	}
 
-	return &map_cmodels[0];
+	return NULL;
 }
 
 /*
@@ -664,25 +677,49 @@ char	*CM_EntityString (void)
 	return map_entitystring;
 }
 
-int		CM_LeafContents (int leafnum)
+int CM_LeafContents(int leafnum)
 {
-	if (leafnum < 0 || leafnum >= numleafs)
-		Com_Error (ERR_DROP, "CM_LeafContents: bad number");
-	return map_leafs[leafnum].contents;
+    if (leafnum < 0 || leafnum >= numleafs)
+    {
+        Com_Error(ERR_DROP, "CM_LeafContents: bad number");
+    }
+
+	if ((leafnum >= 0) && (leafnum < MAX_MAP_LEAFS))
+	{
+		return map_leafs[leafnum].contents;
+	}
+
+	return -1;
 }
 
 int		CM_LeafCluster (int leafnum)
 {
 	if (leafnum < 0 || leafnum >= numleafs)
-		Com_Error (ERR_DROP, "CM_LeafCluster: bad number");
-	return map_leafs[leafnum].cluster;
+	{
+		Com_Error(ERR_DROP, "CM_LeafCluster: bad number");
+	}
+
+	if ((leafnum >= 0) && (leafnum < MAX_MAP_LEAFS))
+	{
+		return map_leafs[leafnum].cluster;
+	}
+
+	return -1;
 }
 
 int		CM_LeafArea (int leafnum)
 {
 	if (leafnum < 0 || leafnum >= numleafs)
-		Com_Error (ERR_DROP, "CM_LeafArea: bad number");
-	return map_leafs[leafnum].area;
+	{
+		Com_Error(ERR_DROP, "CM_LeafArea: bad number");
+	}
+
+	if ((leafnum >= 0) && (leafnum < MAX_MAP_LEAFS))
+	{
+		return map_leafs[leafnum].area;
+	}
+
+	return -1;
 }
 
 //=======================================================================
@@ -1575,7 +1612,7 @@ byte	phsrow[MAX_MAP_LEAFS/8];
 byte	*CM_ClusterPVS (int cluster)
 {
 	if (cluster == -1)
-		memset (pvsrow, 0, (numclusters+7)>>3);
+		memset (pvsrow, 0, (size_t)((numclusters+7)>>3));
 	else
 		CM_DecompressVis (map_visibility + map_vis->bitofs[cluster][DVIS_PVS], pvsrow);
 	return pvsrow;
@@ -1584,7 +1621,7 @@ byte	*CM_ClusterPVS (int cluster)
 byte	*CM_ClusterPHS (int cluster)
 {
 	if (cluster == -1)
-		memset (phsrow, 0, (numclusters+7)>>3);
+		memset (phsrow, 0, (size_t)((numclusters+7)>>3));
 	else
 		CM_DecompressVis (map_visibility + map_vis->bitofs[cluster][DVIS_PHS], phsrow);
 	return phsrow;
@@ -1718,9 +1755,12 @@ CM_WritePortalState
 Writes the portal state to a savegame file
 ===================
 */
-void	CM_WritePortalState (FILE *f)
+void	CM_WritePortalState (file_t *f)
 {
-	fwrite (portalopen, sizeof(portalopen), 1, f);
+	if (f && f->fileHandle)
+	{
+		FS_Write(portalopen, sizeof(portalopen), f);
+	}
 }
 
 /*
@@ -1731,10 +1771,13 @@ Reads the portal state from a savegame file
 and recalculates the area connections
 ===================
 */
-void	CM_ReadPortalState (FILE *f)
+void	CM_ReadPortalState (file_t *f)
 {
-	FS_Read (portalopen, sizeof(portalopen), f);
-	FloodAreaConnections ();
+	if (f)
+	{
+		FS_Read(portalopen, sizeof(portalopen), f);
+		FloodAreaConnections();
+	}
 }
 
 /*

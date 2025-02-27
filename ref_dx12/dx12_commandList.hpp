@@ -37,7 +37,7 @@ namespace dx12
 		std::wstring                        m_name = L"";
 		ComPtr<ID3D12RootSignature>         m_rootSignature = nullptr;
 		ComPtr<ID3D12CommandAllocator>      m_commandAllocator = nullptr;
-		ComPtr<ID3D12GraphicsCommandList>	m_commandList = nullptr;
+		ComPtr<ID3D12GraphicsCommandList5>	m_commandList = nullptr;
 		bool						        m_commandListOpen = false;
 		ComPtr<ID3D12PipelineState>         m_pipelineState = nullptr;
 		D3D12_VIEWPORT                      m_viewport = {};
@@ -45,16 +45,20 @@ namespace dx12
 		dxhandle_t				            m_cbvHandle = 0;
 		dxhandle_t				            m_rtvHandle = 0;
 		dxhandle_t				            m_dsvHandle = 0;
+		bool                                m_dxr = false;
+		ComPtr<ID3D12StateObject>           m_dxrPipelineState = nullptr;
 
 	public:
 		CommandList(std::wstring name, ComPtr<ID3D12RootSignature> rootSignature, ComPtr<ID3D12PipelineState> pipelineState, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, dxhandle_t constantBufferViewHandle = 0, dxhandle_t renderTargetViewHandle = 0, dxhandle_t depthStencilViewHandle = 0);
+		CommandList(std::wstring name, ComPtr<ID3D12RootSignature> globalRootSignature, ComPtr<ID3D12StateObject> dxrPipelineState);
 
 		void Prepare();
 		void SetPipelineState(ComPtr<ID3D12PipelineState> pipelineState = nullptr);
+		void SetDXRPipelineState(ComPtr<ID3D12StateObject> pipelineState = nullptr);
 		void Execute();
 		void Close();
 
-		ComPtr<ID3D12GraphicsCommandList>   List() { return m_commandList; };
+		ComPtr<ID3D12GraphicsCommandList5>  List() { return m_commandList; };
 		bool                                IsOpen() { return m_commandListOpen; };
 
 		void Shutdown();

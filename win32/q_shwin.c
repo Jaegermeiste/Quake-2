@@ -29,16 +29,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //===============================================================================
 
-int		hunkcount;
+size_t	hunkcount;
 
 
 byte	*membase;
-int		hunkmaxsize;
-int		cursize;
+size_t	hunkmaxsize;
+size_t		cursize;
 
 #define	VIRTUAL_ALLOC
 
-void *Hunk_Begin (int maxsize)
+void *Hunk_Begin (size_t maxsize)
 {
 	// reserve a huge chunk of memory, but don't commit any yet
 	cursize = 0;
@@ -54,7 +54,7 @@ void *Hunk_Begin (int maxsize)
 	return (void *)membase;
 }
 
-void *Hunk_Alloc (int size)
+void *Hunk_Alloc (size_t size)
 {
 	void	*buf;
 
@@ -78,7 +78,7 @@ void *Hunk_Alloc (int size)
 	return (void *)(membase+cursize-size);
 }
 
-int Hunk_End (void)
+size_t Hunk_End (void)
 {
 
 	// free the remaining unused virtual memory
@@ -141,7 +141,7 @@ void Sys_Mkdir (char *path)
 
 char	findbase[MAX_OSPATH];
 char	findpath[MAX_OSPATH];
-int		findhandle;
+intptr_t findhandle;
 
 static qboolean CompareAttributes( unsigned found, unsigned musthave, unsigned canthave )
 {
@@ -170,37 +170,65 @@ static qboolean CompareAttributes( unsigned found, unsigned musthave, unsigned c
 	return true;
 }
 
-char *Sys_FindFirst (char *path, unsigned musthave, unsigned canthave )
+char* Sys_FindFirst(char* path, unsigned musthave, unsigned canthave)
 {
 	struct _finddata_t findinfo;
+
+	ZeroMemory(&findinfo, sizeof(struct _finddata_t));
 
 	if (findhandle)
-		Sys_Error ("Sys_BeginFind without close");
+	{
+		Sys_Error("Sys_BeginFind without close");
+	}
+
 	findhandle = 0;
 
-	COM_FilePath (path, findbase);
-	findhandle = _findfirst (path, &findinfo);
-	if (findhandle == -1)
-		return NULL;
-	if ( !CompareAttributes( findinfo.attrib, musthave, canthave ) )
-		return NULL;
-	Com_sprintf (findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
-	return findpath;
+	COM_FilePath(path, findbase);
+
+	findhandle = _findfirst(path, &findinfo);
+
+	while ((findhandle != -1))
+	{
+		if (CompareAttributes(findinfo.attrib, musthave, canthave))
+		{
+			Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
+
+			return findpath;
+		}
+
+		else if (_findnext(findhandle, &findinfo) == -1)
+		{
+			_findclose(findhandle);
+
+			findhandle = -1;
+		}
+	}
+
+	return NULL;
 }
 
-char *Sys_FindNext ( unsigned musthave, unsigned canthave )
+char* Sys_FindNext(unsigned musthave, unsigned canthave)
 {
 	struct _finddata_t findinfo;
 
-	if (findhandle == -1)
-		return NULL;
-	if (_findnext (findhandle, &findinfo) == -1)
-		return NULL;
-	if ( !CompareAttributes( findinfo.attrib, musthave, canthave ) )
-		return NULL;
+	ZeroMemory(&findinfo, sizeof(struct _finddata_t));
 
-	Com_sprintf (findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
-	return findpath;
+	if (findhandle == -1)
+	{
+		return NULL;
+	}
+
+	while (_findnext(findhandle, &findinfo) != -1)
+	{
+		if (CompareAttributes(findinfo.attrib, musthave, canthave))
+		{
+			Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
+
+			return findpath;
+		}
+	}
+
+	return NULL;
 }
 
 void Sys_FindClose (void)

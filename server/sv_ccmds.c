@@ -191,32 +191,36 @@ CopyFile
 */
 void CopyFile (char *src, char *dst)
 {
-	FILE	*f1, *f2;
-	int		l;
-	byte	buffer[65536];
+	file_t	*f1 = NULL, *f2 = NULL;
+	size_t		l = 0;
+	byte	*buffer = Z_Malloc(65536);
 
 	Com_DPrintf ("CopyFile (%s, %s)\n", src, dst);
 
-	f1 = fopen (src, "rb");
+	size_t sz = FS_FOpenFileRead (src, &f1);
 	if (!f1)
 		return;
-	f2 = fopen (dst, "wb");
+	f2 = FS_FOpenFileWrite (dst);
 	if (!f2)
 	{
-		fclose (f1);
+		FS_FCloseFile (f1);
 		return;
 	}
 
 	while (1)
 	{
-		l = fread (buffer, 1, sizeof(buffer), f1);
+		l = FS_Read (buffer, sizeof(buffer), f1);
 		if (!l)
 			break;
-		fwrite (buffer, 1, l, f2);
+		FS_Write (buffer, l, f2);
 	}
 
-	fclose (f1);
-	fclose (f2);
+	FS_FCloseFile (f1);
+	f1 = NULL;
+	FS_FCloseFile (f2);
+	f2 = NULL;
+
+	Z_Free(buffer);
 }
 
 
@@ -228,8 +232,8 @@ SV_CopySaveGame
 void SV_CopySaveGame (char *src, char *dst)
 {
 	char	name[MAX_OSPATH], name2[MAX_OSPATH];
-	int		l, len;
-	char	*found;
+	size_t		l = 0, len = 0;
+	char	*found = NULL;
 
 	Com_DPrintf("SV_CopySaveGame(%s, %s)\n", src, dst);
 
@@ -278,20 +282,23 @@ SV_WriteLevelFile
 void SV_WriteLevelFile (void)
 {
 	char	name[MAX_OSPATH];
-	FILE	*f;
+	file_t*	f;
+
+	memset(&f, 0, sizeof(file_t));
 
 	Com_DPrintf("SV_WriteLevelFile()\n");
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sv2", FS_Gamedir(), sv.name);
-	f = fopen(name, "wb");
+	f = FS_FOpenFileWrite(name);
 	if (!f)
 	{
 		Com_Printf ("Failed to open %s\n", name);
 		return;
 	}
-	fwrite (sv.configstrings, sizeof(sv.configstrings), 1, f);
+	FS_Write (sv.configstrings, sizeof(sv.configstrings), f);
 	CM_WritePortalState (f);
-	fclose (f);
+	FS_FCloseFile(f);
+	f = NULL;
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sav", FS_Gamedir(), sv.name);
 	ge->WriteLevel (name);
@@ -306,20 +313,21 @@ SV_ReadLevelFile
 void SV_ReadLevelFile (void)
 {
 	char	name[MAX_OSPATH];
-	FILE	*f;
+	file_t*	f = NULL;
+	size_t sz = 0;
 
 	Com_DPrintf("SV_ReadLevelFile()\n");
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sv2", FS_Gamedir(), sv.name);
-	f = fopen(name, "rb");
-	if (!f)
+	sz = FS_FOpenFileRead(name, &f); // rb
+	if (!sz || !f)
 	{
 		Com_Printf ("Failed to open %s\n", name);
 		return;
 	}
 	FS_Read (sv.configstrings, sizeof(sv.configstrings), f);
 	CM_ReadPortalState (f);
-	fclose (f);
+	FS_FCloseFile (f);
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sav", FS_Gamedir(), sv.name);
 	ge->ReadLevel (name);
@@ -333,7 +341,7 @@ SV_WriteServerFile
 */
 void SV_WriteServerFile (qboolean autosave)
 {
-	FILE	*f;
+	file_t	*f;
 	cvar_t	*var;
 	char	name[MAX_OSPATH], string[128];
 	char	comment[32];
@@ -343,7 +351,7 @@ void SV_WriteServerFile (qboolean autosave)
 	Com_DPrintf("SV_WriteServerFile(%s)\n", autosave ? "true" : "false");
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/server.ssv", FS_Gamedir());
-	f = fopen (name, "wb");
+	f = FS_FOpenFileWrite(name);
 	if (!f)
 	{
 		Com_Printf ("Couldn't write %s\n", name);
@@ -366,10 +374,10 @@ void SV_WriteServerFile (qboolean autosave)
 		Com_sprintf (comment, sizeof(comment), "ENTERING %s", sv.configstrings[CS_NAME]);
 	}
 
-	fwrite (comment, 1, sizeof(comment), f);
+	FS_Write(comment, sizeof(comment), f);
 
 	// write the mapcmd
-	fwrite (svs.mapcmd, 1, sizeof(svs.mapcmd), f);
+	FS_Write(svs.mapcmd, sizeof(svs.mapcmd), f);
 
 	// write all CVAR_LATCH cvars
 	// these will be things like coop, skill, deathmatch, etc
@@ -387,11 +395,12 @@ void SV_WriteServerFile (qboolean autosave)
 		memset (string, 0, sizeof(string));
 		strcpy (name, var->name);
 		strcpy (string, var->string);
-		fwrite (name, 1, sizeof(name), f);
-		fwrite (string, 1, sizeof(string), f);
+		FS_Write(name, sizeof(name), f);
+		FS_Write(string, sizeof(string), f);
 	}
 
-	fclose (f);
+	FS_FCloseFile (f);
+	f = NULL;
 
 	// write game state
 	Com_sprintf (name, sizeof(name), "%s/save/current/game.ssv", FS_Gamedir());
@@ -406,15 +415,17 @@ SV_ReadServerFile
 */
 void SV_ReadServerFile (void)
 {
-	FILE	*f;
+	file_t	*f;
 	char	name[MAX_OSPATH], string[128];
 	char	comment[32];
 	char	mapcmd[MAX_TOKEN_CHARS];
 
+	memset(&f, 0, sizeof(file_t));
+
 	Com_DPrintf("SV_ReadServerFile()\n");
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/server.ssv", FS_Gamedir());
-	f = fopen (name, "rb");
+	size_t sz = FS_FOpenFileRead (name, &f);
 	if (!f)
 	{
 		Com_Printf ("Couldn't read %s\n", name);
@@ -430,14 +441,14 @@ void SV_ReadServerFile (void)
 	// these will be things like coop, skill, deathmatch, etc
 	while (1)
 	{
-		if (!fread (name, 1, sizeof(name), f))
+		if (!FS_Read (name, sizeof(name), f))
 			break;
 		FS_Read (string, sizeof(string), f);
 		Com_DPrintf ("Set %s = %s\n", name, string);
 		Cvar_ForceSet (name, string);
 	}
 
-	fclose (f);
+	FS_FCloseFile (f);
 
 	// start a new game fresh with new cvars
 	SV_InitGame ();
@@ -736,10 +747,11 @@ SV_Status_f
 */
 void SV_Status_f (void)
 {
-	int			i, j, l;
-	client_t	*cl;
-	char		*s;
-	int			ping;
+	size_t			i = 0, j = 0, l = 0;
+	client_t	*cl = NULL;
+	char		*s = NULL;
+	int			ping = 0;
+
 	if (!svs.clients)
 	{
 		Com_Printf ("No server running.\n");
@@ -882,10 +894,10 @@ recorded, but no playerinfo will be stored.  Primarily for demo merging.
 void SV_ServerRecord_f (void)
 {
 	char	name[MAX_OSPATH];
-	char	buf_data[32768];
+	char	*buf_data = Z_Malloc(32768);
 	sizebuf_t	buf;
 	int		len;
-	int		i;
+	int		i = 0;
 
 	if (Cmd_Argc() != 2)
 	{
@@ -912,7 +924,7 @@ void SV_ServerRecord_f (void)
 
 	Com_Printf ("recording to %s.\n", name);
 	FS_CreatePath (name);
-	svs.demofile = fopen (name, "wb");
+	svs.demofile = FS_FOpenFileWrite (name);
 	if (!svs.demofile)
 	{
 		Com_Printf ("ERROR: couldn't open.\n");
@@ -953,10 +965,12 @@ void SV_ServerRecord_f (void)
 	// write it to the demo file
 	Com_DPrintf ("signon message length: %i\n", buf.cursize);
 	len = LittleLong (buf.cursize);
-	fwrite (&len, 4, 1, svs.demofile);
-	fwrite (buf.data, buf.cursize, 1, svs.demofile);
+	FS_Write (&len, 4, svs.demofile);
+	FS_Write (buf.data, buf.cursize, svs.demofile);
 
 	// the rest of the demo file will be individual frames
+
+	Z_Free(buf_data);
 }
 
 
@@ -974,7 +988,7 @@ void SV_ServerStop_f (void)
 		Com_Printf ("Not doing a serverrecord.\n");
 		return;
 	}
-	fclose (svs.demofile);
+	FS_FCloseFile (svs.demofile);
 	svs.demofile = NULL;
 	Com_Printf ("Recording completed.\n");
 }

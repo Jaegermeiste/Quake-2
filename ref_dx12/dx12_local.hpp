@@ -29,18 +29,20 @@ ref_dx12
 
 #include "stdafx.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "../client/ref.h"
 #include "../win32/winquake.h"
+#ifdef __cplusplus
+}
+#endif
 
 #pragma warning(default:4100)	// Unreferenced formal parameter
 #pragma warning(default:4242)	// Possible loss of data
 #pragma warning(default:4365)	// Signed/unsigned mismatch
 #pragma warning(default:4820)	// Padding
-
-extern	unsigned short	BigUShort(unsigned short l);
-extern	unsigned short	LittleUShort(unsigned short l);
-extern	unsigned int	BigULong(unsigned int l);
-extern	unsigned int	LittleULong(unsigned int l);
 
 #define	REF_VERSION	"DX12 " __DATE__ " " __TIME__
 
@@ -130,7 +132,7 @@ SAFE_RELEASE(T& ptr) {
         try {
             delete ptr;
             ptr = nullptr;
-            LOG(debug) << "[SAFE_RELEASE] Raw Pointer delete successful.";
+            LOG(trace) << "[SAFE_RELEASE] Raw Pointer delete successful.";
         }
         catch (const std::exception& e) {
             LOG(error) << "[SAFE_RELEASE] Exception while deleting raw pointer: " << e.what();
@@ -149,7 +151,14 @@ SAFE_RELEASE(T& ptr) {
         try {
             ULONG refCount = ptr->Release();
             ptr = nullptr;
-            LOG(debug) << "[SAFE_RELEASE] COM object released, remaining ref count: " << refCount;
+            if (refCount > 0)
+            {
+                LOG(debug) << "[SAFE_RELEASE] COM object released, remaining ref count: " << refCount;
+            }
+            else
+            {
+                LOG(trace) << "[SAFE_RELEASE] COM object released, remaining ref count: " << refCount;
+            }
         }
         catch (const std::exception& e) {
             LOG(error) << "[SAFE_RELEASE] Exception while releasing COM object: " << e.what();
@@ -166,7 +175,7 @@ std::enable_if_t<is_com_ptr<T>::value>
 SAFE_RELEASE(T& ptr) {
     try {
         ptr.Reset();
-        LOG(debug) << "[SAFE_RELEASE] ComPtr Reset successful.";
+        LOG(trace) << "[SAFE_RELEASE] ComPtr Reset successful.";
     }
     catch (const std::exception& e) {
         LOG(error) << "[SAFE_RELEASE] Exception while resetting ComPtr: " << e.what();
@@ -181,7 +190,7 @@ template <typename T>
 void SAFE_RELEASE(std::unique_ptr<T>& ptr) {
     try {
         ptr.reset();
-        LOG(debug) << "[SAFE_RELEASE] unique_ptr reset successful.";
+        LOG(trace) << "[SAFE_RELEASE] unique_ptr reset successful.";
     }
     catch (const std::exception& e) {
         LOG(error) << "[SAFE_RELEASE] Exception while resetting unique_ptr: " << e.what();
@@ -195,7 +204,7 @@ template <typename T>
 void SAFE_RELEASE(std::shared_ptr<T>& ptr) {
     try {
         ptr.reset();
-        LOG(debug) << "[SAFE_RELEASE] shared_ptr reset successful.";
+        LOG(trace) << "[SAFE_RELEASE] shared_ptr reset successful.";
     }
     catch (const std::exception& e) {
         LOG(error) << "[SAFE_RELEASE] Exception while resetting shared_ptr: " << e.what();
@@ -316,6 +325,11 @@ static std::wstring GetD3D12ErrorMessage(HRESULT hr) {
     }
 }
 
+// Function to round up to the nearest multiple of alignment
+static size_t AlignUp(size_t size, size_t alignment) {
+    return (size + alignment - 1) & ~(alignment - 1);
+}
+
 extern CRITICAL_SECTION CriticalSection;
 #ifdef _DEBUG
 extern ComPtr<ID3D12Debug> d3dDebug;
@@ -330,6 +344,23 @@ namespace dx12 {
 		DirectX::XMVECTORF32	color;
 		DirectX::XMFLOAT2A		texCoord;
 	} Vertex2D;
+
+    typedef __declspec(align(16)) struct Vertex3D_s {
+        DirectX::XMFLOAT4A      position;   // Position of the vertex in 3D space
+        DirectX::XMFLOAT3       normal;     // Normal vector for lighting calculations
+        DirectX::XMFLOAT3       tangent;
+        DirectX::XMFLOAT2       texCoord0;  // Texture coordinates (UV mapping)
+        DirectX::XMFLOAT2       texCoord1;  // Texture coordinates (UV mapping)
+    } Vertex3D;
+
+    typedef __declspec(align(16)) struct Plane_s {
+        XMVECTOR       normal;
+        float          d;
+    } Plane;
+
+    typedef __declspec(align(16)) struct Frustum_s {
+        Plane planes[6];
+    } Frustum;
 }
 
 
@@ -340,23 +371,32 @@ namespace dx12 {
 #include "dx12_shader.hpp"
 #include "dx12_web.hpp"
 #include "dx12_resourceBuffer.hpp"
+#include "dx12_raytracingBuffer.hpp"
+#include "dx12_shaderBindingTable.hpp"
+#include "dx12_BLASBuffer.hpp"
 #include "dx12_constantBuffer2D.hpp"
 #include "dx12_vertexBuffer.hpp"
 #include "dx12_indexBuffer.hpp"
-#include "dx12_indexedGeometry.hpp"
+#include "dx12_indexedGeometry2D.hpp"
+#include "dx12_indexedGeometry3D.hpp"
+#include "dx12_bottomLevelAccelerationStructure.hpp"
 #include "dx12_testTriangle.hpp"
 #include "dx12_quad2D.hpp"
+#include "dx12_renderTarget.hpp"
 #include "dx12_draw.hpp"
 #include "dx12_subsystem2D.hpp"
+#include "dx12_light.hpp"
+#include "dx12_particle.hpp"
+#include "dx12_entity.hpp"
+#include "dx12_dxrGlobalConstantsBuffer.hpp"
 #include "dx12_subsystem3D.hpp"
 #include "dx12_subsystemText.hpp"
-#include "dx12_texture2D.hpp"
+#include "dx12_texture.hpp"
 #include "dx12_image.hpp"
 #include "dx12_dx.hpp"
 #include "dx12_system.hpp"
 #include "dx12_client.hpp"
 #include "dx12_model.hpp"
-#include "dx12_light.hpp"
 #include "dx12_xplit.hpp"
 #include "dx12_bsp.hpp"
 #include "dx12_map.hpp"

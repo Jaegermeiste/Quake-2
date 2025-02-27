@@ -782,7 +782,7 @@ void CL_ParticleSteamEffect (vec3_t org, vec3_t dir, int color, int count, int m
 		VectorMA (p->vel, d, u, p->vel);
 
 		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY/2;
+		p->accel[2] = -PARTICLE_GRAVITY/2.0f;
 		p->alpha = 1.0;
 
 		p->alphavel = -1.0 / (0.5 + frand()*0.3);
@@ -828,7 +828,7 @@ void CL_ParticleSteamEffect2 (cl_sustain_t *self)
 		VectorMA (p->vel, d, u, p->vel);
 
 		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY/2;
+		p->accel[2] = -PARTICLE_GRAVITY/2.0f;
 		p->alpha = 1.0;
 
 		p->alphavel = -1.0 / (0.5 + frand()*0.3);

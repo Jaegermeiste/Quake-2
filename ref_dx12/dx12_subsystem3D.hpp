@@ -31,23 +31,115 @@ ref_dx12
 
 namespace dx12
 {
+	namespace GlobalRootSignatureParams {
+		enum Value {
+			OutputViewSlot = 0,
+			AccelerationStructureSlot,
+			SceneConstantSlot,
+			Count
+		};
+	}
+
+	namespace MissRootSignatureParams {
+		enum Value {
+			CubeTextureSlot,
+			CubeConstantSlot,
+			Count
+		};
+	}
+
+	typedef struct missRootConstant_s {
+		XMMATRIX                                    m_skyboxRotation = {};
+	} missRootConstants_t;
+
 	__declspec(align(16)) class Subsystem3D {
 		friend class System;
 	private:
-		DirectX::XMMATRIX			m_3DworldMatrix;
-		DirectX::XMMATRIX			m_3DviewMatrix;
-		DirectX::XMMATRIX			m_3DprojectionMatrix;
+		std::shared_ptr<RenderTarget>		m_renderTarget = nullptr;
+
+		ComPtr<ID3D12RootSignature>                 m_globalRootSignature = nullptr;
+		ComPtr<ID3D12RootSignature>                 m_rayGenRootSignature = nullptr;
+		ComPtr<ID3D12RootSignature>                 m_hitRootSignature = nullptr;
+		ComPtr<ID3D12RootSignature>                 m_missRootSignature = nullptr;
+
+		size_t                                      m_globalRootArgumentsSize = 0;
+		size_t                                      m_rayGenRootArgumentsSize = 0;
+		size_t                                      m_hitGroupRootArgumentsSize = 0;
+		size_t                                      m_missRootArgumentsSize = 0;
+
+		ComPtr<ID3D12StateObject>                   m_raytracingPipelineState = nullptr;
+		std::shared_ptr<RaytracingBuffer>           m_dxrBuffer = nullptr;
+		std::shared_ptr<ShaderBindingTable>         m_rayGenSBT = nullptr;
+		std::shared_ptr<ShaderBindingTable>         m_hitGroupSBT = nullptr;
+		std::shared_ptr<ShaderBindingTable>         m_missSBT = nullptr;
+
+		std::shared_ptr<CommandList>    	        m_commandList = nullptr;
+
+		dxhandle_t                                  m_3dRTVHandle = {};
+		dxhandle_t                                  m_3dDSVHandle = {};
+		dxhandle_t                                  m_3dSRVHandle = {};
+		D3D12_VIEWPORT                              m_viewport = {};
+		D3D12_RECT                                  m_scissorRect = {};
+
+		std::shared_ptr<DxrGlobalConstantsBuffer>   m_globalRootConstants = nullptr;
+		missRootConstants_t                         m_missRootConstants = {};
+		
+		Shader						                m_shaderCommon;
+		Shader						                m_shaderRaygen;
+		Shader						                m_shaderMiss;
+		Shader						                m_shaderHit;
+
+		dxhandle_t				                    m_globalConstantBufferHandle = 0;
+
+		XMVECTOR                                    m_blendColor = DirectX::Colors::Transparent;
+
+		double                                      m_simulationTime = 0.0f;
+
+		float                                       m_skyboxRotationRadPerSec = 0;
+		XMVECTOR                                    m_skyboxRotationAxis = {};
+
+		Frustum                                     m_viewFrustum = {};
+
+		std::vector<Light>                          m_dynamicLights;
+		std::vector<Particle>                       m_particles;
+		std::vector<Entity>                         m_entities;
+
+		size_t                                      GetAlignedRootArgumentSize(const D3D12_ROOT_PARAMETER1& rootParameter);
+		size_t                                      GetTotalRootArgumentSize(const D3D12_ROOT_PARAMETER1* rootParameters, size_t numParameters);
+
+		bool                                        CreateRootSignatures();
+
+		bool                                        CreateGlobalConstantBuffer();
+
+		bool                                        CompileShaders();
+
+		bool                                        CreateRaytracingPipelineStateObject();
+
+		bool                                        CreateRaytracingOutputBuffer();
+
+		bool                                        CreateShaderBindingTable();
+
+		bool                                        CreateRenderTarget();
+
+		void                                        UpdateSkyboxRotation();
 
 	public:
-									Subsystem3D();
+									                Subsystem3D();
 
-		bool						Initialize();
+		bool						                Initialize();
 
-		void						Clear();
+		void                                        SetSkyboxRotation(float rotationSpeedDegreesPerSecond, vec3_t axis);
+		void                                        Update(D3D12_RECT scissor, float cameraOrigin[3], float eulerAngles[3], float fovY, double simulationTime, float blendColor[4]);
 
-		void						Render();
+		void                                        PushDynamicLight(Light light);
+		void                                        PushParticle(Particle particle);
+		void                                        PushEntity(Entity entity);
 
-		void						Shutdown();
+		void						                Clear();
+
+		void						                Render(std::shared_ptr<CommandList> commandListSwap);
+
+		void						                Shutdown();
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

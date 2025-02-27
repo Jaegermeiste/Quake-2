@@ -33,18 +33,23 @@ using boost::multi_index_container;
 using namespace boost::multi_index;
 
 typedef struct resourceHandleQ2_s {
-	dxhandle_t m_handle;
+	char	   m_name[MAX_QPATH] = {};
+	dxhandle_t m_handle = 0;
 } resourceHandleQ2_t;
 
 namespace dx12
 {
 	typedef enum resourceType_e {
 		RESOURCE_NONE,
-		RESOURCE_TEXTURE2D,
+		RESOURCE_TEXTURE,
 		RESOURCE_BUFFER,
 		RESOURCE_VERTEXBUFFER,
 		RESOURCE_INDEXBUFFER,
 		RESOURCE_CONSTANTBUFFER,
+		RESOURCE_BLASBUFFER,
+		RESOURCE_RAYTRACINGBUFFER,
+		RESOURCE_CUBEMAP2D,
+		RESOURCE_SHADERTABLEPARAM,
 		RESOURCE_MAX
 	} resourceType_t;
 
@@ -57,24 +62,24 @@ namespace dx12
 		dxhandle_t				m_handle;
 		std::wstring			m_name;
 		resourceType_t			m_type;
-		D3D12_RESOURCE_DESC		m_resourceDesc;
-		ComPtr<ID3D12Resource>	m_resource = nullptr;
+		D3D12_RESOURCE_DESC1	m_resourceDesc;
+		ComPtr<ID3D12Resource2>	m_resource = nullptr;
 
 	public:
 		Resource(std::wstring name) {
 			m_name = name; 
 			m_type = RESOURCE_NONE;
 			m_handle = std::hash<std::wstring>{}(name);
-			memset(&m_resourceDesc, 0, sizeof(D3D12_RESOURCE_DESC));
+			memset(&m_resourceDesc, 0, sizeof(D3D12_RESOURCE_DESC1));
 			m_resource = nullptr;
 		};
 
 		const	dxhandle_t					GetHandle()		const	{ return m_handle; };
-		const	std::wstring				GetName()		const	{ return m_name; };
+			std::wstring				GetName()			{ return m_name; };
 		const	std::wstring_view			GetNameView()	const	{ return m_name; };
 		const	resourceType_t				GetType()		const	{ return m_type; };
 
-		void								UpdateDesc()			{ if (m_resource != nullptr) { m_resourceDesc = m_resource->GetDesc(); } };
+		void								UpdateDesc()			{ if (m_resource != nullptr) { m_resourceDesc = m_resource->GetDesc1(); } };
 
 		virtual ~Resource() {
 			if (m_resource != nullptr) {
@@ -134,7 +139,7 @@ namespace dx12
 		std::shared_ptr<T> 											        CreateResource          (std::wstring name);
 
 
-		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle, bool validate = false);
+		resourceHandleQ2_t*													GetResourceHandleQuake2	(dxhandle_t handle);
 	};
 }
 

@@ -45,17 +45,29 @@ namespace dx12
 			return CreateBuffer(bufferData, bufferSize);
 		}
 
+		bool CreateVertexBuffer(Vertex3D* bufferData, size_t bufferSize) {
+			return CreateBuffer(bufferData, bufferSize);
+		}
+
 		bool UpdateVertexBuffer(std::shared_ptr<CommandList> commandList, Vertex2D* bufferData, size_t bufferSize) {
 			return UpdateBuffer(commandList, bufferData, bufferSize);
 		}
 
-		unsigned int		VertexCount() { return m_count; };
+		bool UpdateVertexBuffer(std::shared_ptr<CommandList> commandList, Vertex3D* bufferData, size_t bufferSize) {
+			return UpdateBuffer(commandList, bufferData, bufferSize);
+		}
+
+		size_t		VertexCount() { return m_count; };
 	};
 }
 
 template bool dx12::ResourceBuffer::CreateBuffer<dx12::Vertex2D>(dx12::Vertex2D* bufferData, size_t bufferSize);
 template bool dx12::ResourceBuffer::UploadBuffer<dx12::Vertex2D>(dx12::Vertex2D* bufferData, size_t bufferSize);
 template bool dx12::ResourceBuffer::UpdateBuffer<dx12::Vertex2D>(std::shared_ptr<CommandList> commandList, dx12::Vertex2D* bufferData, size_t bufferSize);
+
+template bool dx12::ResourceBuffer::CreateBuffer<dx12::Vertex3D>(dx12::Vertex3D* bufferData, size_t bufferSize);
+template bool dx12::ResourceBuffer::UploadBuffer<dx12::Vertex3D>(dx12::Vertex3D* bufferData, size_t bufferSize);
+template bool dx12::ResourceBuffer::UpdateBuffer<dx12::Vertex3D>(std::shared_ptr<CommandList> commandList, dx12::Vertex3D* bufferData, size_t bufferSize);
 
 template std::shared_ptr<dx12::VertexBuffer> dx12::ResourceManager::CreateResource<dx12::VertexBuffer>(std::wstring name);
 template std::shared_ptr<dx12::VertexBuffer> dx12::ResourceManager::GetOrCreateResource<dx12::VertexBuffer>(std::wstring name);

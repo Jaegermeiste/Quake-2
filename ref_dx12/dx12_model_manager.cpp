@@ -42,7 +42,7 @@ void dx12::ModelManager::Shutdown()
 	LOG_FUNC();
 }
 
-std::shared_ptr<dx12::Resource> dx12::ModelManager::Load(std::string name)
+std::shared_ptr<dx12::Resource> dx12::ModelManager::Load(std::wstring name)
 {
 	LOG_FUNC();
 

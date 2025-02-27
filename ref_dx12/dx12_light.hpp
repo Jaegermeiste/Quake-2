@@ -33,44 +33,135 @@ namespace dx12
 {
 	class Light
 	{
-	public:
-		DirectX::XMVECTOR	m_origin;
-		DirectX::XMVECTOR	m_radius;
-		DirectX::XMVECTOR	m_color;
-		DirectX::XMVECTOR	m_angles;
-		DirectX::XMVECTOR	m_speed;
-		DirectX::XMVECTOR	m_flareOrigin;
-		float				m_cone;
-		float				m_flareSize;
-		float				m_fog;
-		float				m_fogDensity;
-		int					m_style;
-		int					m_filter;
-		int					m_flags;
-		bool				m_flare;
-		bool				m_shadowCaster;
-		bool				m_ambient;
-		byte				m_padding;
-
-		Light()
+	private:
+		static float CalculateAttenuationDistance(const dx12::Light* light)
 		{
-			m_style			= 0;
-			m_filter		= 0;
-			m_shadowCaster	= true;
-			m_ambient		= false;
-			m_cone			= 0.0f;
-			m_flareSize		= 0;
-			m_flare			= false;
-			m_flags			= NULL;
-			m_fog			= 0.0f;
-			m_fogDensity	= 0.0f;
-			m_radius		= DirectX::XMVectorZero();
-			m_angles		= DirectX::XMVectorZero();
-			m_speed			= DirectX::XMVectorZero();
-			m_origin		= DirectX::XMVectorZero();
-			m_color			= DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);	// White Light by default
-			m_flareOrigin	= DirectX::XMVectorZero();
-			m_padding       = 0;
+			// Define a threshold for minimum acceptable intensity
+			const float MinIntensity = 0.01f;
+
+			// Calculate the maximum distance where the light's intensity is above the threshold
+			// Using the attenuation formula: I = I0 / (constant + linear * d + quadratic * d^2)
+			// We solve for d where I >= MinIntensity * I0
+			float maxDistance = (-light->linearAttenuation +
+				sqrtf(light->linearAttenuation * light->linearAttenuation - 4 * light->quadraticAttenuation * (light->constantAttenuation - 1.0f / MinIntensity))) /
+				(2 * light->quadraticAttenuation);
+
+			return maxDistance;
+		};
+
+	public:
+		XMVECTOR	        origin;
+		XMVECTOR	        color;
+		XMVECTOR	        angles;
+		XMVECTOR	        speed;
+		XMVECTOR	        flareOrigin;
+		float				cone;
+		float				flareSize;
+		float				fog;
+		float				fogDensity;
+		int					style;
+		int					filter;
+		int					flags;
+		bool				flare;
+		bool				shadowCaster;
+		bool				ambient;
+		
+		float               constantAttenuation = 1.0f;
+		float               linearAttenuation = 0.09f;
+		float               quadraticAttenuation = 0.032f;
+
+		float               radius = 0.0f;
+
+		Light(XMVECTOR origin, float radius, XMVECTOR color = DirectX::Colors::White)
+		{
+			style			= 0;
+			filter		= 0;
+			shadowCaster	= true;
+			ambient		= false;
+			cone			= 0.0f;
+			flareSize		= 0;
+			flare			= false;
+			flags			= NULL;
+			fog			= 0.0f;
+			fogDensity	= 0.0f;
+			angles		= DirectX::XMVectorZero();
+			speed			= DirectX::XMVectorZero();
+			this->origin        = origin;
+			this->color = color;
+			flareOrigin	= DirectX::XMVectorZero();
+			constantAttenuation = 1.0f;
+			linearAttenuation = 4.5f / radius;
+			quadraticAttenuation = 75.0f / (radius * radius);
+			this->radius = CalculateAttenuationDistance(this);
+		};
+
+		Light(XMFLOAT3 origin, float radius, XMVECTOR color = DirectX::Colors::White)
+		{
+			style = 0;
+			filter = 0;
+			shadowCaster = true;
+			ambient = false;
+			cone = 0.0f;
+			flareSize = 0;
+			flare = false;
+			flags = NULL;
+			fog = 0.0f;
+			fogDensity = 0.0f;
+			angles = DirectX::XMVectorZero();
+			speed = DirectX::XMVectorZero();
+			this->origin = { origin.x, origin.y, origin.z };
+			this->color = color;
+			flareOrigin = DirectX::XMVectorZero();
+			constantAttenuation = 1.0f;
+			linearAttenuation = 4.5f / radius;
+			quadraticAttenuation = 75.0f / (radius * radius);
+			this->radius = CalculateAttenuationDistance(this);
+		};
+
+		Light(float origin[3], float radius, XMVECTOR color = DirectX::Colors::White)
+		{
+			style = 0;
+			filter = 0;
+			shadowCaster = true;
+			ambient = false;
+			cone = 0.0f;
+			flareSize = 0;
+			flare = false;
+			flags = NULL;
+			fog = 0.0f;
+			fogDensity = 0.0f;
+			angles = DirectX::XMVectorZero();
+			speed = DirectX::XMVectorZero();
+			this->origin = { origin[0], origin[1], origin[2] };
+			this->color = color;
+			flareOrigin = DirectX::XMVectorZero();
+			constantAttenuation = 1.0f;
+			linearAttenuation = 4.5f / radius;
+			quadraticAttenuation = 75.0f / (radius * radius);
+			this->radius = CalculateAttenuationDistance(this);
+		};
+
+		Light(vec3_t origin, float radius, vec3_t color)
+		{
+			style = 0;
+			filter = 0;
+			shadowCaster = true;
+			ambient = false;
+			cone = 0.0f;
+			flareSize = 0;
+			flare = false;
+			flags = NULL;
+			fog = 0.0f;
+			fogDensity = 0.0f;
+			angles = DirectX::XMVectorZero();
+			speed = DirectX::XMVectorZero();
+			this->origin = { origin[0], origin[1], origin[2] };
+			this->color = { color[0], color[1], color[2], 1.0f };
+			flareOrigin = DirectX::XMVectorZero();
+			constantAttenuation = 1.0f;
+			linearAttenuation = 4.5f / radius;
+			quadraticAttenuation = 75.0f / (radius * radius);
+			this->radius = CalculateAttenuationDistance(this);
 		};
 	};
 }

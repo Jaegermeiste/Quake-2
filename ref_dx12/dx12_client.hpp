@@ -66,6 +66,7 @@ namespace dx12
 		void			Cmd_ExecuteText		(unsigned int exec_when, std::wstring text);
 
 		void			Con_Printf          (unsigned short print_level, std::wstring str);
+		void			Con_Printf          (unsigned short print_level, std::string str);
 
 		int				FS_LoadFile			(std::wstring fileName, void **buf);
 		void			FS_FreeFile			(void *buf);

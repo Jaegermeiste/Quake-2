@@ -272,6 +272,11 @@ __declspec( naked ) long Q_ftol( float f )
 	__asm ret
 }
 #pragma warning (default:4035)
+#else
+inline long Q_ftol(float f)
+{
+	return (long)f;
+}
 #endif
 
 /*
@@ -887,7 +892,7 @@ Returns the path up to, but not including the last /
 */
 void COM_FilePath (char *in, char *out)
 {
-	char *s;
+	char *s = NULL;
 	
 	s = in + strlen(in) - 1;
 	
@@ -949,6 +954,16 @@ int		LittleLong (int l) {return _LittleLong(l);}
 float	BigFloat (float l) {return _BigFloat(l);}
 float	LittleFloat (float l) {return _LittleFloat(l);}
 
+// Add unsigned variants
+unsigned short(*_BigUShort) (unsigned short l);
+unsigned short(*_LittleUShort) (unsigned short l);
+unsigned int(*_BigULong) (unsigned int l);
+unsigned int(*_LittleULong) (unsigned int l);
+unsigned short	BigUShort(unsigned short l) { return _BigUShort(l); }
+unsigned short	LittleUShort(unsigned short l) { return _LittleUShort(l); }
+unsigned int	BigULong(unsigned int l) { return _BigULong(l); }
+unsigned int	LittleULong(unsigned int l) { return _LittleULong(l); }
+
 short   ShortSwap (short l)
 {
 	byte    b1,b2;
@@ -1003,6 +1018,38 @@ float FloatNoSwap (float f)
 	return f;
 }
 
+unsigned short   UShortSwap(unsigned short l)
+{
+	byte    b1, b2;
+
+	b1 = l & 255;
+	b2 = (l >> 8) & 255;
+
+	return (b1 << 8) + b2;
+}
+
+unsigned short	UShortNoSwap(unsigned short l)
+{
+	return l;
+}
+
+unsigned int    ULongSwap(unsigned int l)
+{
+	byte    b1, b2, b3, b4;
+
+	b1 = l & 255;
+	b2 = (l >> 8) & 255;
+	b3 = (l >> 16) & 255;
+	b4 = (l >> 24) & 255;
+
+	return ((unsigned int)(b1) << 24) + ((unsigned int)(b2) << 16) + ((unsigned int)(b3) << 8) + b4;
+}
+
+unsigned int	ULongNoSwap(unsigned int l)
+{
+	return l;
+}
+
 /*
 ================
 Swap_Init
@@ -1022,6 +1069,12 @@ void Swap_Init (void)
 		_LittleLong = LongNoSwap;
 		_BigFloat = FloatSwap;
 		_LittleFloat = FloatNoSwap;
+
+		// Add unsigned variants
+		_BigUShort = UShortSwap;
+		_LittleUShort = UShortNoSwap;
+		_BigULong = ULongSwap;
+		_LittleULong = ULongNoSwap;
 	}
 	else
 	{
@@ -1032,6 +1085,12 @@ void Swap_Init (void)
 		_LittleLong = LongSwap;
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
+
+		// Add unsigned variants
+		_BigUShort = UShortNoSwap;
+		_LittleUShort = UShortSwap;
+		_BigULong = ULongNoSwap;
+		_LittleULong = ULongSwap;
 	}
 
 }
@@ -1179,6 +1238,14 @@ void Com_PageInMemory (byte *buffer, int size)
 // FIXME: replace all Q_stricmp with Q_strcasecmp
 int Q_stricmp (char *s1, char *s2)
 {
+	if (s1 && (s2 == NULL))
+	{
+		return 1;
+	}
+	else if (s2 && (s1 == NULL))
+	{
+		return -1;
+	}
 #if defined(WIN32)
 	return _stricmp (s1, s2);
 #else
@@ -1231,7 +1298,7 @@ void Com_sprintf (char *dest, int size, char *fmt, ...)
 	va_end (argptr);
 	if (len >= size)
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-	strncpy (dest, bigbuffer, size-1);
+	strncpy (dest, bigbuffer, (size_t)size-1);
 }
 
 /*

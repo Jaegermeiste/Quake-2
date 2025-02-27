@@ -53,6 +53,9 @@ namespace dx12
 		UINT										m_windowWidth					= 0;
 		UINT										m_windowHeight					= 0;
 
+		UINT										m_modeWidth                     = 0;
+		UINT										m_modeHeight                    = 0;
+
 		D3D_DRIVER_TYPE								m_driverType					= D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL							m_featureLevel					= D3D_FEATURE_LEVEL_12_2;
 
@@ -67,7 +70,7 @@ namespace dx12
 		ComPtr<IDXGIFactory6>				        m_dxgiFactory = nullptr;
 		ComPtr<IDXGIAdapter4>				        m_dxgiAdapter					= nullptr;
 
-		ComPtr<ID3D12Device5>				        m_d3dDevice						= nullptr;
+		ComPtr<ID3D12Device14>				        m_d3dDevice						= nullptr;
 
 		ComPtr<ID3D12Fence>				            m_fence							= nullptr;
 		HANDLE										m_fenceEvent;
@@ -96,8 +99,11 @@ namespace dx12
 		D3D12_RESOURCE_STATES                       m_backBufferRenderTargetStates[MAX_BACK_BUFFERS] = {};
 		dxhandle_t                                  m_backBufferRTVHandles[MAX_BACK_BUFFERS] = {};
 
-		D3D12_VIEWPORT								m_viewport{};
-		D3D12_RECT									m_scissorRect{};
+		D3D12_VIEWPORT								m_viewport                      = {};
+		D3D12_RECT									m_scissorRect                   = {};
+
+		CD3DX12FeatureSupport                       m_featureSupport                = {};
+		bool                                        m_tightAlignment                = false;
 
 		bool										m_d3dInitialized				= false;
 
@@ -119,6 +125,7 @@ namespace dx12
 		bool										InitAdapter();
 		bool										InitDeviceDebug();
 		bool										InitDevice(HWND hWnd);
+		bool                                        InitFeatures();
 		bool										InitFences();
 		bool										InitRootSignature();
 		bool										InitSwapPipelineState();
@@ -151,18 +158,29 @@ namespace dx12
 		void										Shutdown();
 
 		void										BeginFrame();
-		void										RenderFrame(refdef_t *fd);
+		void										RenderFrame(refdef_t *fd) const;
 		void										EndFrame();
 
-		ComPtr<ID3D12Device5>                       Device() { return m_d3dDevice; };
+		ComPtr<ID3D12Device14>                      Device() { return m_d3dDevice; };
 		std::shared_ptr<DescriptorHeap>		        HeapRTV() { return m_descriptorHeapRTV; };
 		std::shared_ptr<DescriptorHeap>		        HeapDSV() { return m_descriptorHeapDSV; };
 		std::shared_ptr<DescriptorHeap>		        HeapCBVSRVUAV() { return m_descriptorHeapCBVSRVUAV; };
 
-		D3D_FEATURE_LEVEL                           FeatureLevel() { return m_featureLevel; };
+		D3D_FEATURE_LEVEL                           FeatureLevel() const { return m_featureLevel; };
+
+		bool                                        HasTightAlignment() const { return m_tightAlignment; };
+
+		unsigned int                                WindowWidth() const { return m_windowWidth; };
+		unsigned int                                WindowHeight() const { return m_windowHeight; };
+
+		unsigned int                                ModeWidth() const { return m_modeWidth; };
+		unsigned int                                ModeHeight() const { return m_modeHeight; };
+
 
 		// Commands
 	 	void										D3D_Strings_f() const;
+		void										D3D_Memory_f();
+		void										D3D_Capabilities_f();
 
 		ALIGNED_16_MEMORY_OPERATORS;
 	};

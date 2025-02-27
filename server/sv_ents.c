@@ -476,7 +476,7 @@ void SV_FatPVS (vec3_t org)
 {
 	int		leafs[64];
 	int		i, j, count;
-	int		longs;
+	size_t		longs;
 	byte	*src;
 	vec3_t	mins, maxs;
 
@@ -489,7 +489,7 @@ void SV_FatPVS (vec3_t org)
 	count = CM_BoxLeafnums (mins, maxs, leafs, 64, NULL);
 	if (count < 1)
 		Com_Error (ERR_FATAL, "SV_FatPVS: count < 1");
-	longs = (CM_NumClusters()+31)>>5;
+	longs = (size_t)((CM_NumClusters()+31)>>5);
 
 	// convert leafs to clusters
 	for (i=0 ; i<count ; i++)
@@ -521,18 +521,18 @@ copies off the playerstat and areabits.
 */
 void SV_BuildClientFrame (client_t *client)
 {
-	int		e, i;
+	int		e = 0, i = 0;
 	vec3_t	org;
-	edict_t	*ent;
-	edict_t	*clent;
-	client_frame_t	*frame;
-	entity_state_t	*state;
-	int		l;
-	int		clientarea, clientcluster;
-	int		leafnum;
-	int		c_fullsend;
-	byte	*clientphs;
-	byte	*bitvector;
+	edict_t	*ent = NULL;
+	edict_t	*clent = NULL;
+	client_frame_t	*frame = NULL;
+	entity_state_t	*state = NULL;
+	int		l = 0;
+	int		clientarea = 0, clientcluster = 0;
+	int		leafnum = 0;
+	int		c_fullsend = 0;
+	byte	*clientphs = NULL;
+	byte	*bitvector = NULL;
 
 	clent = client->edict;
 	if (!clent->client)
@@ -721,7 +721,7 @@ void SV_RecordDemoMessage (void)
 
 	// now write the entire message to the file, prefixed by the length
 	len = LittleLong (buf.cursize);
-	fwrite (&len, 4, 1, svs.demofile);
-	fwrite (buf.data, buf.cursize, 1, svs.demofile);
+	FS_Write (&len, 4, svs.demofile);
+	FS_Write (buf.data, buf.cursize, svs.demofile);
 }
 

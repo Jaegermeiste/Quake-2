@@ -28,109 +28,156 @@ ref_dx12
 dx12::DescriptorHeap::DescriptorHeap(ComPtr<ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible)
 	: m_device(device), m_type(type), m_descriptorCount(numDescriptors), m_shaderVisible(shaderVisible)
 {
-    assert(device != nullptr);
+    try
+    {
+		assert(device != nullptr);
 
-    CreateHeap(type, numDescriptors, shaderVisible);
-    m_handles.reserve(numDescriptors);
+		CreateHeap(type, numDescriptors, shaderVisible);
+		m_handles.reserve(numDescriptors);
+    }
+    catch (const std::runtime_error& e) {
+        LOG(error) << "Runtime Error: " << e.what();
+    }
+    catch (const std::exception& e) {
+        LOG(error) << "General Exception: " << e.what();
+    }
 }
 
 void dx12::DescriptorHeap::CreateHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible)
 {
-    D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-    desc.Type = type;
-    desc.NumDescriptors = numDescriptors;
-    desc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    desc.NodeMask = 0;
+	try
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+		desc.Type = type;
+		desc.NumDescriptors = numDescriptors;
+		desc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		desc.NodeMask = 0;
 
-    HRESULT hr = m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_heap));
-    
-    if (SUCCEEDED(hr))
-    {
-        LOG(info) << "Successfully created " << m_descriptorTypes.at(type) << ".";
-    }
-    else {
-        LOG(error) << "Unable to create " << m_descriptorTypes.at(type) << ".";
-    }
+		HRESULT hr = m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_heap));
 
-    m_descriptorSize = m_device->GetDescriptorHandleIncrementSize(type);
-    m_heapStartCPU = m_heap->GetCPUDescriptorHandleForHeapStart();
-    if (shaderVisible)
-    {
-        m_heapStartGPU = m_heap->GetGPUDescriptorHandleForHeapStart();
-    }
+		if (SUCCEEDED(hr))
+		{
+			LOG(info) << "Successfully created " << m_descriptorTypes.at(type) << ".";
+		}
+		else {
+			LOG(error) << "Unable to create " << m_descriptorTypes.at(type) << ".";
+		}
+
+		m_descriptorSize = m_device->GetDescriptorHandleIncrementSize(type);
+		m_heapStartCPU = m_heap->GetCPUDescriptorHandleForHeapStart();
+		if (shaderVisible)
+		{
+			m_heapStartGPU = m_heap->GetGPUDescriptorHandleForHeapStart();
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }
 
 void dx12::DescriptorHeap::ResizeHeap(UINT newSize)
 {
-    if (newSize <= m_descriptorCount)
-        return;
+	try
+	{
+		if (newSize <= m_descriptorCount)
+			return;
 
-    // Keep track of the old heap and its handles before creating a new one
-    ComPtr<ID3D12DescriptorHeap> oldHeap = m_heap;
-    D3D12_CPU_DESCRIPTOR_HANDLE oldHeapStartCPU = oldHeap->GetCPUDescriptorHandleForHeapStart();
-    D3D12_GPU_DESCRIPTOR_HANDLE oldHeapStartGPU = {};
-    
-    if (m_shaderVisible)
-    {
-        oldHeapStartGPU = oldHeap->GetGPUDescriptorHandleForHeapStart();
-    }
+		// Keep track of the old heap and its handles before creating a new one
+		ComPtr<ID3D12DescriptorHeap> oldHeap = m_heap;
+		D3D12_CPU_DESCRIPTOR_HANDLE oldHeapStartCPU = oldHeap->GetCPUDescriptorHandleForHeapStart();
+		D3D12_GPU_DESCRIPTOR_HANDLE oldHeapStartGPU = {};
 
-    // Create a new heap with the updated size
-    CreateHeap(m_type, newSize, m_shaderVisible);
+		if (m_shaderVisible)
+		{
+			oldHeapStartGPU = oldHeap->GetGPUDescriptorHandleForHeapStart();
+		}
 
-    m_device->CopyDescriptorsSimple(GetAllocatedCount(), m_heapStartCPU, oldHeapStartCPU, m_type);
+		// Create a new heap with the updated size
+		CreateHeap(m_type, newSize, m_shaderVisible);
 
-    // Copy descriptors from the old heap to the new heap
-    for (UINT i = 0; i < GetAllocatedCount(); ++i)
-    {
-        D3D12_CPU_DESCRIPTOR_HANDLE srcCPU = { oldHeapStartCPU.ptr + i * m_descriptorSize };
-        D3D12_CPU_DESCRIPTOR_HANDLE dstCPU = { m_heapStartCPU.ptr + i * m_descriptorSize };
+		m_device->CopyDescriptorsSimple(static_cast<UINT>(GetAllocatedCount()), m_heapStartCPU, oldHeapStartCPU, m_type);
 
-        m_handles[i].first.ptr = dstCPU.ptr; // Update stored handle
+		// Copy descriptors from the old heap to the new heap
+		for (UINT i = 0; i < GetAllocatedCount(); ++i)
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE srcCPU = { oldHeapStartCPU.ptr + i * m_descriptorSize };
+			D3D12_CPU_DESCRIPTOR_HANDLE dstCPU = { m_heapStartCPU.ptr + i * m_descriptorSize };
 
-        if (m_shaderVisible)
-        {
-            D3D12_GPU_DESCRIPTOR_HANDLE srcGPU = { oldHeapStartGPU.ptr + i * m_descriptorSize };
-            D3D12_GPU_DESCRIPTOR_HANDLE dstGPU = { m_heapStartGPU.ptr + i * m_descriptorSize };
+			m_handles[i].first.ptr = dstCPU.ptr; // Update stored handle
 
-            m_handles[i].second->ptr = dstGPU.ptr; // Update stored handle
-        }
-    }
+			if (m_shaderVisible)
+			{
+				D3D12_GPU_DESCRIPTOR_HANDLE srcGPU = { oldHeapStartGPU.ptr + i * m_descriptorSize };
+				D3D12_GPU_DESCRIPTOR_HANDLE dstGPU = { m_heapStartGPU.ptr + i * m_descriptorSize };
 
-    m_descriptorCount = newSize;
+				m_handles[i].second->ptr = dstGPU.ptr; // Update stored handle
+			}
+		}
 
-    SAFE_RELEASE(oldHeap);
+		m_descriptorCount = newSize;
+
+		SAFE_RELEASE(oldHeap);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }
 
 
 dxhandle_t dx12::DescriptorHeap::Allocate()
 {
-    if (GetAllocatedCount() >= m_descriptorCount)
-    {
-        ResizeHeap(m_descriptorCount * 2);
-    }
+	try
+	{
+		if (GetAllocatedCount() >= m_descriptorCount)
+		{
+			ResizeHeap(m_descriptorCount * 2);
+		}
 
-	unsigned long long index = GetAllocatedCount();
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = {};
-    cpuHandle.ptr = m_heapStartCPU.ptr + index * m_descriptorSize;
+		unsigned long long index = GetAllocatedCount();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = {};
+		cpuHandle.ptr = m_heapStartCPU.ptr + index * m_descriptorSize;
 
-    std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> gpuHandle = std::nullopt;
-    if (m_shaderVisible)
-    {
-        D3D12_GPU_DESCRIPTOR_HANDLE gpuHandlePtr = {};
-        gpuHandlePtr.ptr = m_heapStartGPU.ptr + index * m_descriptorSize;
-        gpuHandle = gpuHandlePtr;
-    }
+		std::optional<D3D12_GPU_DESCRIPTOR_HANDLE> gpuHandle = std::nullopt;
+		if (m_shaderVisible)
+		{
+			D3D12_GPU_DESCRIPTOR_HANDLE gpuHandlePtr = {};
+			gpuHandlePtr.ptr = m_heapStartGPU.ptr + index * m_descriptorSize;
+			gpuHandle = gpuHandlePtr;
+		}
 
-    m_handles.push_back({ cpuHandle, gpuHandle ? *gpuHandle : std::optional<D3D12_GPU_DESCRIPTOR_HANDLE>(std::nullopt) });
+		m_handles.push_back({ cpuHandle, gpuHandle ? *gpuHandle : std::optional<D3D12_GPU_DESCRIPTOR_HANDLE>(std::nullopt) });
 
-    return GetAllocatedCount() - 1;
+		return GetAllocatedCount() - 1;
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return 0;
 }
 
 dx12::DescriptorHeap::~DescriptorHeap()
 {
     LOG_FUNC();
 
-    m_device = nullptr;
-	SAFE_RELEASE(m_heap);
+	try
+	{
+		m_device = nullptr;
+		SAFE_RELEASE(m_heap);
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

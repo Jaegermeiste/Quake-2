@@ -29,8 +29,6 @@ dx12::Web::Web()
 {
 	LOG_FUNC();
 
-	LOG(info) << "Initializing";
-
 }
 
 bool dx12::Web::Initialize()
@@ -44,31 +42,51 @@ bool dx12::Web::DownloadFile(std::wstring downloadURL, std::wstring destinationP
 {
 	LOG_FUNC();
 
-	HRESULT hr = E_UNEXPECTED;
+	try
+	{
+		HRESULT hr = E_UNEXPECTED;
 
-	hr = URLDownloadToFileW(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
+		hr = URLDownloadToFileW(NULL, downloadURL.c_str(), destinationPath.c_str(), 0, NULL);
 
-	if (hr == E_OUTOFMEMORY) {
-		LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";
-		return false;
+		if (hr == E_OUTOFMEMORY) {
+			LOG(error) << "Download Failed: Buffer length invalid, or insufficient memory";
+			return false;
+		}
+		else if (hr == INET_E_DOWNLOAD_FAILURE) {
+			LOG(error) << "Download Failed: URL is invalid";
+			return false;
+		}
+		else if (FAILED(hr)) {
+			LOG(error) << "Other error: " << hr;
+			return false;
+		}
+
+		return true;
 	}
-	else if (hr == INET_E_DOWNLOAD_FAILURE) {
-		LOG(error) << "Download Failed: URL is invalid";
-		return false;
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
 	}
-	else if (FAILED(hr)) {
-		LOG(error) << "Other error: " << hr;
-		return false;
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return true;
+	return false;
 }
 
 void dx12::Web::Shutdown()
 {
 	LOG_FUNC();
 
-	LOG(info) << "Shutting down.";
+	try
+	{
+		LOG(info) << "Shutting down.";
 
-	LOG(info) << "Shutdown complete.";
+		LOG(info) << "Shutdown complete.";
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

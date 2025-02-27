@@ -20,6 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	
 // q_shared.h -- included first by ALL program modules
 
+#ifndef __QSHARED_H__
+#define __QSHARED_H__
+
+#pragma once
+
 #ifdef _WIN32
 // unknown pragmas are SUPPOSED to be ignored, but....
 #pragma warning(disable : 4244)     // MIPS
@@ -36,6 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -291,10 +297,10 @@ int		Sys_Milliseconds (void);
 void	Sys_Mkdir (char *path);
 
 // large block stack allocation routines
-void	*Hunk_Begin (int maxsize);
-void	*Hunk_Alloc (int size);
+void	*Hunk_Begin (size_t maxsize);
+void	*Hunk_Alloc (size_t size);
 void	Hunk_Free (void *buf);
-int		Hunk_End (void);
+size_t	Hunk_End (void);
 
 // directory searching
 #define SFF_ARCH    0x01
@@ -1220,3 +1226,5 @@ typedef struct
 extern int vidref_val;
 // PGM
 // ==================
+
+#endif // __QSHARED_H__

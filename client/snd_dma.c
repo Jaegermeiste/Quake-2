@@ -586,10 +586,10 @@ void S_IssuePlaysound (playsound_t *ps)
 
 struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base)
 {
-	int				n;
-	char			*p;
-	struct sfx_s	*sfx;
-	FILE			*f;
+	int				n = 0;
+	char			*p = NULL;
+	struct sfx_s	*sfx = NULL;
+	file_t			*f = NULL;
 	char			model[MAX_QPATH];
 	char			sexedFilename[MAX_QPATH];
 	char			maleFilename[MAX_QPATH];
@@ -620,7 +620,7 @@ struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base)
 	if (!sfx)
 	{
 		// no, so see if it exists
-		FS_FOpenFile (&sexedFilename[1], &f);
+		FS_FOpenFileRead (&sexedFilename[1], &f);
 		if (f)
 		{
 			// yes, close the file and register it
@@ -773,7 +773,7 @@ void S_ClearBuffer (void)
 
 	SNDDMA_BeginPainting ();
 	if (dma.buffer)
-		memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
+		memset(dma.buffer, clear, (size_t)(dma.samples) * dma.samplebits / 8);
 	SNDDMA_Submit ();
 }
 

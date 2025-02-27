@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef struct
 {
 	byte	*data;
-	int		count;
+	size_t		count;
 } cblock_t;
 
 typedef struct
@@ -96,7 +96,7 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 		return;
 	}
 
-	out = Z_Malloc ( (pcx->ymax+1) * (pcx->xmax+1) );
+	out = Z_Malloc ((size_t)(pcx->ymax+1) * (size_t)(pcx->xmax+1) );
 
 	*pic = out;
 
@@ -170,7 +170,7 @@ void SCR_StopCinematic (void)
 	}
 	if (cl.cinematic_file)
 	{
-		fclose (cl.cinematic_file);
+		FS_FCloseFile (cl.cinematic_file);
 		cl.cinematic_file = NULL;
 	}
 	if (cin.hnodes1)
@@ -252,8 +252,8 @@ void Huff1TableInit (void)
 	byte	counts[256];
 	int		numhnodes;
 
-	cin.hnodes1 = Z_Malloc (256*256*2*4);
-	memset (cin.hnodes1, 0, 256*256*2*4);
+	cin.hnodes1 = Z_Malloc ((size_t)(256*256)*2*4);
+	memset (cin.hnodes1, 0, (size_t)(256*256)*2*4);
 
 	for (prev=0 ; prev<256 ; prev++)
 	{
@@ -297,13 +297,13 @@ Huff1Decompress
 */
 cblock_t Huff1Decompress (cblock_t in)
 {
-	byte		*input;
-	byte		*out_p;
-	int			nodenum;
-	int			count;
+	byte		*input = NULL;
+	byte		*out_p = NULL;
+	int		nodenum = 0;
+	int		count = 0;
 	cblock_t	out;
-	int			inbyte;
-	int			*hnodes, *hnodesbase;
+	int			inbyte = 0;
+	int			*hnodes = NULL, *hnodesbase = NULL;
 //int		i;
 
 	// get decompressed count
@@ -426,24 +426,26 @@ SCR_ReadNextFrame
 */
 byte *SCR_ReadNextFrame (void)
 {
-	int		r;
-	int		command;
-	byte	samples[22050/14*4];
-	byte	compressed[0x20000];
-	int		size;
-	byte	*pic;
+	size_t		r = 0;
+	int		command = 0;
+	byte*	samples = Z_Malloc((size_t)22050/14*4);
+	const size_t compressedBufSize = 0x20000;
+	byte*	compressed = Z_Malloc(compressedBufSize);
+	long readBuf = 0;
+	size_t	size = 0;
+	byte	*pic = NULL;
 	cblock_t	in, huf1;
-	int		start, end, count;
+	size_t		start = 0, end = 0, count = 0;
 
 	// read the next frame
-	r = fread (&command, 4, 1, cl.cinematic_file);
+	r = FS_Read(&command, 4, cl.cinematic_file);
 	if (r == 0)		// we'll give it one more chance
-		r = fread (&command, 4, 1, cl.cinematic_file);
+		r = FS_Read(&command, 4, cl.cinematic_file);
 
-	if (r != 1)
+	if (r != 4)
 		return NULL;
 	command = LittleLong(command);
-	if (command == 2)
+	if (command >= 2)
 		return NULL;	// last frame marker
 
 	if (command == 1)
@@ -453,20 +455,20 @@ byte *SCR_ReadNextFrame (void)
 	}
 
 	// decompress the next frame
-	FS_Read (&size, 4, cl.cinematic_file);
-	size = LittleLong(size);
-	if (size > sizeof(compressed) || size < 1)
+	FS_Read (&readBuf, 4, cl.cinematic_file);
+	size = LittleLong(readBuf);
+	if (size > compressedBufSize || size < 1)
 		Com_Error (ERR_DROP, "Bad compressed frame size");
 	FS_Read (compressed, size, cl.cinematic_file);
 
 	// read sound
-	start = cl.cinematicframe*cin.s_rate/14;
-	end = (cl.cinematicframe+1)*cin.s_rate/14;
+	start = (size_t)cl.cinematicframe*cin.s_rate/14;
+	end = (size_t)(cl.cinematicframe+1)*cin.s_rate/14;
 	count = end - start;
 
 	FS_Read (samples, count*cin.s_width*cin.s_channels, cl.cinematic_file);
 
-	S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels, samples);
+	S_RawSamples ((int)count, cin.s_rate, cin.s_width, cin.s_channels, samples);
 
 	in.data = compressed;
 	in.count = size;
@@ -476,6 +478,9 @@ byte *SCR_ReadNextFrame (void)
 	pic = huf1.data;
 
 	cl.cinematicframe++;
+
+	Z_Free(samples);
+	Z_Free(compressed);
 
 	return pic;
 }
@@ -489,7 +494,7 @@ SCR_RunCinematic
 */
 void SCR_RunCinematic (void)
 {
-	int		frame;
+	int		frame = 0;
 
 	if (cl.cinematictime <= 0)
 	{
@@ -607,7 +612,7 @@ void SCR_PlayCinematic (char *arg)
 	}
 
 	Com_sprintf (name, sizeof(name), "video/%s", arg);
-	FS_FOpenFile (name, &cl.cinematic_file);
+	FS_FOpenFileRead (name, &cl.cinematic_file);
 	if (!cl.cinematic_file)
 	{
 //		Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
@@ -639,7 +644,7 @@ void SCR_PlayCinematic (char *arg)
 	if (old_khz != cin.s_rate/1000)
 	{
 		cin.restart_sound = true;
-		Cvar_SetValue ("s_khz", cin.s_rate/1000);
+		Cvar_SetValue ("s_khz", cin.s_rate/1000.0f);
 		CL_Snd_Restart_f ();
 		Cvar_SetValue ("s_khz", old_khz);
 	}

@@ -29,49 +29,80 @@ dx12::TestTriangle::TestTriangle()
 {
 	LOG_FUNC();
 
-	m_aspectRatio = 1.0f;
+	try
+	{
+		m_aspectRatio = 1.0f;
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }
 
 bool dx12::TestTriangle::Initialize(int width, int height)
 {
 	LOG_FUNC();
 
-	LOG(info) << "Initializing.";
-
-	m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-
-	if (!InitializeBuffers())
+	try
 	{
-		LOG(error) << "Failed to properly initialize buffers.";
-		return false;
+		LOG(info) << "Initializing.";
+
+		m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+
+		if (!InitializeBuffers())
+		{
+			LOG(error) << "Failed to properly initialize buffers.";
+			return false;
+		}
+
+		LOG(info) << "Successfully initialized TestTriangle.";
+		return true;
 	}
-	
-	LOG(info) << "Successfully initialized TestTriangle.";
-	return true;
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return false;
 }
 
 bool dx12::TestTriangle::InitializeBuffers()
 {
 	LOG_FUNC();
 
-	Vertex2D				vertices[] = {
-											{ {  0.0f,   0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Red,   { 0.0f, 0.0f } },
-											{ {  0.25f, -0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Green, { 0.0f, 0.0f } },
-											{ { -0.25f, -0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Blue,  { 0.0f, 0.0f } }
-	};
-
-	unsigned long			indices[] = {
-											0, 1, 2
-	};
-
-	if (CreateBuffers(vertices, sizeof(vertices), indices, sizeof(indices)))
+	try
 	{
-		LOG(info) << "Successfully initialized buffers.";
+		Vertex2D				vertices[] = {
+												{ {  0.0f,   0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Red,   { 0.0f, 0.0f } },
+												{ {  0.25f, -0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Green, { 0.0f, 0.0f } },
+												{ { -0.25f, -0.25f * m_aspectRatio, 0.0f, 0.0f }, DirectX::Colors::Blue,  { 0.0f, 0.0f } }
+		};
 
-		return true;
+		unsigned long			indices[] = {
+												0, 1, 2
+		};
+
+		if (CreateBuffers(vertices, sizeof(vertices), indices, sizeof(indices)))
+		{
+			LOG(info) << "Successfully initialized buffers.";
+
+			return true;
+		}
+
+		LOG(error) << "Failed to initialize buffers.";
+
+		return false;
 	}
-
-	LOG(error) << "Failed to initialize buffers.";
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 
 	return false;
 }

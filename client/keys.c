@@ -28,7 +28,7 @@ key up events are sent even if in console mode
 
 #define		MAXCMDLINE	256
 char	key_lines[32][MAXCMDLINE];
-int		key_linepos;
+size_t		key_linepos = 0;
 int		shift_down=false;
 int	anykeydown;
 
@@ -247,9 +247,9 @@ void Key_Console (int key)
 		
 		if ( ( cbd = Sys_GetClipboardData() ) != 0 )
 		{
-			int i;
+			size_t i = 0;
 
-			strtok( cbd, "\n\r\b" );
+			int _ = strtok( cbd, "\n\r\b" );
 
 			i = strlen( cbd );
 			if ( i + key_linepos >= MAXCMDLINE)
@@ -346,13 +346,13 @@ void Key_Console (int key)
 		return;
 	}
 
-	if (key == K_PGUP || key == K_KP_PGUP )
+	if (key == K_PGUP || key == K_KP_PGUP || key == K_MWHEELUP)
 	{
 		con.display -= 2;
 		return;
 	}
 
-	if (key == K_PGDN || key == K_KP_PGDN ) 
+	if (key == K_PGDN || key == K_KP_PGDN || key == K_MWHEELDOWN)
 	{
 		con.display += 2;
 		if (con.display > con.current)
@@ -503,8 +503,8 @@ Key_SetBinding
 */
 void Key_SetBinding (int keynum, char *binding)
 {
-	char	*new;
-	int		l;
+	char	*new = NULL;
+	size_t		l = 0;
 			
 	if (keynum == -1)
 		return;
@@ -611,13 +611,16 @@ Key_WriteBindings
 Writes lines containing "bind key value"
 ============
 */
-void Key_WriteBindings (FILE *f)
+void Key_WriteBindings (file_t *f)
 {
 	int		i;
 
-	for (i=0 ; i<256 ; i++)
-		if (keybindings[i] && keybindings[i][0])
-			fprintf (f, "bind %s \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
+	if (f && f->fileHandle)
+	{
+		for (i = 0; i < 256; i++)
+			if (keybindings[i] && keybindings[i][0])
+				fprintf(f->fileHandle, "bind %s \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
+	}
 }
 
 
@@ -686,6 +689,8 @@ void Key_Init (void)
 	consolekeys[K_KP_PLUS] = true;
 	consolekeys[K_KP_MINUS] = true;
 	consolekeys[K_KP_5] = true;
+	consolekeys[K_MWHEELUP] = true;		// NeVo
+	consolekeys[K_MWHEELDOWN] = true;	// NeVo
 
 	consolekeys['`'] = false;
 	consolekeys['~'] = false;
@@ -760,6 +765,12 @@ void Key_Event (int key, qboolean down, unsigned time)
 			&& key != K_KP_PGUP 
 			&& key != K_PGDN
 			&& key != K_KP_PGDN
+			&& key != K_UPARROW			// NeVo
+			&& key != K_DOWNARROW		// NeVo
+			&& key != K_LEFTARROW		// NeVo
+			&& key != K_RIGHTARROW		// NeVo
+			&& key != K_MWHEELDOWN		// NeVo
+			&& key != K_MWHEELUP		// NeVo
 			&& key_repeats[key] > 1)
 			return;	// ignore most autorepeats
 			

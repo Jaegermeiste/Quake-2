@@ -76,6 +76,8 @@ V_AddEntity
 */
 void V_AddEntity (entity_t *ent)
 {
+	Cam_UpdateEntity(ent);	// NeVo
+
 	if (r_numentities >= MAX_ENTITIES)
 		return;
 	r_entities[r_numentities++] = *ent;
@@ -90,13 +92,13 @@ V_AddParticle
 */
 void V_AddParticle (vec3_t org, int color, float alpha)
 {
-	particle_t	*p;
+	particle_t	*p = NULL;
 
 	if (r_numparticles >= MAX_PARTICLES)
 		return;
 	p = &r_particles[r_numparticles++];
 	VectorCopy (org, p->origin);
-	p->color = color;
+	p->color = abs(color);
 	p->alpha = alpha;
 }
 
@@ -192,7 +194,7 @@ void V_TestEntities (void)
 		ent = &r_entities[i];
 
 		r = 64 * ( (i%4) - 1.5 );
-		f = 64 * (i/4) + 128;
+		f = 64 * (i/4.0f) + 128;
 
 		for (j=0 ; j<3 ; j++)
 			ent->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
@@ -224,7 +226,7 @@ void V_TestLights (void)
 		dl = &r_dlights[i];
 
 		r = 64 * ( (i%4) - 1.5 );
-		f = 64 * (i/4) + 128;
+		f = 64 * (i/4.0f) + 128;
 
 		for (j=0 ; j<3 ; j++)
 			dl->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +

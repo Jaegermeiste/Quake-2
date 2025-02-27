@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "qcommon.h"
 
+#include <stringzilla/stringzilla.h>
+
 void Cmd_ForwardToServer (void);
 
 #define	MAX_ALIAS_NAME	32
@@ -89,7 +91,7 @@ Adds command text at the end of the buffer
 */
 void Cbuf_AddText (char *text)
 {
-	int		l;
+	size_t		l = 0;
 	
 	l = strlen (text);
 
@@ -191,12 +193,37 @@ void Cbuf_ExecuteText (int exec_when, char *text)
 Cbuf_Execute
 ============
 */
+
+size_t trim_whitespace(char* input, size_t inputLength) {
+	// Define whitespace characters
+	const char whitespace[] = " \t\n\r\f\v";
+
+	// Find the first non-whitespace character
+	char* start = sz_find_char_not_from(input, inputLength, whitespace, 7);
+	// Find the last non-whitespace character
+	char* end = sz_rfind_char_not_from(input, inputLength, whitespace, 7);
+
+	if (start == end)
+	{
+		input[0] = '\0';  // All characters are whitespace
+		return 0;
+	}
+
+	// Extract the substring without leading/trailing whitespace
+	size_t newLength = end - start + 1;
+	sz_move(input, start, end - start + 1);
+	input[newLength] = '\0';
+
+	return sz_find_byte(input, inputLength, "\0") - input;
+}
+
 void Cbuf_Execute (void)
 {
-	int		i;
-	char	*text;
-	char	line[1024];
-	int		quotes;
+	int		i = 0;
+	char	*text = NULL;
+	const size_t lineBufSize = 1024;
+	char	*line = Z_Malloc(lineBufSize);
+	int		quotes = 0;
 
 	alias_count = 0;		// don't allow infinite alias loops
 
@@ -205,45 +232,58 @@ void Cbuf_Execute (void)
 // find a \n or ; line break
 		text = (char *)cmd_text.data;
 
-		quotes = 0;
-		for (i=0 ; i< cmd_text.cursize ; i++)
+		if (text)
 		{
-			if (text[i] == '"')
-				quotes++;
-			if ( !(quotes&1) &&  text[i] == ';')
-				break;	// don't break if inside a quoted string
-			if (text[i] == '\n')
-				break;
-		}
+			quotes = 0;
+			for (i = 0; i < cmd_text.cursize; i++)
+			{
+				if (text[i] == '"')
+					quotes++;
+				if (!(quotes & 1) && text[i] == ';')
+					break;	// don't break if inside a quoted string
+				if (text[i] == '\n')
+					break;
+			}
+
+			sz_fill(line, lineBufSize, 0);
+
+			sz_copy(line, text, min(i, lineBufSize));
+			line[i] = 0;
+
+			// delete the text from the command buffer and move remaining commands down
+			// this is necessary because commands (exec, alias) can insert data at the
+			// beginning of the text buffer
+
+			if (i == cmd_text.cursize)
+			{
+				cmd_text.cursize = 0;
+			}
+			else
+			{
+				i++;
+				cmd_text.cursize -= i;
+				sz_move(text, text + i, cmd_text.cursize);
+			}
+
+			if (trim_whitespace(line, lineBufSize) > 0)
+			{
+				// execute the command line
+				Cmd_ExecuteString(line);
+			}
+
 			
-				
-		memcpy (line, text, i);
-		line[i] = 0;
-		
-// delete the text from the command buffer and move remaining commands down
-// this is necessary because commands (exec, alias) can insert data at the
-// beginning of the text buffer
 
-		if (i == cmd_text.cursize)
-			cmd_text.cursize = 0;
-		else
-		{
-			i++;
-			cmd_text.cursize -= i;
-			memmove (text, text+i, cmd_text.cursize);
-		}
-
-// execute the command line
-		Cmd_ExecuteString (line);
-		
-		if (cmd_wait)
-		{
-			// skip out while text still remains in buffer, leaving it
-			// for next frame
-			cmd_wait = false;
-			break;
+			if (cmd_wait)
+			{
+				// skip out while text still remains in buffer, leaving it
+				// for next frame
+				cmd_wait = false;
+				break;
+			}
 		}
 	}
+
+	Z_Free(line);
 }
 
 
@@ -295,11 +335,11 @@ will keep the demoloop from immediately starting
 */
 qboolean Cbuf_AddLateCommands (void)
 {
-	int		i, j;
-	int		s;
-	char	*text, *build, c;
-	int		argc;
-	qboolean	ret;
+	int		i = 0, j = 0;
+	size_t		s = 0;
+	char	*text = NULL, *build = NULL, c = 0;
+	size_t		argc = 0;
+	qboolean	ret = false;
 
 // build the combined string to parse from
 	s = 0;
@@ -370,8 +410,8 @@ Cmd_Exec_f
 */
 void Cmd_Exec_f (void)
 {
-	char	*f, *f2;
-	int		len;
+	char	*f = NULL, *f2 = NULL;
+	size_t		len = 0;
 
 	if (Cmd_Argc () != 2)
 	{
@@ -541,12 +581,12 @@ Cmd_MacroExpandString
 */
 char *Cmd_MacroExpandString (char *text)
 {
-	int		i, j, count, len;
-	qboolean	inquote;
-	char	*scan;
+	size_t		i = 0, j = 0, count = 0, len = 0;
+	qboolean	inquote = false;
+	char	*scan = NULL;
 	static	char	expanded[MAX_STRING_CHARS];
 	char	temporary[MAX_STRING_CHARS];
-	char	*token, *start;
+	char	*token = NULL, *start = NULL;
 
 	inquote = false;
 	scan = text;
@@ -619,8 +659,8 @@ $Cvars will be expanded unless they are in a quoted token
 */
 void Cmd_TokenizeString (char *text, qboolean macroExpand)
 {
-	int		i;
-	char	*com_token;
+	int		i = 0;
+	char	*com_token = NULL;
 
 // clear the args from the last string
 	for (i=0 ; i<cmd_argc ; i++)
@@ -655,7 +695,7 @@ void Cmd_TokenizeString (char *text, qboolean macroExpand)
 		// set cmd_args to everything after the first arg
 		if (cmd_argc == 1)
 		{
-			int		l;
+			size_t		l = 0;
 
 			strcpy (cmd_args, text);
 
@@ -771,9 +811,9 @@ Cmd_CompleteCommand
 */
 char *Cmd_CompleteCommand (char *partial)
 {
-	cmd_function_t	*cmd;
-	int				len;
-	cmdalias_t		*a;
+	cmd_function_t	*cmd = NULL;
+	size_t				len = 0;
+	cmdalias_t		*a = NULL;
 	
 	len = strlen(partial);
 	
@@ -810,8 +850,8 @@ FIXME: lookupnoadd the token to speed search?
 */
 void	Cmd_ExecuteString (char *text)
 {	
-	cmd_function_t	*cmd;
-	cmdalias_t		*a;
+	cmd_function_t	*cmd = NULL;
+	cmdalias_t		*a = NULL;
 
 	Cmd_TokenizeString (text, true);
 			

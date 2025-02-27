@@ -47,24 +47,28 @@ Mod_PointInLeaf
 */
 mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 {
-	mnode_t		*node;
-	float		d;
-	cplane_t	*plane;
+	mnode_t		*node = NULL;
+	float		d = 0.0f;
+	cplane_t	*plane = NULL;
 	
 	if (!model || !model->nodes)
-		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
-
-	node = model->nodes;
-	while (1)
 	{
-		if (node->contents != -1)
-			return (mleaf_t *)node;
-		plane = node->plane;
-		d = DotProduct (p,plane->normal) - plane->dist;
-		if (d > 0)
-			node = node->children[0];
-		else
-			node = node->children[1];
+		ri.Sys_Error(ERR_DROP, "Mod_PointInLeaf: bad model");
+	}
+	else
+	{
+		node = model->nodes;
+		while (1)
+		{
+			if (node->contents != -1)
+				return (mleaf_t*)node;
+			plane = node->plane;
+			d = DotProduct(p, plane->normal) - plane->dist;
+			if (d > 0)
+				node = node->children[0];
+			else
+				node = node->children[1];
+		}
 	}
 	
 	return NULL;	// never reached
@@ -414,9 +418,9 @@ Mod_LoadEdges
 */
 void Mod_LoadEdges (lump_t *l)
 {
-	dedge_t *in;
-	medge_t *out;
-	int 	i, count;
+	dedge_t *in = NULL;
+	medge_t *out = NULL;
+	size_t 	i = 0, count = 0;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -810,11 +814,11 @@ Mod_LoadPlanes
 */
 void Mod_LoadPlanes (lump_t *l)
 {
-	int			i, j;
-	cplane_t	*out;
-	dplane_t 	*in;
-	int			count;
-	int			bits;
+	int			i = 0, j = 0;
+	cplane_t	*out = NULL;
+	dplane_t 	*in = NULL;
+	size_t			count = 0;
+	int			bits = 0;
 	
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -1030,7 +1034,7 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 
 	// register all skins
 	memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,
-		pheader->num_skins*MAX_SKINNAME);
+		(size_t)pheader->num_skins*MAX_SKINNAME);
 	for (i=0 ; i<pheader->num_skins ; i++)
 	{
 		mod->skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME

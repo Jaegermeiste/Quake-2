@@ -693,14 +693,14 @@ static byte splash_color[] = {0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8};
 
 void CL_ParseTEnt (void)
 {
-	int		type;
+	int		type = 0;
 	vec3_t	pos, pos2, dir;
-	explosion_t	*ex;
-	int		cnt;
-	int		color;
-	int		r;
-	int		ent;
-	int		magnitude;
+	explosion_t	*ex = NULL;
+	int		cnt = 0;
+	int		color = 0;
+	int		r = 0;
+	int		ent = 0;
+	int		magnitude = 0;
 
 	type = MSG_ReadByte (&net_message);
 
@@ -1214,7 +1214,8 @@ void CL_AddBeams (void)
 	float		forward;
 	float		len, steps;
 	float		model_length;
-	
+
+
 // update beams
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 	{
@@ -1595,13 +1596,13 @@ CL_AddExplosions
 */
 void CL_AddExplosions (void)
 {
-	entity_t	*ent;
-	int			i;
-	explosion_t	*ex;
-	float		frac;
-	int			f;
+	entity_t	*ent = NULL;
+	int			i = 0;
+	explosion_t	*ex = NULL;
+	float		frac = 0.0f;
+	int			f = 0;
 
-	memset (&ent, 0, sizeof(ent));
+	//memset (&ent, 0, sizeof(ent));
 
 	for (i=0, ex=cl_explosions ; i< MAX_EXPLOSIONS ; i++, ex++)
 	{
@@ -1611,6 +1612,7 @@ void CL_AddExplosions (void)
 		f = floor(frac);
 
 		ent = &ex->ent;
+		ent->skin = NULL;
 
 		switch (ex->type)
 		{

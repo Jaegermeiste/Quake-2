@@ -140,7 +140,7 @@ char *Sys_ScanForCD (void)
 	static qboolean	done;
 #ifndef DEMO
 	char		drive[4];
-	FILE		*f;
+	file_t		*f = NULL;
 	char		test[MAX_QPATH];
 
 	if (done)		// don't re-check
@@ -162,10 +162,11 @@ char *Sys_ScanForCD (void)
 		// where activision put the stuff...
 		sprintf (cddir, "%sinstall\\data", drive);
 		sprintf (test, "%sinstall\\data\\quake2.exe", drive);
-		f = fopen(test, "r");
+		FS_FOpenFileRead(test, &f);
 		if (f)
 		{
-			fclose (f);
+			FS_FCloseFile (f);
+			f = NULL;
 			if (GetDriveType (drive) == DRIVE_CDROM)
 				return cddir;
 		}
@@ -265,8 +266,8 @@ Sys_ConsoleInput
 char *Sys_ConsoleInput (void)
 {
 	INPUT_RECORD	recs[1024];
-	int		dummy;
-	int		ch, numread, numevents;
+	int		dummy = 0;
+	int		ch = 0, numread = 0, numevents = 0;
 
 	if (!dedicated || !dedicated->value)
 		return NULL;
@@ -475,13 +476,19 @@ void *Sys_GetGameAPI (void *parms)
 	char	name[MAX_OSPATH];
 	char	*path;
 	char	cwd[MAX_OSPATH];
-#if defined _M_IX86
-	const char *gamename = "gamex86.dll";
+
+#if defined(_M_AMD64) || defined (_M_IX86)
 
 #ifdef NDEBUG
 	const char *debugdir = "release";
 #else
 	const char *debugdir = "debug";
+#endif
+
+#if defined _M_AMD64
+	const char* gamename = "gamex64.dll";
+#elif defined _M_IX86 
+	const char* gamename = "gamex86.dll";
 #endif
 
 #elif defined _M_ALPHA
@@ -499,7 +506,10 @@ void *Sys_GetGameAPI (void *parms)
 		Com_Error (ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
 
 	// check the current debug directory first for development purposes
-	_getcwd (cwd, sizeof(cwd));
+    if (_getcwd(cwd, sizeof(cwd)) == NULL) {
+		Com_Error(ERR_FATAL, "Error getting current working directory");
+        return NULL;
+    }
 	Com_sprintf (name, sizeof(name), "%s/%s/%s", cwd, debugdir, gamename);
 	game_library = LoadLibrary ( name );
 	if (game_library)
@@ -591,11 +601,15 @@ WinMain
 */
 HINSTANCE	global_hInstance;
 
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nCmdShow)
 {
     MSG				msg;
-	int				time, oldtime, newtime;
-	char			*cddir;
+	int				time = 0, oldtime = 0, newtime = 0;
+	char			*cddir = NULL;
 
     /* previous instances do not exist in Win32 */
     if (hPrevInstance)
@@ -604,6 +618,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	global_hInstance = hInstance;
 
 	ParseCommandLine (lpCmdLine);
+
+	Z_Init();
 
 	// if we find the CD, add a +set cddir xxx command line
 	cddir = Sys_ScanForCD ();
@@ -652,7 +668,9 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 //			Con_Printf ("time:%5.2f - %5.2f = %5.2f\n", newtime, oldtime, time);
 
 		//	_controlfp( ~( _EM_ZERODIVIDE /*| _EM_INVALID*/ ), _MCW_EM );
+#ifndef _M_AMD64
 		_controlfp( _PC_24, _MCW_PC );
+#endif
 		Qcommon_Frame (time);
 
 		oldtime = newtime;

@@ -38,6 +38,31 @@ constexpr auto CHECKERBOARD_TEXTURE_NAME = L"CHECKERBOARD";
 
 namespace dx12
 {
+	typedef struct dds_header_s
+	{
+		uint32_t        size;
+		uint32_t        flags;
+		uint32_t        height;
+		uint32_t        width;
+		uint32_t        pitchOrLinearSize;
+		uint32_t        depth; // only if DDS_HEADER_FLAGS_VOLUME is set in flags
+		uint32_t        mipMapCount;
+		uint32_t        reserved1[11];
+		uint32_t        ddspfSize;
+		uint32_t        ddspfFlags;
+		uint32_t        ddspfFourCC;
+		uint32_t        ddspfRGBBitCount;
+		uint32_t        ddspfRBitMask;
+		uint32_t        ddspfGBitMask;
+		uint32_t        ddspfBBitMask;
+		uint32_t        ddspfABitMask;
+		uint32_t        caps1;
+		uint32_t        caps2;
+		uint32_t        caps3;
+		uint32_t        caps4;
+		uint32_t        reserved2;
+	} dds_header_t;
+
 	class ImageManager
 	{
 		friend class Draw;
@@ -49,30 +74,51 @@ namespace dx12
 
 		qhandle_t				m_lastHandle = 0;
 
-		void GetPalette(void);
-		static void LoadWal(std::wstring fileName, byte **pic, UINT64 &width, unsigned int &height);
-		static void LoadPCX(byte* raw, int len, byte **pic, byte **palette, UINT64 &width, unsigned int &height);
+		std::unique_ptr<ResourceUploadBatch>    m_resourceUploadBatch = nullptr;
 
-		
+		void GetPalette(void);
+		static void LoadWAL(byte* raw, size_t bufferLength, byte **pic, size_t &width, size_t &height);
+		static void LoadPCX(byte* raw, size_t bufferLength, byte **pic, byte **palette, size_t &width, size_t &height);
+		static void LoadTGA(byte* raw, size_t bufferLength, byte** pic, UINT64& width, unsigned int& height);
+
+		D3D12_SUBRESOURCE_DATA  	        DepalletizeRawData(size_t width, size_t height, unsigned int bpp, byte* raw, XMCOLOR* palette);
+		std::vector<D3D12_SUBRESOURCE_DATA> GetSubresourcesFromScratch(ScratchImage& scratch);
+		std::vector<D3D12_SUBRESOURCE_DATA> GetSubresourcesFromResource(ComPtr<ID3D12Resource> resource);
+
+		bool                                UploadSubresources(std::shared_ptr<dx12::Texture> texture);
+
+		byte*                               LoadImageFile(std::wstring name, imagetype_t type, std::wstring &fileFormat, size_t &bufferSize);
+
+		void                                ClearSubresources(std::shared_ptr<Texture> texture, size_t size);
 	
 	public:
-		bool							Initialize();
-		void							Shutdown();
+		bool				    			Initialize();
+		void					    		Shutdown();
 
-		XMCOLOR							m_8to32table[256] = {};
-		XMCOLOR							m_rawPalette[256] = {};
+		XMCOLOR						    	m_8to32table[256] = {};
+		XMCOLOR							    m_rawPalette[256] = {};
 
-		std::shared_ptr<Texture2D>		m_conChars = nullptr;
-		std::shared_ptr<Texture2D>		m_rawTexture = nullptr;
-		std::shared_ptr<Texture2D>		m_whiteTexture = nullptr;
-		std::shared_ptr<Texture2D>		m_checkerboardTexture = nullptr;
+		std::shared_ptr<Texture>    		m_conChars = nullptr;
+		std::shared_ptr<Texture>	    	m_rawTexture = nullptr;
+		std::shared_ptr<Texture>		    m_whiteTexture = nullptr;
+		std::shared_ptr<Texture>		    m_checkerboardTexture = nullptr;
 
-		void						    SetRawPalette(const unsigned char *palette);
+		std::vector<std::shared_ptr<Texture>> m_textures;
 
-		std::shared_ptr<Texture2D>	    Load(std::wstring name, imagetype_t type);
+		void						        SetRawPalette(const unsigned char *palette);
 
-		std::shared_ptr<Texture2D> 	    CreateTexture2DFromRaw(std::wstring name, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette);
-		void                     	    UpdateTexture2DFromRaw(std::shared_ptr<Texture2D> texture, unsigned int width, unsigned int height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette, bool update = true, std::shared_ptr<CommandList> commandList = nullptr);
+		
+
+		std::shared_ptr<Texture>	        Load(std::wstring name, imagetype_t type);
+		std::shared_ptr<Texture>	        LoadSky(std::wstring name);
+
+		std::shared_ptr<Texture>            CreateTexture(std::wstring name, imagetype_t type, size_t width, size_t height, bool generateMipmaps, DXGI_FORMAT format, D3D12_RESOURCE_DIMENSION dimension, size_t arraySize);
+		std::shared_ptr<Texture>            CreateTexture(std::wstring name, imagetype_t type, size_t width, size_t height, bool generateMipmaps, DXGI_FORMAT format, TEX_DIMENSION dimension, size_t arraySize);
+		std::shared_ptr<Texture> 	        CreateTextureFromRaw(std::wstring name, size_t width, size_t height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette);
+		void                     	        UpdateTexture(std::shared_ptr<Texture> texture);
+		void                    	        UpdateTextureFromRaw(std::shared_ptr<Texture> texture, size_t width, size_t height, bool generateMipmaps, unsigned int bpp, byte* raw, XMCOLOR* palette);
+
+		void                                Imagelist_f();
 	};
 
 

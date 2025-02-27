@@ -112,8 +112,8 @@ char	*SV_StatusString (void)
 	static char	status[MAX_MSGLEN - 16];
 	int		i;
 	client_t	*cl;
-	int		statusLength;
-	int		playerLength;
+	size_t		statusLength = 0;
+	size_t		playerLength = 0;
 
 	strcpy (status, Cvar_Serverinfo());
 	strcat (status, "\n");
@@ -1039,7 +1039,10 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect)
 
 	// free current level
 	if (sv.demofile)
-		fclose (sv.demofile);
+	{
+		FS_FCloseFile(sv.demofile);
+		sv.demofile = NULL;
+	}
 	memset (&sv, 0, sizeof(sv));
 	Com_SetServerState (sv.state);
 
@@ -1049,7 +1052,7 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect)
 	if (svs.client_entities)
 		Z_Free (svs.client_entities);
 	if (svs.demofile)
-		fclose (svs.demofile);
+		FS_FCloseFile(svs.demofile);
 	memset (&svs, 0, sizeof(svs));
 }
 

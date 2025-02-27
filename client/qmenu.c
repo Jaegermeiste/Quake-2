@@ -96,8 +96,8 @@ void Field_Draw( menufield_s *f )
 	Draw_Char( f->generic.x + f->generic.parent->x + 16, f->generic.y + f->generic.parent->y - 4, 18 );
 	Draw_Char( f->generic.x + f->generic.parent->x + 16, f->generic.y + f->generic.parent->y + 4, 24 );
 
-	Draw_Char( f->generic.x + f->generic.parent->x + 24 + f->visible_length * 8, f->generic.y + f->generic.parent->y - 4, 20 );
-	Draw_Char( f->generic.x + f->generic.parent->x + 24 + f->visible_length * 8, f->generic.y + f->generic.parent->y + 4, 26 );
+	Draw_Char( f->generic.x + f->generic.parent->x + 24 + (int)f->visible_length * 8, f->generic.y + f->generic.parent->y - 4, 20 );
+	Draw_Char( f->generic.x + f->generic.parent->x + 24 + (int)f->visible_length * 8, f->generic.y + f->generic.parent->y + 4, 26 );
 
 	for ( i = 0; i < f->visible_length; i++ )
 	{
@@ -109,7 +109,7 @@ void Field_Draw( menufield_s *f )
 
 	if ( Menu_ItemAtCursor( f->generic.parent ) == f )
 	{
-		int offset;
+		size_t offset = 0;
 
 		if ( f->visible_offset )
 			offset = f->visible_length;
@@ -118,13 +118,13 @@ void Field_Draw( menufield_s *f )
 
 		if ( ( ( int ) ( Sys_Milliseconds() / 250 ) ) & 1 )
 		{
-			Draw_Char( f->generic.x + f->generic.parent->x + ( offset + 2 ) * 8 + 8,
+			Draw_Char( f->generic.x + f->generic.parent->x + ( (int)offset + 2 ) * 8 + 8,
 					   f->generic.y + f->generic.parent->y,
 					   11 );
 		}
 		else
 		{
-			Draw_Char( f->generic.x + f->generic.parent->x + ( offset + 2 ) * 8 + 8,
+			Draw_Char( f->generic.x + f->generic.parent->x + ( (int)offset + 2 ) * 8 + 8,
 					   f->generic.y + f->generic.parent->y,
 					   ' ' );
 		}
@@ -201,7 +201,7 @@ qboolean Field_Key( menufield_s *f, int key )
 		
 		if ( ( cbd = Sys_GetClipboardData() ) != 0 )
 		{
-			strtok( cbd, "\n\r\b" );
+			int _ = strtok( cbd, "\n\r\b" );
 
 			strncpy( f->buffer, cbd, f->length - 1 );
 			f->cursor = strlen( f->buffer );
@@ -417,10 +417,10 @@ void Menu_DrawStatusBar( const char *string )
 {
 	if ( string )
 	{
-		int l = strlen( string );
+		size_t l = strlen( string );
 		int maxrow = VID_HEIGHT / 8;
 		int maxcol = VID_WIDTH / 8;
-		int col = maxcol / 2 - l / 2;
+		int col = maxcol / 2 - (int)l / 2;
 
 		Draw_Fill( 0, VID_HEIGHT-8, VID_WIDTH, 8, 4 );
 		Menu_DrawString( col*8, VID_HEIGHT - 8, string );

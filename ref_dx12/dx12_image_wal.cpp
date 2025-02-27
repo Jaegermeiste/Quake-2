@@ -29,26 +29,32 @@ ref_dx12
 LoadWal
 ================
 */
-void dx12::ImageManager::LoadWal(std::wstring fileName, byte **pic, UINT64 &width, unsigned int &height)
+void dx12::ImageManager::LoadWAL(byte* raw, size_t bufferLength, byte** pic, size_t& width, size_t& height)
 {
 	LOG_FUNC();
 
-	miptex_t		*mt = nullptr;
-	unsigned int	ofs = 0;
-
-	ref->client->FS_LoadFile(fileName, (void **)&mt);
-
-	if (!mt)
+	try
 	{
-		ref->client->Con_Printf(PRINT_ALL, L"LoadWal: can't load " + fileName + L"\n");
-		return;
+		miptex_t* miptex = reinterpret_cast<miptex_t*>(raw);
+		size_t	  offset = 0;
+
+		if (!miptex)
+		{
+			*pic = nullptr;
+			return;
+		}
+
+		width = LittleULong(miptex->width);
+		height = LittleULong(miptex->height);
+		offset = LittleULong(miptex->offsets[0]);
+
+		// WAL is effectively directly usable
+		*pic = (reinterpret_cast<byte*>(miptex) + offset);
 	}
-
-	width = LittleULong(mt->width);
-	height = LittleULong(mt->height);
-	ofs = LittleULong(mt->offsets[0]);
-
-	//image = GL_LoadPic(name, (byte *)mt + ofs, m_width, m_height, it_wall, 8);
-
-	ref->client->FS_FreeFile((void *)mt);
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
 }

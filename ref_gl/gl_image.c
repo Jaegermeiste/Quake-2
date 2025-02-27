@@ -467,7 +467,7 @@ void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *heigh
 		return;
 	}
 
-	out = malloc ( (pcx->ymax+1) * (pcx->xmax+1) );
+	out = malloc ( (size_t)(pcx->ymax+1) * (size_t)(pcx->xmax+1) );
 
 	*pic = out;
 
@@ -603,7 +603,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	if (height)
 		*height = rows;
 
-	targa_rgba = malloc (numPixels*4);
+	targa_rgba = malloc ((size_t)numPixels*4);
 	*pic = targa_rgba;
 
 	if (targa_header.id_length != 0)
@@ -995,7 +995,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	upload_width = scaled_width;
 	upload_height = scaled_height;
 
-	if (scaled_width * scaled_height > sizeof(scaled)/4)
+	if ((size_t)scaled_width * scaled_height > sizeof(scaled)/4)
 		ri.Sys_Error (ERR_DROP, "GL_Upload32: too big");
 
 	// scan the texture for any non-255 alpha

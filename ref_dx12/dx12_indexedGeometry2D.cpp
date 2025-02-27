@@ -25,7 +25,7 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-dx12::IndexedGeometry::IndexedGeometry()
+dx12::IndexedGeometry2D::IndexedGeometry2D()
 {
 	LOG_FUNC();
 
@@ -34,14 +34,14 @@ dx12::IndexedGeometry::IndexedGeometry()
 	m_uuid7 = L"";
 }
 
-dx12::IndexedGeometry::~IndexedGeometry()
+dx12::IndexedGeometry2D::~IndexedGeometry2D()
 {
 	LOG_FUNC();
 
 	Shutdown();
 }
 
-bool dx12::IndexedGeometry::CreateBuffers(Vertex2D* vertices, size_t vertexBufferSize, unsigned long* indices, size_t indexBufferSize)
+bool dx12::IndexedGeometry2D::CreateBuffers(Vertex2D* vertices, size_t vertexBufferSize, unsigned long* indices, size_t indexBufferSize)
 {
 	LOG_FUNC();
 
@@ -88,7 +88,7 @@ bool dx12::IndexedGeometry::CreateBuffers(Vertex2D* vertices, size_t vertexBuffe
 	return false;
 }
 
-bool dx12::IndexedGeometry::UpdateVertexBuffer(std::shared_ptr<CommandList> commandList, Vertex2D* vertices, size_t bufferSize) {
+bool dx12::IndexedGeometry2D::UpdateVertexBuffer(std::shared_ptr<CommandList> commandList, Vertex2D* vertices, size_t bufferSize) {
 	LOG_FUNC();
 
 	try {
@@ -106,7 +106,7 @@ bool dx12::IndexedGeometry::UpdateVertexBuffer(std::shared_ptr<CommandList> comm
 	return false;
 }
 
-bool dx12::IndexedGeometry::UpdateIndexBuffer(std::shared_ptr<CommandList> commandList, unsigned long* indices, size_t bufferSize) {
+bool dx12::IndexedGeometry2D::UpdateIndexBuffer(std::shared_ptr<CommandList> commandList, unsigned long* indices, size_t bufferSize) {
 	LOG_FUNC();
 
 	try {
@@ -124,7 +124,7 @@ bool dx12::IndexedGeometry::UpdateIndexBuffer(std::shared_ptr<CommandList> comma
 	return false;
 }
 
-void dx12::IndexedGeometry::RenderBuffers(std::shared_ptr<CommandList> commandList) const
+void dx12::IndexedGeometry2D::RenderBuffers(std::shared_ptr<CommandList> commandList) const
 {
 	LOG_FUNC();
 
@@ -134,12 +134,12 @@ void dx12::IndexedGeometry::RenderBuffers(std::shared_ptr<CommandList> commandLi
 			D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
 			vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 			vertexBufferView.StrideInBytes = sizeof(Vertex2D);
-			vertexBufferView.SizeInBytes = sizeof(Vertex2D) * m_vertexBuffer->VertexCount();
+			vertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(Vertex2D) * m_vertexBuffer->VertexCount());
 
 			D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 			indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
 			indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-			indexBufferView.SizeInBytes = sizeof(unsigned long) * m_indexBuffer->IndexCount();
+			indexBufferView.SizeInBytes = static_cast<UINT>(sizeof(unsigned long) * m_indexBuffer->IndexCount());
 
 			// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 			commandList->List()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -150,7 +150,7 @@ void dx12::IndexedGeometry::RenderBuffers(std::shared_ptr<CommandList> commandLi
 			// Set the index buffer to active in the input assembler so it can be rendered.
 			commandList->List()->IASetIndexBuffer(&indexBufferView);
 
-			commandList->List()->DrawIndexedInstanced(m_indexBuffer->IndexCount(), 1, 0, 0, 0);
+			commandList->List()->DrawIndexedInstanced(static_cast<UINT>(m_indexBuffer->IndexCount()), 1, 0, 0, 0);
 
 #ifdef _DEBUG
 			DumpD3DDebugMessagesToLog();
@@ -169,23 +169,41 @@ void dx12::IndexedGeometry::RenderBuffers(std::shared_ptr<CommandList> commandLi
 	}
 }
 
-void dx12::IndexedGeometry::Render(std::shared_ptr<CommandList> commandList)
+void dx12::IndexedGeometry2D::Render(std::shared_ptr<CommandList> commandList)
 {
 	LOG_FUNC();
 
-	if (commandList)
+	try
 	{
-		RenderBuffers(commandList);
+		if (commandList)
+		{
+			RenderBuffers(commandList);
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }
 
-void dx12::IndexedGeometry::Shutdown()
+void dx12::IndexedGeometry2D::Shutdown()
 {
-	if (m_indexBuffer) {
-		SAFE_RELEASE(m_indexBuffer);
-	}
+	try
+	{
+		if (m_indexBuffer) {
+			SAFE_RELEASE(m_indexBuffer);
+		}
 
-	if (m_vertexBuffer) {
-		SAFE_RELEASE(m_vertexBuffer);
+		if (m_vertexBuffer) {
+			SAFE_RELEASE(m_vertexBuffer);
+		}
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
 	}
 }

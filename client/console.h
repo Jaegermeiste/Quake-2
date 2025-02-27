@@ -24,12 +24,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define	NUM_CON_TIMES 4
 
-#define		CON_TEXTSIZE	32768
+#define		CON_TEXTSIZE	32768 * 4
 typedef struct
 {
 	qboolean	initialized;
 
-	char	text[CON_TEXTSIZE];
+	char*   text; //[CON_TEXTSIZE]; // Do this on the heap, not the stack
 	int		current;		// line where next message will be printed
 	int		x;				// offset in current line for next print
 	int		display;		// bottom of console displays this line
@@ -53,6 +53,7 @@ void Con_DrawCharacter (int cx, int line, int num);
 
 void Con_CheckResize (void);
 void Con_Init (void);
+void Con_Shutdown(void);
 void Con_DrawConsole (float frac);
 void Con_Print (char *txt);
 void Con_CenteredPrint (char *text);

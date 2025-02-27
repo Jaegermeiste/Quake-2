@@ -483,16 +483,22 @@ typedef struct vidmode_s
 
 vidmode_t vid_modes[] =
 {
-	{ "Mode 0: 320x240",   320, 240,   0 },
-	{ "Mode 1: 400x300",   400, 300,   1 },
-	{ "Mode 2: 512x384",   512, 384,   2 },
-	{ "Mode 3: 640x480",   640, 480,   3 },
-	{ "Mode 4: 800x600",   800, 600,   4 },
-	{ "Mode 5: 960x720",   960, 720,   5 },
-	{ "Mode 6: 1024x768",  1024, 768,  6 },
-	{ "Mode 7: 1152x864",  1152, 864,  7 },
-	{ "Mode 8: 1280x960",  1280, 960, 8 },
-	{ "Mode 9: 1600x1200", 1600, 1200, 9 }
+	{ "Mode 00: 320x240",   320, 240,   0 },
+	{ "Mode 01: 400x300",   400, 300,   1 },
+	{ "Mode 02: 512x384",   512, 384,   2 },
+	{ "Mode 03: 640x480",   640, 480,   3 },
+	{ "Mode 04: 800x600",   800, 600,   4 },
+	{ "Mode 05: 960x720",   960, 720,   5 },
+	{ "Mode 06: 1024x768",  1024, 768,  6 },
+	{ "Mode 07: 1152x864",  1152, 864,  7 },
+	{ "Mode 08: 1280x960",  1280, 960,  8 },
+	{ "Mode 09: 1600x1200", 1600, 1200, 9 },
+
+	{ "Mode 10: 1280x720",  1280, 720,  10 },
+	{ "Mode 11: 1920x1080", 1920, 1080, 11 },
+	{ "Mode 12: 2560x1440", 2560, 1440, 12 },
+
+	{ "Mode 13: 3440x1440", 3440, 1440, 13 }
 };
 
 qboolean VID_GetModeInfo( int *width, int *height, int mode )
@@ -569,8 +575,25 @@ qboolean VID_LoadRefresh( char *name )
 
 	if ( ( reflib_library = LoadLibrary( name ) ) == 0 )
 	{
-		Com_Printf( "LoadLibrary(\"%s\") failed\n", name );
+		DWORD error = GetLastError();
 
+		switch (error) {
+		case ERROR_FILE_NOT_FOUND:
+			Com_Printf("LoadLibrary(\"%s\") failed: DLL not found!\n", name);
+			break;
+		case ERROR_PATH_NOT_FOUND:
+			Com_Printf("LoadLibrary(\"%s\") failed: Path not found!\n", name);
+			break;
+		case ERROR_MOD_NOT_FOUND:
+			Com_Printf("LoadLibrary(\"%s\") failed: Dependency not found!\n", name);
+			break;
+		case ERROR_BAD_EXE_FORMAT:
+			Com_Printf("LoadLibrary(\"%s\") failed: Invalid DLL format!\n", name);
+			break;
+		default:
+			Com_Printf("LoadLibrary(\"%s\") failed: Unknown error (%i)! \n", name, error);
+		}
+		
 		return false;
 	}
 
@@ -621,6 +644,8 @@ qboolean VID_LoadRefresh( char *name )
 			vidref_val = VIDREF_GL;
 		else if(!strcmp(vid_ref->string, "soft"))
 			vidref_val = VIDREF_SOFT;
+		else if (!strcmp(vid_ref->string, "dx12"))
+			vidref_val = VIDREF_OTHER;
 	}
 //PGM
 //======

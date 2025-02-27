@@ -84,10 +84,10 @@ typedef struct
 	menucommon_s generic;
 
 	char		buffer[80];
-	int			cursor;
-	int			length;
-	int			visible_length;
-	int			visible_offset;
+	size_t		cursor;
+	size_t		length;
+	size_t		visible_length;
+	size_t		visible_offset;
 } menufield_s;
 
 typedef struct 
