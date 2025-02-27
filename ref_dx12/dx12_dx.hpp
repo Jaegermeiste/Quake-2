@@ -67,8 +67,11 @@ namespace dx12
 		LARGE_INTEGER								m_clockFrameEndCurrent{};
 		LARGE_INTEGER								m_clockFrameEndPrevious{};
 
-		ComPtr<IDXGIFactory6>				        m_dxgiFactory = nullptr;
+		ComPtr<IDXGIFactory6>				        m_dxgiFactory                   = nullptr;
 		ComPtr<IDXGIAdapter4>				        m_dxgiAdapter					= nullptr;
+
+		ComPtr<IDXGIOutput6>                        m_dxgiOutput                    = nullptr;
+		bool                                        m_hdrSupport                    = false;
 
 		ComPtr<ID3D12Device14>				        m_d3dDevice						= nullptr;
 
@@ -123,6 +126,7 @@ namespace dx12
 
 		bool										InitFactory(HWND hWnd);
 		bool										InitAdapter();
+		bool										InitDisplay(HWND hWnd);
 		bool										InitDeviceDebug();
 		bool										InitDevice(HWND hWnd);
 		bool                                        InitFeatures();

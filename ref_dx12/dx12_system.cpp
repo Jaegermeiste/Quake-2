@@ -83,9 +83,9 @@ bool dx12::System::VID_CreateWindow()
 
 		if ((ref->cvars->r_customWidth->Int() <= 0) || (ref->cvars->r_customHeight->Int() <= 0))
 		{
-			if (!ref->client->Vid_GetModeInfo(width, height, ref->cvars->dxr_mode->Int()))
+			if (!ref->client->Vid_GetModeInfo(width, height, ref->cvars->mode->Int()))
 			{
-				ref->client->Con_Printf(PRINT_ALL, std::format(" invalid mode {}\n", ref->cvars->dxr_mode->Int()));
+				ref->client->Con_Printf(PRINT_ALL, std::format(" invalid mode {}\n", ref->cvars->mode->Int()));
 				return false;
 			}
 		}

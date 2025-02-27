@@ -82,9 +82,11 @@ namespace dx12
 
 		std::shared_ptr<Cvar>  scr_drawall;
 
-		std::shared_ptr<Cvar>  dxr_mode;
+		std::shared_ptr<Cvar>  mode;
 		std::shared_ptr<Cvar>  r_customWidth;
 		std::shared_ptr<Cvar>  r_customHeight;
+
+		std::shared_ptr<Cvar>  hdr10;
 
 		std::shared_ptr<Cvar>  flushmap;
 

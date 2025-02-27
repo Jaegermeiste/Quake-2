@@ -814,9 +814,9 @@ bool dx12::Dx::Initialize(HWND hWnd)
 
 		if ((ref->cvars->r_customWidth->Int() <= 0) || (ref->cvars->r_customHeight->Int() <= 0))
 		{
-			if (!ref->client->Vid_GetModeInfo(m_modeWidth, m_modeHeight, ref->cvars->dxr_mode->Int()))
+			if (!ref->client->Vid_GetModeInfo(m_modeWidth, m_modeHeight, ref->cvars->mode->Int()))
 			{
-				ref->client->Con_Printf(PRINT_ALL, std::format(" invalid mode {}\n", ref->cvars->dxr_mode->Int()));
+				ref->client->Con_Printf(PRINT_ALL, std::format(" invalid mode {}\n", ref->cvars->mode->Int()));
 				return false;
 			}
 		}
@@ -835,6 +835,12 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		if (!InitAdapter())
 		{
 			LOG(error) << "Failed to create DXGI adapter.";
+			return false;
+		}
+
+		if (!InitDisplay(hWnd))
+		{
+			LOG(error) << "Failed to identify display.";
 			return false;
 		}
 
@@ -1072,6 +1078,112 @@ bool dx12::Dx::InitAdapter()
 		}
 
 		LOG(error) << "Unable to create DGXI adapter.";
+	}
+	catch (const std::runtime_error& e) {
+		LOG(error) << "Runtime Error: " << e.what();
+	}
+	catch (const std::exception& e) {
+		LOG(error) << "General Exception: " << e.what();
+	}
+
+	return false;
+}
+
+bool dx12::Dx::InitDisplay(HWND hWnd)
+{
+	LOG_FUNC();
+
+	try
+	{
+		HRESULT hr = E_UNEXPECTED;
+
+		if (m_dxgiAdapter)
+		{
+			LOG(info) << "Identifying current display...";
+
+			UINT i = 0;
+			ComPtr<IDXGIOutput> currentOutput = nullptr;
+			ComPtr<IDXGIOutput> bestOutput = nullptr;
+			float bestIntersectArea = -1;
+
+			// Get window dimensions
+			RECT rc = {};
+			GetClientRect(hWnd, &rc);
+			// Get the rectangle bounds of the app window
+			int ax1 = rc.left;
+			int ay1 = rc.top;
+			int ax2 = rc.right;
+			int ay2 = rc.bottom;
+
+			while (m_dxgiAdapter->EnumOutputs(i, &currentOutput) != DXGI_ERROR_NOT_FOUND)
+			{
+				// Get the rectangle bounds of current output
+				DXGI_OUTPUT_DESC desc = {};
+				hr = currentOutput->GetDesc(&desc);
+
+				if (FAILED(hr)) 
+				{
+					LOG(error) << "Unable to get display output desc: " << GetD3D12ErrorMessage(hr);
+
+					return false;
+				}
+
+				int bx1 = desc.DesktopCoordinates.left;
+				int by1 = desc.DesktopCoordinates.top;
+				int bx2 = desc.DesktopCoordinates.right;
+				int by2 = desc.DesktopCoordinates.bottom;
+
+				// Compute the intersection
+				int intersectArea = std::max(0, std::min(ax2, bx2) - std::max(ax1, bx1)) * std::max(0, std::min(ay2, by2) - std::max(ay1, by1));
+				if (intersectArea > bestIntersectArea)
+				{
+					bestOutput = currentOutput;
+					bestIntersectArea = static_cast<float>(intersectArea);
+				}
+
+				i++;
+			}
+
+			// Upgrade to latest
+			hr = bestOutput.As(&m_dxgiOutput);
+
+			if (FAILED(hr))
+			{
+				LOG(error) << "Unable to get display output: " << GetD3D12ErrorMessage(hr);
+
+				return false;
+			}
+
+			DXGI_OUTPUT_DESC1 desc1 = {};
+			hr = m_dxgiOutput->GetDesc1(&desc1);
+
+			if (FAILED(hr))
+			{
+				LOG(error) << "Unable to get display output desc: " << GetD3D12ErrorMessage(hr);
+
+				return false;
+			}
+
+			m_hdrSupport = (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+
+			if (m_hdrSupport)
+			{
+				ref->client->Con_Printf(PRINT_ALL, L"HDR-capable display identified.");
+
+				if (ref->cvars->hdr10->Bool())
+				{
+					m_backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+				}
+			}
+			else if (ref->cvars->hdr10->Bool())
+			{
+				// Force off
+				ref->cvars->hdr10->Set(false);
+				ref->cvars->hdr10->SetModified(false);
+			}
+
+			return true;
+		}
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -1982,6 +2094,8 @@ void dx12::Dx::D3D_Shutdown()
 		SAFE_RELEASE(m_swapChain);
 
 		SAFE_RELEASE(m_d3dDevice);
+
+		SAFE_RELEASE(m_dxgiOutput);
 
 		SAFE_RELEASE(m_dxgiAdapter);
 

@@ -27,7 +27,7 @@ typedef enum reftypes_s
 	REF_3DFX,
 	REF_POWERVR,
 	//REF_VERITE,
-	REF_DXR,
+	REF_DX,
 	MAX_REFS
 } reftypes_e;
 
@@ -36,7 +36,8 @@ extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
 
-static cvar_t* dxr_mode;
+static cvar_t* dx12_mode;
+static cvar_t* dx12_hdr10;
 
 static cvar_t *gl_mode;
 static cvar_t *gl_driver;
@@ -58,11 +59,11 @@ MENU INTERACTION
 */
 #define SOFTWARE_MENU 0
 #define OPENGL_MENU   1
-#define DXR_MENU      2
+#define DX_MENU       2
 
 static menuframework_s  s_software_menu;
 static menuframework_s	s_opengl_menu;
-static menuframework_s	s_dxr_menu;
+static menuframework_s	s_dx_menu;
 static menuframework_s *s_current_menu;
 static int				s_current_menu_index;
 
@@ -75,6 +76,7 @@ static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
 static menulist_s  		s_finish_box;
+static menulist_s  		s_hdr_box;
 static menuaction_s		s_cancel_action[3];
 static menuaction_s		s_defaults_action[3];
 
@@ -87,10 +89,10 @@ static void DriverCallback( void *unused )
 		s_current_menu = &s_software_menu;
 		s_current_menu_index = SOFTWARE_MENU;
 	}
-	else if (s_ref_list[s_current_menu_index].curvalue == REF_DXR)
+	else if (s_ref_list[s_current_menu_index].curvalue == REF_DX)
 	{
-		s_current_menu = &s_dxr_menu;
-		s_current_menu_index = DXR_MENU;
+		s_current_menu = &s_dx_menu;
+		s_current_menu_index = DX_MENU;
 	}
 	else // OPENGL_MENU
 	{
@@ -155,7 +157,8 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_finish", s_finish_box.curvalue );
 	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
 	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
-	Cvar_SetValue( "dxr_mode", s_mode_list[DXR_MENU].curvalue );
+	Cvar_SetValue( "dx12_mode", s_mode_list[DX_MENU].curvalue );
+	Cvar_SetValue( "dx12_hdr10", s_hdr_box.curvalue);
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
 	{
@@ -178,7 +181,7 @@ static void ApplyChanges( void *unused )
 		Cvar_Set( "vid_ref", "gl" );
 		Cvar_Set( "gl_driver", "veritegl" );
 		break;*/
-	case REF_DXR:
+	case REF_DX:
 		Cvar_Set("vid_ref", "dx12");
 		break;
 	}
@@ -213,7 +216,7 @@ static void ApplyChanges( void *unused )
 			vid_ref->modified = true;
 	}
 
-	if (sw_mode->modified || gl_mode->modified || dxr_mode->modified|| vid_fullscreen->modified)
+	if (sw_mode->modified || gl_mode->modified || dx12_mode->modified || dx12_hdr10->modified || vid_fullscreen->modified)
 	{
 		vid_ref->modified = true;
 	}
@@ -279,8 +282,10 @@ void VID_MenuInit( void )
 		gl_mode = Cvar_Get( "gl_mode", "3", 0 );
 	if ( !sw_mode )
 		sw_mode = Cvar_Get( "sw_mode", "0", 0 );
-	if (!dxr_mode)
-		dxr_mode = Cvar_Get("dxr_mode", "11", 0);
+	if (!dx12_mode)
+		dx12_mode = Cvar_Get("dx12_mode", "11", 0);
+	if (!dx12_hdr10)
+		dx12_hdr10 = Cvar_Get("dx12_hdr10", "0", 0);
 	if ( !gl_ext_palettedtexture )
 		gl_ext_palettedtexture = Cvar_Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 	if ( !gl_finish )
@@ -291,14 +296,14 @@ void VID_MenuInit( void )
 
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
-	s_mode_list[DXR_MENU].curvalue = dxr_mode->value;
+	s_mode_list[DX_MENU].curvalue = dx12_mode->value;
 
 	if ( !scr_viewsize )
 		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 
 	s_screensize_slider[SOFTWARE_MENU].curvalue = scr_viewsize->value/10;
 	s_screensize_slider[OPENGL_MENU].curvalue = scr_viewsize->value/10;
-	s_screensize_slider[DXR_MENU].curvalue = scr_viewsize->value / 10;
+	s_screensize_slider[DX_MENU].curvalue = scr_viewsize->value / 10;
 
 	if ( strcmp( vid_ref->string, "soft" ) == 0 )
 	{
@@ -320,16 +325,16 @@ void VID_MenuInit( void )
 	}
 	else if (strcmp(vid_ref->string, "dx12") == 0)
 	{
-		s_current_menu_index = DXR_MENU;
-		s_ref_list[0].curvalue = s_ref_list[1].curvalue = s_ref_list[2].curvalue = REF_DXR;
+		s_current_menu_index = DX_MENU;
+		s_ref_list[0].curvalue = s_ref_list[1].curvalue = s_ref_list[2].curvalue = REF_DX;
 	}
 
 	s_software_menu.x = viddef.width * 0.50;
 	s_software_menu.nitems = 0;
 	s_opengl_menu.x = viddef.width * 0.50;
 	s_opengl_menu.nitems = 0;
-	s_dxr_menu.x = viddef.width * 0.50;
-	s_dxr_menu.nitems = 0;
+	s_dx_menu.x = viddef.width * 0.50;
+	s_dx_menu.nitems = 0;
 
 	for ( i = 0; i < 3; i++ )
 	{
@@ -412,6 +417,13 @@ void VID_MenuInit( void )
 	s_finish_box.curvalue = gl_finish->value;
 	s_finish_box.itemnames = yesno_names;
 
+	s_hdr_box.generic.type = MTYPE_SPINCONTROL;
+	s_hdr_box.generic.x = 0;
+	s_hdr_box.generic.y = 50;
+	s_hdr_box.generic.name = "enable HDR10";
+	s_hdr_box.curvalue = dx12_hdr10->value;
+	s_hdr_box.itemnames = yesno_names;
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
@@ -428,25 +440,26 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_paletted_texture_box );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_finish_box );
 
-	Menu_AddItem(&s_dxr_menu, (void*)&s_ref_list[DXR_MENU]);
-	Menu_AddItem(&s_dxr_menu, (void*)&s_mode_list[DXR_MENU]);
-	Menu_AddItem(&s_dxr_menu, (void*)&s_screensize_slider[DXR_MENU]);
-	Menu_AddItem(&s_dxr_menu, (void*)&s_brightness_slider[DXR_MENU]);
-	Menu_AddItem(&s_dxr_menu, (void*)&s_fs_box[DXR_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_ref_list[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_mode_list[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_screensize_slider[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_brightness_slider[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_fs_box[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_hdr_box);
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_cancel_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_defaults_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_cancel_action[OPENGL_MENU] );
-	Menu_AddItem(&s_dxr_menu, (void*)&s_defaults_action[DXR_MENU]);
-	Menu_AddItem(&s_dxr_menu, (void*)&s_cancel_action[DXR_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_defaults_action[DX_MENU]);
+	Menu_AddItem(&s_dx_menu, (void*)&s_cancel_action[DX_MENU]);
 
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );
-	Menu_Center(&s_dxr_menu);
+	Menu_Center(&s_dx_menu);
 	s_opengl_menu.x -= 8;
 	s_software_menu.x -= 8;
-	s_dxr_menu.x -= 8;
+	s_dx_menu.x -= 8;
 }
 
 /*
@@ -463,7 +476,7 @@ void VID_MenuDraw (void)
 	else if (s_current_menu_index == REF_OPENGL )
 		s_current_menu = &s_opengl_menu;
 	else
-		s_current_menu = &s_dxr_menu;
+		s_current_menu = &s_dx_menu;
 
 	/*
 	** draw the banner

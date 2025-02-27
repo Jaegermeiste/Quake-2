@@ -39,10 +39,12 @@ dx12::Cvars::Cvars()
 
 		scr_drawall             = std::make_shared<Cvar>(L"scr_drawall",                  1,                                     CVAR_ARCHIVE);
 
-		dxr_mode				= std::make_shared<Cvar>(L"dxr_mode",						11,														CVAR_ARCHIVE);
+		mode				    = std::make_shared<Cvar>(L"dx12_mode",						11,														CVAR_ARCHIVE);
 	#if defined(DEBUG) || defined (_DEBUG)
 		r_customWidth			= std::make_shared<Cvar>(L"r_customwidth",					1280,													CVAR_ARCHIVE);
 		r_customHeight			= std::make_shared<Cvar>(L"r_customheight",					720,													CVAR_ARCHIVE);
+
+		hdr10                   = std::make_shared<Cvar>(L"dx12_hdr10",                    1,                                        CVAR_ARCHIVE);
 	#else
 		r_customWidth			= std::make_shared<Cvar>(L"r_customwidth",					1920,													CVAR_ARCHIVE);
 		r_customHeight			= std::make_shared<Cvar>(L"r_customheight",					1280,													CVAR_ARCHIVE);
