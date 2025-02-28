@@ -49,7 +49,7 @@ namespace dx12
 		bool						VID_CreateWindow();
 		void						VID_DestroyWindow();
 
-		boost::uuids::time_generator_v7 uuid7_gen;
+		
 
 	public:
 		std::unique_ptr<Dx>			dx;			// Backend
@@ -66,19 +66,6 @@ namespace dx12
 		bool						SetCurrentWorkingDirectory(std::wstring directory);
 
 		bool						DoesFileExist(std::wstring fileName);
-
-		std::wstring				ToWideString(std::string inStr);
-		std::wstring				ToWideString(std::string_view inStr);
-		std::wstring				ToWideString(WCHAR* inWideStr);
-		std::wstring				ToWideString(const WCHAR* inWideStr);
-		std::wstring				ToWideString(const char* inStr);
-		std::string					ToString(std::wstring inStr);
-		std::string					ToString(WCHAR* inWideStr);
-
-		std::wstring                GetUUIDv7() { return boost::uuids::to_wstring(uuid7_gen()); };
-
-		Vector2                     GetNormalizedDeviceCoordinates(int px, int py, int windowWidth, int windowHeight);
-		Vector4                     GetNormalizedDeviceRectangle (int px, int py, int pw, int ph, int windowWidth, int windowHeight);
 	};
 };
 

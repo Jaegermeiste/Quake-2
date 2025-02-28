@@ -197,6 +197,7 @@
     <ClInclude Include="dx12_system.hpp" />
     <ClInclude Include="dx12_testTriangle.hpp" />
     <ClInclude Include="dx12_texture.hpp" />
+    <ClInclude Include="dx12_utility.hpp" />
     <ClInclude Include="dx12_vertexBuffer.hpp" />
     <ClInclude Include="dx12_web.hpp" />
     <ClInclude Include="dx12_xplit.hpp" />
@@ -253,6 +254,7 @@
     <ClCompile Include="dx12_system.cpp" />
     <ClCompile Include="dx12_testTriangle.cpp" />
     <ClCompile Include="dx12_texture.cpp" />
+    <ClCompile Include="dx12_utility.cpp" />
     <ClCompile Include="dx12_web.cpp" />
     <ClCompile Include="dx12_xplit.cpp" />
   </ItemGroup>

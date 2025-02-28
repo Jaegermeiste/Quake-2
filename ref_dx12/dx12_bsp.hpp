@@ -41,15 +41,15 @@ namespace dx12
 	class BSP
 	{
 	protected:
-		std::wstring				m_name;
-		unsigned int				m_version;
+		std::wstring				m_name        = L"";
+		unsigned int				m_version     = 0;
 
-		size_t				        m_numVertices;
-		Vertex3D*					m_vertices;
+		size_t				        m_numVertices = 0;
+		Vertex3D*					m_vertices    = nullptr;
 
 		std::vector<int>            m_indices;
 
-		bsp_disk_header*			m_header = nullptr;
+		bsp_disk_header*			m_header      = nullptr;
 
 		size_t		                LoadDiskVertices_v29_v38(void* data, unsigned int offset, size_t length);
 		virtual size_t      		LoadVertices() = 0;

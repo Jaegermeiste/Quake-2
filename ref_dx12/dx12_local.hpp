@@ -363,7 +363,7 @@ namespace dx12 {
     } Frustum;
 }
 
-
+#include "dx12_utility.hpp"
 #include "dx12_cvar.hpp"
 #include "dx12_descriptorHeap.hpp"
 #include "dx12_commandList.hpp"

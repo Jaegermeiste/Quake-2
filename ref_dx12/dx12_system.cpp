@@ -287,7 +287,7 @@ std::wstring dx12::System::GetCurrentWorkingDirectory()
 			currentWorkingDirectory[MAX_PATH] = 0;
 		}
 
-		LOG(info) << "Current working directory is " << ref->sys->ToWideString(currentWorkingDirectory);
+		LOG(info) << "Current working directory is " << ToWideString(currentWorkingDirectory);
 
 		// Release ownership of the critical section.
 		LOG(trace) << "Leaving critical section";
@@ -435,96 +435,4 @@ bool dx12::System::DoesFileExist(std::wstring fileName)
 	}
 }
 
-std::wstring dx12::System::ToWideString(std::string inStr)
-{
-	if (inStr.empty())
-	{
-		return std::wstring();
-	}
 
-	return boost::locale::conv::utf_to_utf<wchar_t>(inStr);
-}
-
-std::wstring dx12::System::ToWideString(std::string_view inStr)
-{
-	if (inStr.empty())
-	{
-		return std::wstring();
-	}
-
-	return ToWideString(inStr.data());
-}
-
-std::wstring dx12::System::ToWideString(WCHAR* inWideStr)
-{
-	if (!inWideStr)
-	{
-		return std::wstring();
-	}
-
-	return std::wstring(inWideStr);
-}
-
-std::wstring dx12::System::ToWideString(const WCHAR* inWideStr)
-{
-	if (!inWideStr)
-	{
-		return std::wstring();
-	}
-
-	return std::wstring(inWideStr);
-}
-
-std::wstring dx12::System::ToWideString(const char* inStr)
-{
-	if (inStr == nullptr)
-	{
-		return std::wstring();
-	}
-
-	return boost::locale::conv::utf_to_utf<wchar_t>(inStr);
-}
-
-std::string dx12::System::ToString(std::wstring inWideStr)
-{
-	if (inWideStr.empty())
-	{
-		return std::string();
-	}
-
-	return boost::locale::conv::utf_to_utf<char>(inWideStr);
-}
-
-std::string dx12::System::ToString(WCHAR* inWideStr)
-{
-	if (!inWideStr)
-	{
-		return std::string();
-	}
-
-	return boost::locale::conv::utf_to_utf<char>(inWideStr);
-}
-
-Vector2 dx12::System::GetNormalizedDeviceCoordinates(int px, int py, int windowWidth, int windowHeight)
-{
-	Vector2 v = {};
-
-	// Convert pixel coordinates to NDC (-1 to 1 range)
-	v.x = (2.0f * px / windowWidth) - 1.0f;   // Convert x
-	v.y = 1.0f - (2.0f * py / windowHeight);  // Convert y
-
-	return v;
-}
-
-Vector4 dx12::System::GetNormalizedDeviceRectangle(int px, int py, int pw, int ph, int windowWidth, int windowHeight)
-{
-	Vector4 v = {};
-
-	// Convert pixel coordinates to NDC (-1 to 1 range)
-	v.x = (2.0f * px / windowWidth) - 1.0f;
-	v.y = 1.0f - (2.0f * py / windowHeight);
-	v.z = 2.0f * pw / windowWidth;
-	v.w = 2.0f * ph / windowHeight;
-
-	return v;
-}

@@ -46,7 +46,7 @@ bool dx12::IndexedGeometry2D::CreateBuffers(Vertex2D* vertices, size_t vertexBuf
 	LOG_FUNC();
 
 	try {
-		m_uuid7 = ref->sys->GetUUIDv7();
+		m_uuid7 = GetUUIDv7();
 
 		m_vertexBuffer = ref->res->CreateResource<VertexBuffer>(L"Vertex_" + m_uuid7);
 

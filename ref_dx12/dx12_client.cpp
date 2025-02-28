@@ -25,42 +25,6 @@ ref_dx12
 
 #include "dx12_local.hpp"
 
-void dx12::Client::Sys_Error(unsigned short err_level, std::wstring str)
-{
-	LOG_FUNC();
-
-	try
-	{
-		std::string errLevelStr = "ERR_FATAL";
-
-		// Wait for exclusive access
-		std::lock_guard<std::mutex> guard(m_refImportMutex);
-
-		if (err_level == ERR_DROP)
-		{
-			errLevelStr = "ERR_DROP";
-			LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
-		}
-		else if (err_level == ERR_QUIT)
-		{
-			errLevelStr = "ERR_QUIT";
-			LOG(error) << "<err_level> " << errLevelStr << " <string> " << str;
-		}
-		else
-		{
-			LOG(fatal) << "<err_level> " << errLevelStr << " <string> " << str;
-		}
-
-		m_refImport.Sys_Error(err_level, const_cast<char*>(ref->sys->ToString(str).c_str()));
-	}
-	catch (const std::runtime_error& e) {
-		LOG(error) << "Runtime Error: " << e.what();
-	}
-	catch (const std::exception& e) {
-		LOG(error) << "General Exception: " << e.what();
-	}
-}
-
 void dx12::Client::Cmd_AddCommand(std::wstring name, void(*cmd)())
 {
 	LOG_FUNC();
@@ -73,7 +37,7 @@ void dx12::Client::Cmd_AddCommand(std::wstring name, void(*cmd)())
 		LOG(info) << "<name> " << name << " <cmd> " << cmd;
 
 		char* cName = new char[64]();
-		strncpy_s(cName, 64, ref->sys->ToString(name).c_str(), name.length());
+		strncpy_s(cName, 64, ToString(name).c_str(), name.length());
 		m_cmdNames.push_back(cName);
 
 		m_refImport.Cmd_AddCommand(m_cmdNames.back(), cmd);
@@ -97,7 +61,7 @@ void dx12::Client::Cmd_RemoveCommand(std::wstring name)
 
 		LOG(info) << "<name> " << name;
 
-		m_refImport.Cmd_RemoveCommand(const_cast<char*>(ref->sys->ToString(name).c_str()));
+		m_refImport.Cmd_RemoveCommand(const_cast<char*>(ToString(name).c_str()));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -137,7 +101,7 @@ std::wstring dx12::Client::Cmd_Argv(unsigned int i)
 		// Wait for exclusive access
 		std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-		return ref->sys->ToWideString(m_refImport.Cmd_Argv(clientIndex));
+		return ToWideString(m_refImport.Cmd_Argv(clientIndex));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -173,7 +137,7 @@ void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::wstring text)
 
 		LOG(info) << "<exec_when> " << execWhenStr << " <text> " << text;
 
-		m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(ref->sys->ToString(text).c_str()));
+		m_refImport.Cmd_ExecuteText(clientWhen, const_cast<char*>(ToString(text).c_str()));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -181,41 +145,6 @@ void dx12::Client::Cmd_ExecuteText(unsigned int exec_when, std::wstring text)
 	catch (const std::exception& e) {
 		LOG(error) << "General Exception: " << e.what();
 	}
-}
-
-void dx12::Client::Con_Printf(unsigned short print_level, std::wstring str)
-{
-	LOG_FUNC();
-
-	try
-	{
-		std::wstring printLevelStr = L"PRINT_ALL";
-
-		if (print_level == PRINT_DEVELOPER)
-		{
-			printLevelStr = L"PRINT_DEVELOPER";
-		}
-
-		// Wait for exclusive access
-		std::lock_guard<std::mutex> guard(m_refImportMutex);
-
-		LOG(info) << "[" << printLevelStr << "]: " << str;
-
-		str += L"\n";
-
-		m_refImport.Con_Printf(print_level, const_cast<char*>(ref->sys->ToString(str).c_str()));
-	}
-	catch (const std::runtime_error& e) {
-		LOG(error) << "Runtime Error: " << e.what();
-	}
-	catch (const std::exception& e) {
-		LOG(error) << "General Exception: " << e.what();
-	}
-}
-
-void dx12::Client::Con_Printf(unsigned short print_level, std::string str)
-{
-	Con_Printf(print_level, ref->sys->ToWideString(str));
 }
 
 int dx12::Client::FS_LoadFile(std::wstring fileName, void** buf)
@@ -229,7 +158,7 @@ int dx12::Client::FS_LoadFile(std::wstring fileName, void** buf)
 
 		LOG(trace) << "<fileName> " << fileName << " <buf> " << buf;
 
-		int retVal = m_refImport.FS_LoadFile(const_cast<char*>(ref->sys->ToString(fileName).c_str()), buf);
+		int retVal = m_refImport.FS_LoadFile(const_cast<char*>(ToString(fileName).c_str()), buf);
 
 		if (retVal > 0)
 		{
@@ -278,7 +207,7 @@ std::wstring dx12::Client::FS_Gamedir(void)
 		// Wait for exclusive access
 		std::lock_guard<std::mutex> guard(m_refImportMutex);
 
-		return ref->sys->ToWideString(m_refImport.FS_Gamedir());
+		return ToWideString(m_refImport.FS_Gamedir());
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -320,7 +249,7 @@ std::wstring dx12::Client::FS_GamedirAbsolute(void)
 		}
 		else
 		{
-			LOG(info) << "The full path name is: " << ref->sys->ToWideString(absoluteGamedirBuffer);
+			LOG(info) << "The full path name is: " << ToWideString(absoluteGamedirBuffer);
 		}
 
 		return absoluteGamedirBuffer;
@@ -481,7 +410,7 @@ void Sys_Error(char* error, ...)
 		wchar_t		text[1024];
 
 		va_start(argptr, error);
-		vswprintf(text, 1024, dx12::ref->sys->ToWideString(error).c_str(), argptr);
+		vswprintf(text, 1024, ToWideString(error).c_str(), argptr);
 		va_end(argptr);
 
 		dx12::ref->client->Sys_Error(ERR_FATAL, text);
@@ -502,7 +431,7 @@ void Com_Printf(char* fmt, ...)
 		wchar_t		text[1024];
 
 		va_start(argptr, fmt);
-		vswprintf(text, 1024, dx12::ref->sys->ToWideString(fmt).c_str(), argptr);
+		vswprintf(text, 1024, ToWideString(fmt).c_str(), argptr);
 		va_end(argptr);
 
 		dx12::ref->client->Con_Printf(PRINT_ALL, text);

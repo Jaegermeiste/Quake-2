@@ -223,7 +223,7 @@ resourceHandleQ2_t* dx12::ResourceManager::GetResourceHandleQuake2(dxhandle_t ha
 			m_handlesQ2.at(handle)->m_handle = handle;
 
 			// Name it, because the client does evil things to the handle for skins
-			sz::memcpy(m_handlesQ2.at(handle)->m_name, ref->sys->ToString(resource->GetName()).c_str(), MAX_QPATH);
+			sz::memcpy(m_handlesQ2.at(handle)->m_name, ToString(resource->GetName()).c_str(), MAX_QPATH);
 
 			// Retrieve a raw pointer to the flyweight
 			q2handle = m_handlesQ2.at(handle).get();

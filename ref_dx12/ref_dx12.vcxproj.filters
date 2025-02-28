@@ -156,9 +156,6 @@
     <ClInclude Include="dx12_quad2D.hpp">
       <Filter>Header Files\Backend</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files\Backend</Filter>
-    </ClInclude>
     <ClInclude Include="dx12_client.hpp">
       <Filter>Header Files\Frontend</Filter>
     </ClInclude>
@@ -191,6 +188,12 @@
     </ClInclude>
     <ClInclude Include="dx12_material.hpp">
       <Filter>Header Files\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="dx12_utility.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +340,9 @@
     </ClCompile>
     <ClCompile Include="..\win32\q_shwin.c">
       <Filter>Source Files\Q2base\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="dx12_utility.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

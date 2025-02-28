@@ -117,7 +117,7 @@ static void BrightnessCallback( void *s )
 		s_brightness_slider[2].curvalue = s_brightness_slider[1].curvalue = s_brightness_slider[0].curvalue;
 	else if (s_current_menu_index == OPENGL_MENU)
 		s_brightness_slider[2].curvalue = s_brightness_slider[0].curvalue = s_brightness_slider[1].curvalue;
-	else // DXR_MENU
+	else // DX_MENU
 		s_brightness_slider[0].curvalue = s_brightness_slider[1].curvalue = s_brightness_slider[2].curvalue;
 
 	if ( _stricmp( vid_ref->string, "soft" ) == 0 )

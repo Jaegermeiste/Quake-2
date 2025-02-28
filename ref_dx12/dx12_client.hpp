@@ -57,16 +57,99 @@ namespace dx12
 
 		void			SetRefImport		(refimport_t rimp);
 
-		void			Sys_Error			(unsigned short err_level, std::wstring str);
-
 		void			Cmd_AddCommand		(std::wstring name, void(*cmd)());
 		void			Cmd_RemoveCommand	(std::wstring name);
 		unsigned int	Cmd_Argc			(void);
 		std::wstring	Cmd_Argv			(unsigned int i);
 		void			Cmd_ExecuteText		(unsigned int exec_when, std::wstring text);
 
-		void			Con_Printf          (unsigned short print_level, std::wstring str);
-		void			Con_Printf          (unsigned short print_level, std::string str);
+		template<typename T, typename... Args>
+		void Con_Printf(unsigned short print_level, T formatString, Args&&... args)
+		{
+			LOG_FUNC();
+
+			try
+			{
+				std::wstring printLevelStr = L"PRINT_ALL";
+
+				if (print_level == PRINT_DEVELOPER)
+				{
+					printLevelStr = L"PRINT_DEVELOPER";
+				}
+
+				std::wstring outStr = L"";
+				
+				if (sizeof...(args) == 0)
+				{
+					outStr = ToWideString(formatString);
+				}
+				else
+				{
+					outStr = Format(formatString, std::forward<Args>(args)...);
+				}
+
+				// Wait for exclusive access
+				std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+				LOG(info) << "[" << printLevelStr << "]: " << outStr;
+
+				outStr += L"\n";
+
+				m_refImport.Con_Printf(print_level, const_cast<char*>(ToString(outStr).c_str()));
+			}
+			catch (const std::runtime_error& e) {
+				LOG(error) << "Runtime Error: " << e.what();
+			}
+			catch (const std::exception& e) {
+				LOG(error) << "General Exception: " << e.what();
+			}
+		}
+
+		template<typename T, typename... Args>
+		void Sys_Error(unsigned short err_level, T formatString, Args&&... args)
+		{
+			LOG_FUNC();
+
+			try
+			{
+				std::wstring errLevelStr = L"ERR_FATAL";
+
+				if (err_level == ERR_DROP)
+				{
+					errLevelStr = L"ERR_DROP";
+				}
+				else if (err_level == ERR_QUIT)
+				{
+					errLevelStr = L"ERR_QUIT";
+				}
+
+				std::wstring outStr = L"";
+
+				if (sizeof...(args) == 0)
+				{
+					outStr = ToWideString(formatString);
+				}
+				else
+				{
+					outStr = Format(formatString, std::forward<Args>(args)...);
+				}
+
+				// Wait for exclusive access
+				std::lock_guard<std::mutex> guard(m_refImportMutex);
+
+				LOG(info) << "[" << errLevelStr << "]: " << outStr;
+
+				outStr += L"\n";
+
+				m_refImport.Sys_Error(err_level, const_cast<char*>(ToString(outStr).c_str()));
+			}
+			catch (const std::runtime_error& e) {
+				LOG(error) << "Runtime Error: " << e.what();
+			}
+			catch (const std::exception& e) {
+				LOG(error) << "General Exception: " << e.what();
+			}
+		};
 
 		int				FS_LoadFile			(std::wstring fileName, void **buf);
 		void			FS_FreeFile			(void *buf);

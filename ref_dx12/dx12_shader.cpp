@@ -230,7 +230,7 @@ bool dx12::Shader::Compile(std::wstring fileName, shaderTarget target)
 			(target == SHADER_TARGET_DXR_HIT) ||
 			(target == SHADER_TARGET_DXR_RAYGEN))
 		{
-			target = L"lib_6_3";
+			target = L"lib_6_6";
 		}
 		else
 		{
@@ -306,7 +306,7 @@ bool dx12::Shader::Compile(std::wstring fileName, shaderTarget target)
 		{
 			ComPtr<ID3DBlob>	errorMessage = nullptr;
 
-			hr = D3DCompileFromFile(fileName.c_str(), NULL, NULL, ref->sys->ToString(entryPoint).c_str(), ref->sys->ToString(target).c_str(), shaderCompileFlags, 0, &m_d3dBlob, &errorMessage);
+			hr = D3DCompileFromFile(fileName.c_str(), NULL, NULL, ToString(entryPoint).c_str(), ToString(target).c_str(), shaderCompileFlags, 0, &m_d3dBlob, &errorMessage);
 
 			if (FAILED(hr))
 			{

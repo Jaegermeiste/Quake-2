@@ -238,43 +238,7 @@ void dx12::Dx::BeginFrame(void)
 	}
 }
 
-static bool IsValidPointer(void* ptr) 
-{
-	LOG_FUNC();
 
-	if (ptr == nullptr)
-	{
-		return false;
-	}
-
-	try {
-#ifdef _WIN32
-		MEMORY_BASIC_INFORMATION mbi = {};
-		if (VirtualQuery(ptr, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) == 0)
-		{
-			return false; // Pointer is not valid
-		}
-
-		return mbi.State == MEM_COMMIT; // Ensures it's committed memory
-
-#else
-		long pageSize = sysconf(_SC_PAGESIZE);
-		void* pageStart = (void*)((uintptr_t)ptr & ~(pageSize - 1));
-
-		unsigned char status;
-		if (mincore(pageStart, pageSize, &status) == 0)
-			return true;
-#endif
-	}
-	catch (const std::runtime_error& e) {
-		LOG(error) << "Runtime Error: " << e.what();
-	}
-	catch (const std::exception& e) {
-		LOG(error) << "General Exception: " << e.what();
-	}
-
-	return false;
-}
 
 void dx12::Dx::RenderFrame(refdef_t * fd) const
 {
@@ -336,7 +300,7 @@ void dx12::Dx::RenderFrame(refdef_t * fd) const
 				// Entities
 				for (unsigned int i = 0; i < fd->num_entities; i++)
 				{
-					entity_t* entity = fd->entities + (sizeof(entity_t) * i);
+					entity_t* entity = fd->entities + i;
 
 					if (IsValidPointer(entity))
 					{
@@ -514,31 +478,7 @@ void dx12::Dx::EndFrame(void)
 	}
 }
 
-std::wstring FormatMemory(size_t usage)
-{
-	static float gib = 1073741824.0f;
-	static float mib = 1048576.0f;
-	static float kib = 1024.0f;
 
-	if (usage > gib)
-	{
-		return std::format(L"{:.3} GiB", usage / gib);
-	}
-	else if (usage > mib)
-	{
-		return std::format(L"{:.3} MiB", usage / mib);
-	}
-	else if (usage > kib)
-	{
-		return std::format(L"{:.3} KiB", usage / kib);
-	}
-	else
-	{
-		return std::format(L"{} B", usage);
-	}
-
-	return L"";
-}
 
 void dx12::Dx::D3D_Strings_f() const
 {
@@ -556,7 +496,7 @@ void dx12::Dx::D3D_Strings_f() const
 
 		std::wstringstream hexValue;
 
-		ref->client->Con_Printf(PRINT_ALL, L"    Adapter Description: " + ref->sys->ToWideString(m_adapterDesc.Description));
+		ref->client->Con_Printf(PRINT_ALL, L"    Adapter Description: " + ToWideString(m_adapterDesc.Description));
 		ref->client->Con_Printf(PRINT_ALL, L"");
 
 		hexValue.str(std::wstring());
@@ -626,106 +566,106 @@ void dx12::Dx::D3D_Capabilities_f()
 		ref->client->Con_Printf(PRINT_ALL, L"D3D Capabilities: ");
 
 		// D3D12 Options
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tDoublePrecisionFloatShaderOps: {}", static_cast<bool>(m_featureSupport.DoublePrecisionFloatShaderOps())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tOutputMergerLogicOp: {}", static_cast<bool>(m_featureSupport.OutputMergerLogicOp())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tMinPrecisionSupport: {}", magic_enum::enum_name(m_featureSupport.MinPrecisionSupport())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tTiledResourcesTier: {}", magic_enum::enum_name(m_featureSupport.TiledResourcesTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tResourceBindingTier: {}", magic_enum::enum_name(m_featureSupport.ResourceBindingTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tPSSpecifiedStencilRefSupported: {}", static_cast<bool>(m_featureSupport.PSSpecifiedStencilRefSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tTypedUAVLoadAdditionalFormats: {}", static_cast<bool>(m_featureSupport.TypedUAVLoadAdditionalFormats())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tROVsSupported: {}", static_cast<bool>(m_featureSupport.ROVsSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tConservativeRasterizationTier: {}", magic_enum::enum_name(m_featureSupport.ConservativeRasterizationTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tStandardSwizzle64KBSupported: {}", static_cast<bool>(m_featureSupport.StandardSwizzle64KBSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCrossAdapterRowMajorTextureSupported: {}", static_cast<bool>(m_featureSupport.CrossAdapterRowMajorTextureSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tVPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation: {}", static_cast<bool>(m_featureSupport.VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tResourceHeapTier: {}", magic_enum::enum_name(m_featureSupport.ResourceHeapTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tDoublePrecisionFloatShaderOps: {}", static_cast<bool>(m_featureSupport.DoublePrecisionFloatShaderOps()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tOutputMergerLogicOp: {}", static_cast<bool>(m_featureSupport.OutputMergerLogicOp()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tMinPrecisionSupport: {}", magic_enum::enum_name(m_featureSupport.MinPrecisionSupport()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tTiledResourcesTier: {}", magic_enum::enum_name(m_featureSupport.TiledResourcesTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tResourceBindingTier: {}", magic_enum::enum_name(m_featureSupport.ResourceBindingTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tPSSpecifiedStencilRefSupported: {}", static_cast<bool>(m_featureSupport.PSSpecifiedStencilRefSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tTypedUAVLoadAdditionalFormats: {}", static_cast<bool>(m_featureSupport.TypedUAVLoadAdditionalFormats()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tROVsSupported: {}", static_cast<bool>(m_featureSupport.ROVsSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tConservativeRasterizationTier: {}", magic_enum::enum_name(m_featureSupport.ConservativeRasterizationTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tStandardSwizzle64KBSupported: {}", static_cast<bool>(m_featureSupport.StandardSwizzle64KBSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCrossAdapterRowMajorTextureSupported: {}", static_cast<bool>(m_featureSupport.CrossAdapterRowMajorTextureSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tVPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation: {}", static_cast<bool>(m_featureSupport.VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tResourceHeapTier: {}", magic_enum::enum_name(m_featureSupport.ResourceHeapTier()));
 
 		// Feature Levels
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tMaxSupportedFeatureLevel: {}", StringForFeatureLevel(m_featureSupport.MaxSupportedFeatureLevel())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tMaxSupportedFeatureLevel: {}", StringForFeatureLevel(m_featureSupport.MaxSupportedFeatureLevel()));
 
 		// Shader Model
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tHighestShaderModel: {}", magic_enum::enum_name(m_featureSupport.HighestShaderModel())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tHighestShaderModel: {}", magic_enum::enum_name(m_featureSupport.HighestShaderModel()));
 
 		// Root Signature
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tHighestRootSignatureVersion: {}", magic_enum::enum_name(m_featureSupport.HighestRootSignatureVersion())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tHighestRootSignatureVersion: {}", magic_enum::enum_name(m_featureSupport.HighestRootSignatureVersion()));
 
 		// Protected Resource Session
 		for (UINT nodeIndex = 0; nodeIndex < m_d3dDevice->GetNodeCount(); nodeIndex++)
 		{
-			ref->client->Con_Printf(PRINT_ALL, std::format("\tProtectedResourceSessionSupport (Node {}): {}", nodeIndex, magic_enum::enum_flags_name(m_featureSupport.ProtectedResourceSessionSupport(nodeIndex))));
+			ref->client->Con_Printf(PRINT_ALL, L"\tProtectedResourceSessionSupport (Node {}): {}", nodeIndex, magic_enum::enum_flags_name(m_featureSupport.ProtectedResourceSessionSupport(nodeIndex)));
 		}
 
 		// Architecture
 		for (UINT nodeIndex = 0; nodeIndex < m_d3dDevice->GetNodeCount(); nodeIndex++)
 		{
-			ref->client->Con_Printf(PRINT_ALL, std::format(L"\tIsolatedMMU (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.IsolatedMMU(nodeIndex))));
-			ref->client->Con_Printf(PRINT_ALL, std::format(L"\tTileBasedRenderer (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.TileBasedRenderer(nodeIndex))));
-			ref->client->Con_Printf(PRINT_ALL, std::format(L"\tUMA (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.UMA(nodeIndex))));
-			ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCacheCoherentUMA (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.CacheCoherentUMA(nodeIndex))));
+			ref->client->Con_Printf(PRINT_ALL, L"\tIsolatedMMU (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.IsolatedMMU(nodeIndex)));
+			ref->client->Con_Printf(PRINT_ALL, L"\tTileBasedRenderer (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.TileBasedRenderer(nodeIndex)));
+			ref->client->Con_Printf(PRINT_ALL, L"\tUMA (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.UMA(nodeIndex)));
+			ref->client->Con_Printf(PRINT_ALL, L"\tCacheCoherentUMA (Node {}): {}", nodeIndex, static_cast<bool>(m_featureSupport.CacheCoherentUMA(nodeIndex)));
 		}
 
 		// Options2
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tDepthBoundsTestSupported: {}", static_cast<bool>(m_featureSupport.DepthBoundsTestSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tProgrammableSamplePositionsTier: {}", magic_enum::enum_name(m_featureSupport.ProgrammableSamplePositionsTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tDepthBoundsTestSupported: {}", static_cast<bool>(m_featureSupport.DepthBoundsTestSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tProgrammableSamplePositionsTier: {}", magic_enum::enum_name(m_featureSupport.ProgrammableSamplePositionsTier()));
 
 		// Shader Cache
 		
 
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tShaderCacheSupportFlags: {}", magic_enum::enum_flags_name(m_featureSupport.ShaderCacheSupportFlags())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tShaderCacheSupportFlags: {}", magic_enum::enum_flags_name(m_featureSupport.ShaderCacheSupportFlags()));
 
 		// Command Queue Priority
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCommandQueuePrioritySupported (Direct, Normal): {}", static_cast<bool>(m_featureSupport.CommandQueuePrioritySupported(D3D12_COMMAND_LIST_TYPE_DIRECT, (UINT)D3D12_COMMAND_QUEUE_PRIORITY_NORMAL))));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCommandQueuePrioritySupported (Copy, Global Realtime): {}", static_cast<bool>(m_featureSupport.CommandQueuePrioritySupported(D3D12_COMMAND_LIST_TYPE_COPY, (UINT)D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME))));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCommandQueuePrioritySupported (Direct, Normal): {}", static_cast<bool>(m_featureSupport.CommandQueuePrioritySupported(D3D12_COMMAND_LIST_TYPE_DIRECT, (UINT)D3D12_COMMAND_QUEUE_PRIORITY_NORMAL)));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCommandQueuePrioritySupported (Copy, Global Realtime): {}", static_cast<bool>(m_featureSupport.CommandQueuePrioritySupported(D3D12_COMMAND_LIST_TYPE_COPY, (UINT)D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME)));
 
 		// Options3
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCopyQueueTimestampQueriesSupported: {}", static_cast<bool>(m_featureSupport.CopyQueueTimestampQueriesSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCastingFullyTypedFormatSupported: {}", static_cast<bool>(m_featureSupport.CastingFullyTypedFormatSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tWriteBufferImmediateSupportFlags: {}", magic_enum::enum_flags_name(m_featureSupport.WriteBufferImmediateSupportFlags())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tViewInstancingTier: {}", magic_enum::enum_name(m_featureSupport.ViewInstancingTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tBarycentricsSupported: {}", static_cast<bool>(m_featureSupport.BarycentricsSupported())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCopyQueueTimestampQueriesSupported: {}", static_cast<bool>(m_featureSupport.CopyQueueTimestampQueriesSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCastingFullyTypedFormatSupported: {}", static_cast<bool>(m_featureSupport.CastingFullyTypedFormatSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tWriteBufferImmediateSupportFlags: {}", magic_enum::enum_flags_name(m_featureSupport.WriteBufferImmediateSupportFlags()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tViewInstancingTier: {}", magic_enum::enum_name(m_featureSupport.ViewInstancingTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tBarycentricsSupported: {}", static_cast<bool>(m_featureSupport.BarycentricsSupported()));
 
 		// Existing Heaps
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tExistingHeapsSupported: {}", static_cast<bool>(m_featureSupport.ExistingHeapsSupported())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tExistingHeapsSupported: {}", static_cast<bool>(m_featureSupport.ExistingHeapsSupported()));
 
 		// Options4
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tMSAA64KBAlignedTextureSupported: {}", static_cast<bool>(m_featureSupport.MSAA64KBAlignedTextureSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tSharedResourceCompatibilityTier: {}", magic_enum::enum_name(m_featureSupport.SharedResourceCompatibilityTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tNative16BitShaderOpsSupported: {}", static_cast<bool>(m_featureSupport.Native16BitShaderOpsSupported())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tMSAA64KBAlignedTextureSupported: {}", static_cast<bool>(m_featureSupport.MSAA64KBAlignedTextureSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tSharedResourceCompatibilityTier: {}", magic_enum::enum_name(m_featureSupport.SharedResourceCompatibilityTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tNative16BitShaderOpsSupported: {}", static_cast<bool>(m_featureSupport.Native16BitShaderOpsSupported()));
 
 		// Serialization
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tHeapSerializationTier: {}", magic_enum::enum_name(m_featureSupport.HeapSerializationTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tHeapSerializationTier: {}", magic_enum::enum_name(m_featureSupport.HeapSerializationTier()));
 
 		// Cross Node
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tCrossNodeAtomicShaderInstructions: {}", static_cast<bool>(m_featureSupport.CrossNodeAtomicShaderInstructions())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tCrossNodeAtomicShaderInstructions: {}", static_cast<bool>(m_featureSupport.CrossNodeAtomicShaderInstructions()));
 
 		// Options5
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tSRVOnlyTiledResourceTier3: {}", static_cast<bool>(m_featureSupport.SRVOnlyTiledResourceTier3())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tRenderPassesTier: {}", magic_enum::enum_name(m_featureSupport.RenderPassesTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tRaytracingTier: {}", magic_enum::enum_name(m_featureSupport.RaytracingTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tSRVOnlyTiledResourceTier3: {}", static_cast<bool>(m_featureSupport.SRVOnlyTiledResourceTier3()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tRenderPassesTier: {}", magic_enum::enum_name(m_featureSupport.RenderPassesTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tRaytracingTier: {}", magic_enum::enum_name(m_featureSupport.RaytracingTier()));
 
 		// Options6
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tVariableShadingRateTier: {}", magic_enum::enum_name(m_featureSupport.VariableShadingRateTier())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tAdditionalShadingRatesSupported: {}", static_cast<bool>(m_featureSupport.AdditionalShadingRatesSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tPerPrimitiveShadingRateSupportedWithViewportIndexing: {}", static_cast<bool>(m_featureSupport.PerPrimitiveShadingRateSupportedWithViewportIndexing())));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tShadingRateImageTileSize: {}", m_featureSupport.ShadingRateImageTileSize()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tVariableShadingRateTier: {}", magic_enum::enum_name(m_featureSupport.VariableShadingRateTier()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tAdditionalShadingRatesSupported: {}", static_cast<bool>(m_featureSupport.AdditionalShadingRatesSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tPerPrimitiveShadingRateSupportedWithViewportIndexing: {}", static_cast<bool>(m_featureSupport.PerPrimitiveShadingRateSupportedWithViewportIndexing()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tShadingRateImageTileSize: {}", m_featureSupport.ShadingRateImageTileSize());
 
 		// Mesh Shader
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tMeshShaderTier: {}", magic_enum::enum_name(m_featureSupport.MeshShaderTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tMeshShaderTier: {}", magic_enum::enum_name(m_featureSupport.MeshShaderTier()));
 
 		// Sampler Feedback
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tSamplerFeedbackTier: {}", magic_enum::enum_name(m_featureSupport.SamplerFeedbackTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tSamplerFeedbackTier: {}", magic_enum::enum_name(m_featureSupport.SamplerFeedbackTier()));
 
 		// Options7
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tEnhancedBarriersSupported: {}", static_cast<bool>(m_featureSupport.EnhancedBarriersSupported())));
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tWorkGraphsTier: {}", magic_enum::enum_name(m_featureSupport.WorkGraphsTier())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tEnhancedBarriersSupported: {}", static_cast<bool>(m_featureSupport.EnhancedBarriersSupported()));
+		ref->client->Con_Printf(PRINT_ALL, L"\tWorkGraphsTier: {}", magic_enum::enum_name(m_featureSupport.WorkGraphsTier()));
 
 		// Tight Alignment (DX12 Agility SDK v1.716+)
-		ref->client->Con_Printf(PRINT_ALL, std::format("\tTightAlignmentSupportTier: {}", magic_enum::enum_name(m_featureSupport.TightAlignmentSupportTier())));
+		ref->client->Con_Printf(PRINT_ALL, "\tTightAlignmentSupportTier: {}", magic_enum::enum_name(m_featureSupport.TightAlignmentSupportTier()));
 
 		// Options8 (DX12 Agility SDK v1.8+)
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tMeshShaderPipelineStatsSupported: {}", static_cast<bool>(m_featureSupport.MeshShaderPipelineStatsSupported())));
-		//ref->client->Con_Printf(PRINT_ALL, std::format(L"\tShaderExecutionReorderingSupported: {}", static_cast<bool>(m_featureSupport.ShaderExecutionReorderingSupported()))));
-		ref->client->Con_Printf(PRINT_ALL, std::format(L"\tAtomicInt64OnTypedResourceSupported: {}", static_cast<bool>(m_featureSupport.AtomicInt64OnTypedResourceSupported())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tMeshShaderPipelineStatsSupported: {}", static_cast<bool>(m_featureSupport.MeshShaderPipelineStatsSupported()));
+		//ref->client->Con_Printf(PRINT_ALL, L"\tShaderExecutionReorderingSupported: {}", static_cast<bool>(m_featureSupport.ShaderExecutionReorderingSupported())));
+		ref->client->Con_Printf(PRINT_ALL, L"\tAtomicInt64OnTypedResourceSupported: {}", static_cast<bool>(m_featureSupport.AtomicInt64OnTypedResourceSupported()));
 
 
 	}
@@ -816,7 +756,7 @@ bool dx12::Dx::Initialize(HWND hWnd)
 		{
 			if (!ref->client->Vid_GetModeInfo(m_modeWidth, m_modeHeight, ref->cvars->mode->Int()))
 			{
-				ref->client->Con_Printf(PRINT_ALL, std::format(" invalid mode {}\n", ref->cvars->mode->Int()));
+				ref->client->Sys_Error(ERR_DROP, "!!! invalid mode {}\n", ref->cvars->mode->Int());
 				return false;
 			}
 		}
@@ -828,109 +768,109 @@ bool dx12::Dx::Initialize(HWND hWnd)
 
 		if (!InitFactory(hWnd))
 		{
-			LOG(error) << "Failed to create DXGI factory.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create DXGI factory.");
 			return false;
 		}
 
 		if (!InitAdapter())
 		{
-			LOG(error) << "Failed to create DXGI adapter.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create DXGI adapter.");
 			return false;
 		}
 
 		if (!InitDisplay(hWnd))
 		{
-			LOG(error) << "Failed to identify display.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to identify display.");
 			return false;
 		}
 
 		if (!InitDevice(hWnd))
 		{
-			LOG(error) << "Failed to create D3D device.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create D3D device.");
 			return false;
 		}
 
 		if (!InitFeatures())
 		{
-			LOG(error) << "Failed to enumerate features.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to enumerate features.");
 			return false;
 		}
 
 		if (!InitFences())
 		{
-			LOG(error) << "Failed to create fences.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create fences.");
 			return false;
 		}
 
 		if (!InitRootSignature())
 		{
-			LOG(error) << "Failed to create main root signature.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create main root signature.");
 			return false;
 		}
 
 		if (!InitSwapPipelineState())
 		{
-			LOG(error) << "Failed to create swap pipeline state.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create swap pipeline state.");
 			return false;
 		}
 
 		if (!InitDescriptorHeaps())
 		{
-			LOG(error) << "Failed to create descriptor heap.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create descriptor heap.");
 			return false;
 		}
 
 		if (!InitViewport())
 		{
-			LOG(error) << "Failed to initialize viewport.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to initialize viewport.");
 			return false;
 		}
 
 		if (!InitScissorRect())
 		{
-			LOG(error) << "Failed to initialize scissor rectangle.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to initialize scissor rectangle.");
 			return false;
 		}
 
 		if (!InitConstantBuffer())
 		{
-			LOG(error) << "Failed to initialize constant buffer.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to initialize constant buffer.");
 			return false;
 		}
 
 		if (!InitCommandObjects())
 		{
-			LOG(error) << "Failed to create command objects.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create command objects.");
 			return false;
 		}
 
 		if (!InitSwapChain(hWnd))
 		{
-			LOG(error) << "Failed to create Swap Chain.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create Swap Chain.");
 			return false;
 		}
 
 		if (!InitBackBufferRenderTargets())
 		{
-			LOG(error) << "Failed to create back buffers.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create back buffers.");
 			return false;
 		}
 
 		if ((!subsystem2D) || (!subsystem2D->Initialize()))
 		{
-			LOG(error) << "Failed to create 2D overlay subsystem (GUI)";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create 2D overlay subsystem (GUI)");
 			return false;
 		}
 
 		/*if ((!subsystemText) || (!subsystemText->Initialize()))
 		{
-			LOG(error) << "Failed to create text subsystem.";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create text subsystem.");
 			return false;
 		}*/
 
 		if ((!subsystem3D) || (!subsystem3D->Initialize()))
 		{
-			LOG(error) << "Failed to create 3D subsystem";
+			ref->client->Sys_Error(ERR_DROP, "Failed to create 3D subsystem");
 			return false;
 		}
 
@@ -1164,15 +1104,23 @@ bool dx12::Dx::InitDisplay(HWND hWnd)
 				return false;
 			}
 
+			ref->client->Con_Printf(PRINT_ALL, L"------- Display -------");
+			
+			ref->client->Con_Printf(PRINT_ALL, L"\tName: {}", desc1.DeviceName);
+			ref->client->Con_Printf(PRINT_ALL, L"\tDimensions: {} x {}", (desc1.DesktopCoordinates.right - desc1.DesktopCoordinates.left), (desc1.DesktopCoordinates.bottom - desc1.DesktopCoordinates.top));
+			ref->client->Con_Printf(PRINT_ALL, L"\tBit Depth: {}", desc1.BitsPerColor);
+			ref->client->Con_Printf(PRINT_ALL, L"\tColor Space: {}", magic_enum::enum_name(desc1.ColorSpace));
+
 			m_hdrSupport = (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
 
 			if (m_hdrSupport)
 			{
-				ref->client->Con_Printf(PRINT_ALL, L"HDR-capable display identified.");
+				ref->client->Con_Printf(PRINT_ALL, L"\t\tHDR10-capable display identified.");
 
 				if (ref->cvars->hdr10->Bool())
 				{
 					m_backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+
 				}
 			}
 			else if (ref->cvars->hdr10->Bool())
@@ -1181,6 +1129,8 @@ bool dx12::Dx::InitDisplay(HWND hWnd)
 				ref->cvars->hdr10->Set(false);
 				ref->cvars->hdr10->SetModified(false);
 			}
+
+			ref->client->Con_Printf(PRINT_ALL, L"-----------------------");
 
 			return true;
 		}
@@ -1338,7 +1288,7 @@ bool dx12::Dx::InitDevice(HWND hWnd)
 
 		if (SUCCEEDED(hr))
 		{
-			LOG(info) << "Successfully created DirectX 12 device at " << StringForFeatureLevel(m_featureLevel);
+			ref->client->Con_Printf(PRINT_ALL, std::format(L"Successfully created DirectX 12 device at {}", StringForFeatureLevel(m_featureLevel)));
 
 			D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
 			hr = m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5));
@@ -1461,8 +1411,10 @@ bool dx12::Dx::InitFences()
 
 			if (m_fenceEvent == nullptr)
 			{
-				LOG(error) << "Failed to create fence event.";
-				DX::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+				hr = HRESULT_FROM_WIN32(GetLastError());
+
+				LOG(error) << "Failed to create fence event: " << GetD3D12ErrorMessage(hr);
+				return false;
 			}
 
 			LOG(info) << "Successfully created fence event.";
@@ -1721,7 +1673,9 @@ bool dx12::Dx::InitSwapChain(HWND hWnd)
 		if (m_dxgiFactory)
 		{
 			// Create swap chain
-			LOG(info) << "Creating swap chain...";
+			ref->client->Con_Printf(PRINT_ALL, "Creating swap chain...");
+
+			ref->client->Con_Printf(PRINT_ALL, std::format("\tUsing backbuffer format {}", magic_enum::enum_name(m_backBufferFormat)));
 
 			DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 			ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));

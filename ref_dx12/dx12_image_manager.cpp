@@ -338,18 +338,18 @@ void dx12::ImageManager::Imagelist_f()
 		ref->client->Con_Printf(PRINT_ALL, L"-----------------------------------------------------------------------------------------------------------");
 		ref->client->Con_Printf(PRINT_ALL, L"\t SEQ |   TYPE    |   W  x  H   |                 NAME                 | DXGI FORMAT");
 		ref->client->Con_Printf(PRINT_ALL, L"-----------------------------------------------------------------------------------------------------------");
-		for (auto texture : m_textures)
+		for (auto &texture : m_textures)
 		{
 			if (texture)
 			{
-				ref->client->Con_Printf(PRINT_ALL, std::format(L"\t{:4} | {:9} | {:4} x {:4} | {:36} | {}",
+				ref->client->Con_Printf(PRINT_ALL, "\t{0:4d} | {1:9s} | {2:4d} x {3:4d} | {4:36s} | {5}",
 					texture->m_registrationSequence,
-					ref->sys->ToWideString(magic_enum::enum_name(texture->m_imageType)),
+					magic_enum::enum_name(texture->m_imageType),
 					texture->GetWidth(),
 					texture->GetHeight(),
 					texture->GetName(),
-					ref->sys->ToWideString(magic_enum::enum_name(texture->GetDXGIFormat()))
-					));
+					magic_enum::enum_name(texture->GetDXGIFormat())
+					);
 			}
 		}
 		ref->client->Con_Printf(PRINT_ALL, L"-----------------------------------------------------------------------------------------------------------");

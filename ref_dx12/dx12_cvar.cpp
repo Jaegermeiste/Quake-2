@@ -115,7 +115,7 @@ dx12::Cvars::Cvar::Cvar(std::wstring name, std::wstring defaultString, unsigned 
 		LOG(info) << "<name> " << name << " <string> " << defaultString << " <flags> " << CvarFlagsToString(flags);
 
 		//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(defaultString.c_str()), msl::utilities::SafeInt<int>(flags)));
-		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ref->sys->ToString(name).c_str()), const_cast<char*>(ref->sys->ToString(defaultString).c_str()), msl::utilities::SafeInt<int>(flags));
+		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ToString(name).c_str()), const_cast<char*>(ToString(defaultString).c_str()), msl::utilities::SafeInt<int>(flags));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -137,7 +137,7 @@ dx12::Cvars::Cvar::Cvar(std::wstring name, float defaultValue, unsigned int flag
 		LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
 		//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
-		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ref->sys->ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
+		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -159,7 +159,7 @@ dx12::Cvars::Cvar::Cvar(std::wstring name, double defaultValue, unsigned int fla
 		LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
 		//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
-		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ref->sys->ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
+		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -181,7 +181,7 @@ dx12::Cvars::Cvar::Cvar(std::wstring name, int defaultValue, unsigned int flags)
 		LOG(info) << "<name> " << name << " <value> " << defaultValue << " <flags> " << CvarFlagsToString(flags);
 
 		//m_clientMemPtr = std::make_shared<cvar_t>(*ref->client->Cvar_Get(const_cast<char*>(name.c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags)));
-		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ref->sys->ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
+		m_clientMemPtr = ref->client->Cvar_Get(const_cast<char*>(ToString(name).c_str()), const_cast<char*>(std::to_string(defaultValue).c_str()), msl::utilities::SafeInt<int>(flags));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();
@@ -308,7 +308,7 @@ std::wstring dx12::Cvars::Cvar::String()
 		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return ref->sys->ToWideString(m_clientMemPtr->string);
+	return ToWideString(m_clientMemPtr->string);
 }
 
 std::wstring dx12::Cvars::Cvar::LatchedString()
@@ -325,7 +325,7 @@ std::wstring dx12::Cvars::Cvar::LatchedString()
 		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return ref->sys->ToWideString(m_clientMemPtr->latched_string);
+	return ToWideString(m_clientMemPtr->latched_string);
 }
 
 std::wstring dx12::Cvars::Cvar::Name()
@@ -342,7 +342,7 @@ std::wstring dx12::Cvars::Cvar::Name()
 		LOG(error) << "General Exception: " << e.what();
 	}
 
-	return ref->sys->ToWideString(m_clientMemPtr->name);
+	return ToWideString(m_clientMemPtr->name);
 }
 
 unsigned int dx12::Cvars::Cvar::Flags()
@@ -480,7 +480,7 @@ void dx12::Cvars::Cvar::Set(std::wstring value)
 
 		// Cvar_Set is costly and poorly implemented when we already have a pointer to the cvar (linear string search)
 		// so avoid calling it if at all possible
-		if (value.compare(ref->sys->ToWideString(m_clientMemPtr->string)) == 0)
+		if (value.compare(ToWideString(m_clientMemPtr->string)) == 0)
 		{
 			return;		// not changed
 		}
@@ -496,7 +496,7 @@ void dx12::Cvars::Cvar::Set(std::wstring value)
 
 		if (m_clientMemPtr->flags & CVAR_NOSET)
 		{
-			ref->client->Con_Printf(PRINT_ALL, ref->sys->ToWideString(m_clientMemPtr->name) + L" is write protected.\n");
+			ref->client->Con_Printf(PRINT_ALL, L"{} is write protected.\n", m_clientMemPtr->name);
 			return;
 		}
 
@@ -504,7 +504,7 @@ void dx12::Cvars::Cvar::Set(std::wstring value)
 		{
 			if (m_clientMemPtr->latched_string != nullptr)
 			{
-				if (value.compare(ref->sys->ToWideString(m_clientMemPtr->latched_string)) == 0)
+				if (value.compare(ToWideString(m_clientMemPtr->latched_string)) == 0)
 				{
 					return;
 				}
@@ -512,7 +512,7 @@ void dx12::Cvars::Cvar::Set(std::wstring value)
 		}
 
 		// Cvar_Set uses some client side functionality for latching, server state, etc that we can't safely replicate here, so we have to use it
-		ref->client->Cvar_Set(m_clientMemPtr->name, const_cast<char*>(ref->sys->ToString(value).c_str()));
+		ref->client->Cvar_Set(m_clientMemPtr->name, const_cast<char*>(ToString(value).c_str()));
 	}
 	catch (const std::runtime_error& e) {
 		LOG(error) << "Runtime Error: " << e.what();

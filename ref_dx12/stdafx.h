@@ -51,6 +51,7 @@ ref_dx12
 // STL Includes
 #include <string>
 #include <sstream>
+#include <any>
 #include <format>
 #include <iomanip>
 #include <memory>
@@ -195,18 +196,6 @@ struct magic_enum::customize::enum_range<D3D12_SHADER_CACHE_SUPPORT_FLAGS> {
 #define ALIGNED_16_MEMORY_OPERATORS										\
 void*	operator new	(size_t i)	{	return _mm_malloc(i, 16);	}	\
 void	operator delete	(void* p)	{	_mm_free(p);	}
-
-namespace DX
-{
-	inline void ThrowIfFailed(HRESULT hr)
-	{
-		if (FAILED(hr))
-		{
-			// Set a breakpoint on this line to catch DirectX API errors
-			throw std::exception();
-		}
-	}
-}
 
 // Define a concept to check if T is derived from Parent
 template<typename T, typename Parent>

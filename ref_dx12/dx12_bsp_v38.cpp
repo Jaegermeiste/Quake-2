@@ -330,7 +330,7 @@ size_t dx12::BSP38::LoadTexInfo()
 			m_diskTexInfo[i].flags = LittleLong(inputArray[i].flags);
 
 			// Load texture
-			std::wstring fileName = L"textures/" + ref->sys->ToWideString(inputArray[i].texture) + L".wal";
+			std::wstring fileName = L"textures/" + ToWideString(inputArray[i].texture) + L".wal";
 
 			auto image = ref->media->img->Load(fileName, it_wall);
 
@@ -362,7 +362,7 @@ size_t dx12::BSP38::LoadLighting()
 	try
 	{
 		bool addLight = false;
-		char* bspEntityString = new char[MAX_MAP_ENTSTRING], * token, key[256], * value, target[MAX_QPATH];
+		char* bspEntityString = new char[MAX_MAP_ENTSTRING], * token = nullptr, key[256] = {}, * value = nullptr, target[MAX_QPATH] = {};
 		bool runTokenLoop = true;
 
 		if (!m_header38)
@@ -872,7 +872,7 @@ void dx12::BSP38::CollectLeafGeometry()
 
 		// Collect geometry for each leaf
 		for (size_t leafIdx = 0; leafIdx < m_diskLeafs.size(); leafIdx++) {
-			const auto leaf = m_diskLeafs[leafIdx];
+			const auto &leaf = m_diskLeafs[leafIdx];
 			auto& leafGeometry = m_leafGeometry[leafIdx];
 
 			leafGeometry.index = leafIdx;
@@ -896,8 +896,8 @@ void dx12::BSP38::CollectLeafGeometry()
 						break;
 					}
 					uint16_t faceIndex = m_diskLeafFaces[leaf.firstleafface + i];
-					const auto face = m_diskFaces[faceIndex];
-					const auto texInfo = m_diskTexInfo[face.texinfo];
+					const auto &face = m_diskFaces[faceIndex];
+					const auto &texInfo = m_diskTexInfo[face.texinfo];
 
 					// Find index of first surfedge
 					int startSurfEdgeIndex = face.firstedge;// 0;
@@ -914,7 +914,7 @@ void dx12::BSP38::CollectLeafGeometry()
 					for (short e = 0; e < face.numedges; e++) {
 						int32_t surfEdgeIndex = m_diskSurfEdges[static_cast<size_t>(startSurfEdgeIndex) + e];
 						int32_t edgeIndex = abs(surfEdgeIndex);
-						const auto edge = m_diskEdges[edgeIndex];
+						const auto &edge = m_diskEdges[edgeIndex];
 
 						uint16_t vertexIndex = (surfEdgeIndex >= 0) ? edge.v[0] : edge.v[1];
 
@@ -930,7 +930,7 @@ void dx12::BSP38::CollectLeafGeometry()
 						}
 						else {
 							// Create new vertex
-							const auto bspVertex = m_diskVertices[vertexIndex];
+							const auto &bspVertex = m_diskVertices[vertexIndex];
 
 							Vertex3D vertex = {};
 
@@ -950,11 +950,11 @@ void dx12::BSP38::CollectLeafGeometry()
 							float textureWidth = 256.0f;
 							float textureHeight = 256.0f;
 
-							auto texName = ref->sys->ToWideString(texInfo.texture);
+							auto texName = ToWideString(texInfo.texture);
 							if (!texName.empty() && !(std::all_of(texName.begin(), texName.end(), [](auto c) {return std::isspace(c); })))
 							{
 								// Try load image
-								std::wstring fileName = L"textures/" + ref->sys->ToWideString(texInfo.texture) + L".wal";
+								std::wstring fileName = L"textures/" + ToWideString(texInfo.texture) + L".wal";
 
 								auto image = ref->media->img->Load(fileName, it_wall);
 
@@ -1091,11 +1091,11 @@ void dx12::BSP38::UploadLeafGeometry()
 
 		for (unsigned int i = 0; i < m_leafGeometry.size(); i++)
 		{
-			const auto leafGeometry = m_leafGeometry[i];
+			const auto &leafGeometry = m_leafGeometry[i];
 
 			if ((leafGeometry.cluster >= 0) && (leafGeometry.area > 0) && (leafGeometry.vertices.size() > 0) && (leafGeometry.indices.size() > 0))
 			{
-				auto leafAS = m_leafAccelStructures.emplace_back();
+				auto &leafAS = m_leafAccelStructures.emplace_back();
 
 				const Vertex3D* constRawVertexArray = leafGeometry.vertices.data();
 				Vertex3D* rawVertexArray = const_cast<Vertex3D*>(constRawVertexArray);
@@ -1128,7 +1128,7 @@ void dx12::BSP38::GenerateBottomLevelAS(std::shared_ptr<CommandList> commandList
 
 	try
 	{
-		for (auto leafAS : m_leafAccelStructures)
+		for (auto &leafAS : m_leafAccelStructures)
 		{
 			if (!leafAS.CreateBLAS(commandList))
 			{

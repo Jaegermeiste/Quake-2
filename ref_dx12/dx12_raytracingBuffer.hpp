@@ -54,8 +54,8 @@ namespace dx12
 		void                        CreateUAV();
 		void                        BindUAV(std::shared_ptr<CommandList> commandList);
 
-		size_t                      Width() { return m_width; }
-		size_t                      Height() { return m_height; }
+		size_t                      Width() const { return m_width; }
+		size_t                      Height() const { return m_height; }
 
 		D3D12_GPU_VIRTUAL_ADDRESS   GetGPUVirtualAddress() { if (m_resource) { return m_resource->GetGPUVirtualAddress(); } return 0; }
 	};
